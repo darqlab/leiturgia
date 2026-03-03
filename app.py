@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_file
-import json, os, copy
+import json, os, copy, re
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
@@ -17,8 +17,17 @@ LYRICS_DIR   = "data/lyrics"
 
 
 def _lyrics_key(query: str) -> str:
-    import re
     return re.sub(r"[^a-z0-9]+", "-", query.lower()).strip("-")
+
+
+def _slugify(name: str, existing_ids: list = None) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+    if not existing_ids or slug not in existing_ids:
+        return slug
+    n = 2
+    while f"{slug}-{n}" in existing_ids:
+        n += 1
+    return f"{slug}-{n}"
 
 
 def _lyrics_path(key: str) -> str:
@@ -402,6 +411,48 @@ def import_sheet():
         return jsonify({"status": "error", "message": str(e)}), 404
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+
+@app.route("/api/program/add", methods=["POST"])
+def add_program():
+    data = request.get_json()
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"status": "error", "message": "Name is required"}), 400
+    program = load_program()
+    existing_ids = [sp["id"] for sp in program.get("service_programs", [])]
+    pid = _slugify(name, existing_ids)
+    program["service_programs"].append({"id": pid, "name": name, "time": "", "items": []})
+    save_program(program)
+    save_history(program)
+    return jsonify({"status": "ok", "id": pid})
+
+
+@app.route("/api/program/add-from-sheet", methods=["POST"])
+def add_program_from_sheet():
+    data     = request.get_json()
+    name     = (data.get("name") or "").strip()
+    sheet_id = (data.get("sheet_id") or "").strip()
+    if not name:
+        return jsonify({"status": "error", "message": "Name is required"}), 400
+    if not sheet_id:
+        return jsonify({"status": "error", "message": "Sheet ID or URL is required"}), 400
+    # Extract sheet ID from a full Google Sheets URL if needed
+    m = re.search(r"/d/([a-zA-Z0-9_-]+)", sheet_id)
+    if m:
+        sheet_id = m.group(1)
+    program = load_program()
+    existing_ids = [sp["id"] for sp in program.get("service_programs", [])]
+    pid = _slugify(name, existing_ids)
+    try:
+        from sheets import parse_program_sheet
+        items = parse_program_sheet(sheet_id, pid)
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+    program["service_programs"].append({"id": pid, "name": name, "time": "", "items": items})
+    save_program(program)
+    save_history(program)
+    return jsonify({"status": "ok", "id": pid, "item_count": len(items)})
 
 
 @app.route("/api/reset", methods=["POST"])

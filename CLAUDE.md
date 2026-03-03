@@ -69,3 +69,54 @@ Three Python modules with clear separation of concerns:
 ## Slide layout constants (generator.py)
 
 Slide dimensions: 10" × 5.625" (16:9). All coordinates use inches. The `add_item_slide` function has detailed layout math to vertically center content based on whether a subtitle and how many participants are present — take care when modifying those calculations.
+
+---
+
+## Documentation
+
+All project documentation lives in `/home/dennis/Documents/leiturgia_docs/`.
+
+### Filename Naming Convention
+
+Filenames follow the standard abbreviation patterns below:
+
+| Type | Pattern | Purpose |
+|------|---------|---------|
+| IA  | `[Module]_Issue_Analysis.md` | Problem/issue analysis |
+| RP  | `[Module]_[Feature]_Refactoring_Plan.md` | Refactoring or redesign plan |
+| TM  | `[Module]_[Feature]_TM.md` | Task management / checklist |
+| QA  | `[Module]_[Feature]_QA_Checklist.md` | Quality assurance checklist |
+| ADR | `ADR_[Number]_[Decision].md` | Architecture decision record |
+| DG  | `[System]_Deployment_Guide.md` | Deployment guide |
+| DEV | `[System]_Developer_Guide_DEV.md` | Developer reference guide |
+| TDD | `[Module]_[Feature]_TDD.md` | Technical design document |
+| MS  | `[Module]_[Feature]_MS.md` | Module spec / reference |
+
+### Rules
+
+- Use `PascalCase` for module and feature names (e.g., `Generator`, `ServiceProgram`)
+- No spaces — use underscores as separators
+- Always include the type abbreviation suffix so purpose is clear from the filename
+
+---
+
+## Development Methodology
+
+Every non-trivial change follows this three-step sequence before any code is written:
+
+### 1. Plan (`IA` or `RP`)
+- Analyse the problem or feature request
+- Identify affected files, components, and risks
+- Document as an Issue Analysis (`_IA.md`) for bug/investigation work, or a Refactoring Plan (`_RP.md`) for redesign/new features
+- Get agreement before proceeding
+
+### 2. Implementation Plan
+- Break the approved plan into concrete, ordered steps
+- List exactly which files change and what each change does
+- Use Claude Code's plan mode (`EnterPlanMode`) so the user reviews and approves before implementation starts
+
+### 3. Task Management (`TM`)
+- Track work in a `_TM.md` file (or via Claude Code's `TaskCreate`/`TaskUpdate` tools during the session)
+- Each task maps to a step from the implementation plan
+- Mark tasks `in_progress` before starting, `completed` when done
+- Do not skip ahead — complete and verify each task before moving to the next
