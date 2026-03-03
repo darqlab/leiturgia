@@ -10,24 +10,24 @@
       "time": "9:00 a.m.",
       "items": [
         {
-          "type": "content",
+          "type": "participant",
           "title": "Mission Story",
           "part": "The Church We Build Together",
-          "participant": "Video",
+          "participant": "Evari Damien Baldoza",
           "item_id": "ss-006"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Praise Worship",
           "part": "Praise Worship",
           "participant": "Congregation",
           "item_id": "ss-001"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Welcome Remarks",
           "part": "Welcome Remarks",
-          "participant": "Dainee Rose Jabla",
+          "participant": "Evelyn Cezar",
           "item_id": "ss-002"
         },
         {
@@ -37,28 +37,28 @@
           "lyrics_key": "537"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Opening Prayer",
           "part": "Opening Prayer",
-          "participant": "Ailene Joy Mutsahuni",
+          "participant": "Ivan Quidet",
           "item_id": "ss-004"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Special Music",
           "part": "Special Music",
           "participant": "Quartet",
           "item_id": "ss-005"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Intermission Song",
           "part": "Intermission Song",
           "participant": "Tubuan Ukerists",
           "item_id": "ss-007"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Promotional Talk",
           "part": "Promotional Talk",
           "participant": "Caroline Oliveira",
@@ -71,7 +71,7 @@
           "lyrics_key": "7"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Closing Prayer",
           "part": "Closing Prayer",
           "participant": "Eliezer John Jabla",
@@ -85,7 +85,7 @@
       "time": "10:30 a.m.",
       "items": [
         {
-          "type": "content",
+          "type": "participant",
           "title": "Praise Songs",
           "part": "Praise Songs",
           "participant": "Congregation",
@@ -104,7 +104,7 @@
           "lyrics_key": "242"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Invocation",
           "part": "Invocation",
           "participant": "",
@@ -117,7 +117,7 @@
           "lyrics_key": "151"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Scripture Reading",
           "part": "Scripture Reading",
           "participant": "Jedidiah Klyde Macaraeg",
@@ -130,7 +130,7 @@
           "lyrics_key": "19"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Pastoral Prayer",
           "part": "Pastoral Prayer",
           "participant": "Jedidiah Klyde Macaraeg",
@@ -143,14 +143,14 @@
           "lyrics_key": "361"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Thoughts on Stewardship",
           "part": "Thoughts on Stewardship",
           "participant": "Exavier Jovaughn Olasiman",
           "item_id": "ds-011"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Offertory Music",
           "part": "Offertory Music",
           "participant": "Tubuan Ukerists",
@@ -163,31 +163,31 @@
           "lyrics_key": "83"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Offertory Prayer",
           "part": "Offertory Prayer",
           "participant": "Exavier Jovaughn Olasiman",
           "item_id": "ds-014"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Children Homily",
           "part": "Children Homily",
           "participant": "Keen Spenser Gilo",
           "item_id": "ds-015"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Ministry in Song",
           "part": "Ministry in Song",
           "participant": "Pauleen Angeli Baloyo",
           "item_id": "ds-016"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "The Spoken Word",
           "part": "The Spoken Word",
-          "participant": "Sis. Sweetie Ritchil \u2014 Associate Treasurer, SSD",
+          "participant": "Nelson Paulo",
           "item_id": "ds-017"
         },
         {
@@ -203,7 +203,7 @@
           "lyrics_key": "214"
         },
         {
-          "type": "content",
+          "type": "participant",
           "title": "Benediction",
           "part": "Benediction",
           "participant": "",

@@ -229,7 +229,7 @@ def _overview_slide(doc, section_name, time_str, items):
         fill = C["bgCard"] if i % 2 == 0 else C["bg"]
         doc.rect(slide, 0.4, y, 9.2, row_h - 0.04, fill)
         doc.rect(slide, 0.4, y, 0.06, row_h - 0.04, C["gold"])
-        item_type = item.get("type", "content")
+        item_type = item.get("type", "participant")
         right_text = "" if item_type == "song" else item.get("participant", "")
         doc.txt(slide, item.get("title", ""), 0.55, y + 0.04, 4.5, row_h * 0.8,
                 font_size=13, color=C["offWhite"])
@@ -240,10 +240,41 @@ def _overview_slide(doc, section_name, time_str, items):
 
 def _item_slide(doc, item, index, total, section_name):
     slide = doc.new_slide()
+
+    # Resolve type
+    item_type = item.get("type", "participant")
+
+    # ── Content item: free-form text body, no participant row ─────────────────
+    if item_type == "content":
+        _header(doc, slide, section_name, f"{index + 1} of {total}")
+        content_text = item.get("content", "")
+        doc.txt(slide, item.get("title", ""), 0.4, 0.65, 9.2, 0.85,
+                font_size=38, font_face=FONT_H, bold=True, color=C["goldLt"])
+        doc.rect(slide, 0.4, 1.65, 4.0, 0.04, C["gold"])
+        # Render content lines as separate paragraphs
+        lines = content_text.split("\n") if content_text else [""]
+        gs = doc._gs(fill="none", stroke="none")
+        frame = __import__("odf.draw", fromlist=["Frame"]).Frame(
+            stylename=gs,
+            x=doc._cm(doc._i(1.0)), y=doc._cm(doc._i(1.80)),
+            width=doc._cm(doc._i(8.0)), height=doc._cm(doc._i(2.50)),
+        )
+        from odf import draw as _draw, text as _text
+        tb = _draw.TextBox()
+        for line in lines:
+            ps = doc._ps(align="center", fontfamily=FONT_B, fontsize=18,
+                         color=C["offWhite"])
+            p = _text.P(stylename=ps)
+            p.addText(line)
+            tb.addElement(p)
+        frame.addElement(tb)
+        slide.addElement(frame)
+        _bottom_bar(doc, slide)
+        return
+
     _header(doc, slide, section_name, f"{index + 1} of {total}")
 
     # Resolve fields from new typed schema (or legacy schema)
-    item_type = item.get("type", "content")
     if item_type == "song":
         subtitle = f"Hymn #{item['hymn_number']}" if item.get("hymn_number") else ""
         p_name   = ""
@@ -254,6 +285,7 @@ def _item_slide(doc, item, index, total, section_name):
         p_name   = parts[0].get("name", "") if parts else ""
         p_role   = parts[0].get("role", "") if parts else ""
     else:
+        # Participant item
         subtitle = item.get("part", "")
         p_name   = item.get("participant", "")
         p_role   = item.get("part", "")
@@ -329,34 +361,6 @@ def _hymn_slides(doc, stanzas):
             else:              dc = C["muted"]
             doc.dot(slide, x, 5.35, dot_w, dc)
 
-
-def _lesson_study_slide(doc, lesson_study):
-    slide = doc.new_slide()
-    _header(doc, slide, "Sabbath School", "Lesson Study")
-
-    doc.txt(slide, lesson_study.get("reading_title", "Lesson Study"),
-            0.4, 0.62, 9.2, 0.70,
-            font_size=22, font_face=FONT_H, bold=True)
-    if lesson_study.get("reading_subtitle"):
-        doc.txt(slide, lesson_study["reading_subtitle"],
-                0.4, 1.38, 9.2, 0.40,
-                font_size=16, color=C["goldLt"], italic=True)
-
-    doc.rect(slide, 0.4, 1.90, 4.0, 0.04, C["gold"])
-
-    classes = lesson_study.get("classes", [])
-    row_h   = min(0.85, 3.3 / max(len(classes), 1))
-    for i, cls in enumerate(classes):
-        y    = 2.04 + i * row_h
-        fill = C["bgCard"] if i % 2 == 0 else C["bg"]
-        doc.rect(slide, 0.4, y, 9.2, row_h - 0.05, fill)
-        doc.rect(slide, 0.4, y, 0.06, row_h - 0.05, C["gold"])
-        doc.txt(slide, cls.get("name", ""), 0.6, y + 0.04, 4.0, row_h * 0.38,
-                font_size=12, color=C["gold"], bold=True)
-        doc.txt(slide, cls.get("teacher", ""), 0.6, y + row_h * 0.40, 8.5, row_h * 0.50,
-                font_size=18, color=C["offWhite"])
-
-    _bottom_bar(doc, slide)
 
 
 def _service_team_slide(doc, service_team, church):

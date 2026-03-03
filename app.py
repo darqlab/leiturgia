@@ -44,47 +44,45 @@ DEFAULT_PROGRAM = {
         {
             "id":          "sabbath-school",
             "name":        "Sabbath School",
-            "description": "",
             "time":        "9:00 a.m.",
             "items": [
-                {"item_id": "ss-001", "type": "content", "title": "Praise Worship",    "part": "Praise Worship",    "participant": "Congregation"},
-                {"item_id": "ss-002", "type": "content", "title": "Welcome Remarks",   "part": "Welcome Remarks",   "participant": "Dainee Rose Jabla"},
+                {"item_id": "ss-001", "type": "participant", "title": "Praise Worship",    "part": "Praise Worship",    "participant": "Congregation"},
+                {"item_id": "ss-002", "type": "participant", "title": "Welcome Remarks",   "part": "Welcome Remarks",   "participant": "Dainee Rose Jabla"},
                 {"item_id": "ss-003", "type": "song",    "title": "Opening Song",      "hymn_number": ""},
-                {"item_id": "ss-004", "type": "content", "title": "Opening Prayer",    "part": "Opening Prayer",    "participant": "Ailene Joy Mutsahuni"},
-                {"item_id": "ss-005", "type": "content", "title": "Special Music",     "part": "Special Music",     "participant": "Quartet"},
-                {"item_id": "ss-006", "type": "content", "title": "Mission Story",     "part": "The Church We Build Together", "participant": "Video"},
-                {"item_id": "ss-007", "type": "content", "title": "Intermission Song", "part": "Intermission Song", "participant": "Tubuan Ukerists"},
-                {"item_id": "ss-008", "type": "content", "title": "Promotional Talk",  "part": "Promotional Talk",  "participant": "Caroline Oliveira"},
+                {"item_id": "ss-004", "type": "participant", "title": "Opening Prayer",    "part": "Opening Prayer",    "participant": "Ailene Joy Mutsahuni"},
+                {"item_id": "ss-005", "type": "participant", "title": "Special Music",     "part": "Special Music",     "participant": "Quartet"},
+                {"item_id": "ss-006", "type": "participant", "title": "Mission Story",     "part": "The Church We Build Together", "participant": "Video"},
+                {"item_id": "ss-007", "type": "participant", "title": "Intermission Song", "part": "Intermission Song", "participant": "Tubuan Ukerists"},
+                {"item_id": "ss-008", "type": "participant", "title": "Promotional Talk",  "part": "Promotional Talk",  "participant": "Caroline Oliveira"},
                 {"item_id": "ss-009", "type": "song",    "title": "Closing Song",      "hymn_number": ""},
-                {"item_id": "ss-010", "type": "content", "title": "Closing Prayer",    "part": "Closing Prayer",    "participant": "Eliezer John Jabla"},
+                {"item_id": "ss-010", "type": "participant", "title": "Closing Prayer",    "part": "Closing Prayer",    "participant": "Eliezer John Jabla"},
             ],
         },
         {
             "id":          "divine-service",
             "name":        "Divine Service",
-            "description": "",
             "time":        "10:30 a.m.",
             "items": [
-                {"item_id": "ds-001", "type": "content", "title": "Praise Songs",            "part": "Praise Songs",            "participant": "Congregation"},
-                {"item_id": "ds-002", "type": "content", "title": "Call to Worship",          "part": "Call to Worship",          "participant": "Edward Rodriguez"},
+                {"item_id": "ds-001", "type": "participant", "title": "Praise Songs",            "part": "Praise Songs",            "participant": "Congregation"},
+                {"item_id": "ds-002", "type": "participant", "title": "Call to Worship",          "part": "Call to Worship",          "participant": "Edward Rodriguez"},
                 {"item_id": "ds-003", "type": "song",    "title": "Introit *",                "hymn_number": ""},
                 {"item_id": "ds-004", "type": "song",    "title": "Hymn of Celebration",      "hymn_number": ""},
-                {"item_id": "ds-005", "type": "content", "title": "Invocation",               "part": "Invocation",               "participant": ""},
+                {"item_id": "ds-005", "type": "participant", "title": "Invocation",               "part": "Invocation",               "participant": ""},
                 {"item_id": "ds-006", "type": "song",    "title": "Hymn of Adoration",        "hymn_number": ""},
-                {"item_id": "ds-007", "type": "content", "title": "Scripture Reading",        "part": "Scripture Reading",        "participant": "Jedidiah Klyde Macaraeg"},
+                {"item_id": "ds-007", "type": "participant", "title": "Scripture Reading",        "part": "Scripture Reading",        "participant": "Jedidiah Klyde Macaraeg"},
                 {"item_id": "ds-008", "type": "song",    "title": "Prayer Hymn *",            "hymn_number": ""},
-                {"item_id": "ds-009", "type": "content", "title": "Pastoral Prayer",          "part": "Pastoral Prayer",          "participant": "Jedidiah Klyde Macaraeg"},
+                {"item_id": "ds-009", "type": "participant", "title": "Pastoral Prayer",          "part": "Pastoral Prayer",          "participant": "Jedidiah Klyde Macaraeg"},
                 {"item_id": "ds-010", "type": "song",    "title": "Hymn of Response *",       "hymn_number": ""},
-                {"item_id": "ds-011", "type": "content", "title": "Thoughts on Stewardship",  "part": "Thoughts on Stewardship",  "participant": "Exavier Jovaughn Olasiman"},
-                {"item_id": "ds-012", "type": "content", "title": "Offertory Music",          "part": "Offertory Music",          "participant": "Tubuan Ukerists"},
+                {"item_id": "ds-011", "type": "participant", "title": "Thoughts on Stewardship",  "part": "Thoughts on Stewardship",  "participant": "Exavier Jovaughn Olasiman"},
+                {"item_id": "ds-012", "type": "participant", "title": "Offertory Music",          "part": "Offertory Music",          "participant": "Tubuan Ukerists"},
                 {"item_id": "ds-013", "type": "song",    "title": "Hymn of Gratitude",        "hymn_number": ""},
-                {"item_id": "ds-014", "type": "content", "title": "Offertory Prayer",         "part": "Offertory Prayer",         "participant": "Exavier Jovaughn Olasiman"},
-                {"item_id": "ds-015", "type": "content", "title": "Children Homily",          "part": "Children Homily",          "participant": "Keen Spenser Gilo"},
-                {"item_id": "ds-016", "type": "content", "title": "Ministry in Song",         "part": "Ministry in Song",         "participant": "Pauleen Angeli Baloyo"},
-                {"item_id": "ds-017", "type": "content", "title": "The Spoken Word",          "part": "The Spoken Word",          "participant": "Sis. Sweetie Ritchil — Associate Treasurer, SSD"},
+                {"item_id": "ds-014", "type": "participant", "title": "Offertory Prayer",         "part": "Offertory Prayer",         "participant": "Exavier Jovaughn Olasiman"},
+                {"item_id": "ds-015", "type": "participant", "title": "Children Homily",          "part": "Children Homily",          "participant": "Keen Spenser Gilo"},
+                {"item_id": "ds-016", "type": "participant", "title": "Ministry in Song",         "part": "Ministry in Song",         "participant": "Pauleen Angeli Baloyo"},
+                {"item_id": "ds-017", "type": "participant", "title": "The Spoken Word",          "part": "The Spoken Word",          "participant": "Sis. Sweetie Ritchil — Associate Treasurer, SSD"},
                 {"item_id": "ds-018", "type": "song",    "title": "Hymn of Consecration",     "hymn_number": ""},
                 {"item_id": "ds-019", "type": "song",    "title": "Hymn of Hope",             "hymn_number": ""},
-                {"item_id": "ds-020", "type": "content", "title": "Benediction",              "part": "Benediction",              "participant": ""},
+                {"item_id": "ds-020", "type": "participant", "title": "Benediction",              "part": "Benediction",              "participant": ""},
             ],
         },
     ],
@@ -116,7 +114,7 @@ def _migrate_item(item, item_id=""):
         }
     return {
         "item_id":     item_id,
-        "type":        "content",
+        "type":        "participant",
         "title":       item.get("title", ""),
         "part":        item.get("subtitle", "") or item.get("title", ""),
         "participant": p_name,
@@ -156,18 +154,16 @@ def load_program():
                 "song_leader": data.get("song_leader", ""),
                 "service_programs": [
                     {
-                        "id":          "sabbath-school",
-                        "name":        "Sabbath School",
-                        "description": "",
-                        "time":        ss.get("time", "9:00 a.m."),
-                        "items":       ss_items,
+                        "id":    "sabbath-school",
+                        "name":  "Sabbath School",
+                        "time":  ss.get("time", "9:00 a.m."),
+                        "items": ss_items,
                     },
                     {
-                        "id":          "divine-service",
-                        "name":        "Divine Service",
-                        "description": "",
-                        "time":        ds.get("time", "10:30 a.m."),
-                        "items":       ds_items,
+                        "id":    "divine-service",
+                        "name":  "Divine Service",
+                        "time":  ds.get("time", "10:30 a.m."),
+                        "items": ds_items,
                     },
                 ],
                 "service_team": data.get("service_team", []),
@@ -178,6 +174,10 @@ def load_program():
             items = sp.get("items", [])
             if items and "type" not in items[0]:
                 sp["items"] = _migrate_items(items, sp["id"][:2])
+            # ── Rename old "content" participant items → "participant" ──────────
+            for item in sp.get("items", []):
+                if item.get("type") == "content" and "participant" in item:
+                    item["type"] = "participant"
 
         return data
     return copy.deepcopy(DEFAULT_PROGRAM)
@@ -362,6 +362,46 @@ def download_odp(section):
         name = section.replace("-", " ").title().replace(" ", "") + ".odp"
         return send_file(path, as_attachment=True, download_name=name)
     return "No ODP file generated yet.", 404
+
+
+@app.route("/api/import-sheet", methods=["POST"])
+def import_sheet():
+    sheet_id = os.environ.get("GOOGLE_SHEET_ID", "").strip()
+    if not sheet_id:
+        return jsonify({"status": "error", "message": "GOOGLE_SHEET_ID not set in .env"}), 400
+    try:
+        from sheets import fetch_and_parse
+        program = load_program()
+        if not program.get("date"):
+            return jsonify({"status": "error", "message": "Set the program date before importing"}), 400
+
+        updates = fetch_and_parse(sheet_id, program["date"])
+
+        count = 0
+        for key, value in updates.items():
+            if key == "__song_leader__":
+                program["song_leader"] = value
+                count += 1
+            elif key == "__pianist__":
+                program["pianist"] = value
+                count += 1
+            elif isinstance(key, tuple):
+                sp_id, item_id = key
+                for sp in program.get("service_programs", []):
+                    if sp["id"] != sp_id:
+                        continue
+                    for item in sp.get("items", []):
+                        if item["item_id"] == item_id and item.get("type") == "participant":
+                            item["participant"] = value
+                            count += 1
+
+        save_program(program)
+        save_history(program)
+        return jsonify({"status": "ok", "updated": count})
+    except ValueError as e:
+        return jsonify({"status": "error", "message": str(e)}), 404
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route("/api/reset", methods=["POST"])

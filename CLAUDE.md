@@ -2,6 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git & GitHub
+
+- **Personal account:** `darqlab` (arquillanodennis@gmail.com)
+- **Remote:** `git@github-personal:darqlab/leiturgia.git`
+- Always use the `github-personal` SSH alias when committing/pushing
+- Set identity per commit:
+  ```bash
+  git config user.name "Dennis"
+  git config user.email "arquillanodennis@gmail.com"
+  ```
+
+---
+
 ## What this project is
 
 **Leiturgia** (formerly "Sabbath Program Builder") is a lightweight Flask web app for generating Sabbath School PowerPoint presentations. It runs on a Raspberry Pi and is accessible from any device on the same network.

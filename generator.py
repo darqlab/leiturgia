@@ -35,12 +35,13 @@ def add_rect(slide, x, y, w, h, fill_color):
 
 
 def add_text(slide, text, x, y, w, h, font_size=20, font_face=FONT_B,
-             color=None, bold=False, italic=False, align="center", valign="middle"):
+             color=None, bold=False, italic=False, align="center", valign="middle",
+             word_wrap=False):
     if color is None:
         color = C["white"]
     txBox = slide.shapes.add_textbox(inches(x), inches(y), inches(w), inches(h))
     tf = txBox.text_frame
-    tf.word_wrap = False
+    tf.word_wrap = word_wrap
 
     from pptx.enum.text import MSO_ANCHOR
     if valign == "middle":
@@ -121,7 +122,7 @@ def add_overview_slide(prs, section_label, time_str, items):
         fill = C["bgCard"] if i % 2 == 0 else C["bg"]
         add_rect(slide, 0.4, y, 9.2, row_h, fill)
         add_rect(slide, 0.4, y, 0.06, row_h, C["gold"])
-        item_type = item.get("type", "content")
+        item_type = item.get("type", "participant")
         label = item["title"]
         if item_type == "song":
             if item.get("hymn_number"):
@@ -184,7 +185,30 @@ def add_item_slide(prs, item, index, total):
     STACK_GAP   = 0.2
 
     # Resolve fields from new typed schema (or legacy schema)
-    item_type = item.get("type", "content")
+    item_type = item.get("type", "participant")
+
+    # ── Content item: free-form text body, no participant row ─────────────────
+    if item_type == "content":
+        content_text = item.get("content", "")
+        SLIDE_MID  = 2.8125
+        TITLE_VIS  = 0.50
+        SEP_H      = 0.04
+        BODY_H     = 1.80
+        total_vis  = TITLE_VIS + 0.30 + SEP_H + 0.22 + BODY_H
+        title_y    = SLIDE_MID - total_vis / 2
+
+        add_text(slide, item["title"], 0, title_y, 10, 1.05,
+                 font_size=46, font_face=FONT_H, bold=True, align="center",
+                 color=C["goldLt"], valign="top")
+        sep_y = title_y + TITLE_VIS + 0.30
+        add_rect(slide, 3.5, sep_y, 3, SEP_H, C["gold"])
+        add_text(slide, content_text, 1.0, sep_y + SEP_H + 0.22, 8.0, BODY_H,
+                 font_size=20, font_face=FONT_B, color=C["offWhite"],
+                 align="center", valign="top", word_wrap=True)
+        add_text(slide, f"{index + 1} / {total}", 8.5, 5.2, 1.3, 0.3,
+                 font_size=10, color=C["muted"], align="right")
+        return
+
     if item_type == "song":
         subtitle = f"Hymn #{item['hymn_number']}" if item.get("hymn_number") else ""
         p_name   = ""
@@ -196,6 +220,7 @@ def add_item_slide(prs, item, index, total):
         p_name   = parts[0].get("name", "") if parts else ""
         p_role   = parts[0].get("role", "") if parts else ""
     else:
+        # Participant item
         subtitle = item.get("part", "")
         p_name   = item.get("participant", "")
         p_role   = item.get("part", "")
@@ -351,35 +376,6 @@ def add_hymn_slides(prs, stanzas):
             shape.fill.fore_color.rgb = dot_color
             shape.line.fill.background()
 
-
-def add_lesson_study_slide(prs, lesson_study):
-    slide = _blank_slide(prs)
-    bg(slide)
-    top_bar(slide)
-    bottom_bar(slide)
-
-    add_text(slide, "SABBATH SCHOOL", 0.3, 0.1, 6, 0.55, font_size=11, color=C["gold"], bold=True)
-    add_text(slide, "Lesson Study", 0, 0.1, 9.7, 0.55, font_size=11, color=C["muted"], align="right")
-
-    add_text(slide, lesson_study.get("reading_title", "Lesson Study"), 0.4, 0.85, 9.2, 0.70,
-             font_size=22, font_face=FONT_H, bold=True, color=C["white"], align="left")
-    if lesson_study.get("reading_subtitle"):
-        add_text(slide, lesson_study["reading_subtitle"], 0.4, 1.55, 9.2, 0.40,
-                 font_size=16, color=C["goldLt"], italic=True, align="left")
-
-    add_rect(slide, 0.4, 2.08, 4, 0.04, C["gold"])
-
-    classes = lesson_study.get("classes", [])
-    row_h   = min(0.85, 3.3 / max(len(classes), 1))
-    for i, cls in enumerate(classes):
-        y = 2.22 + i * row_h
-        fill = C["bgCard"] if i % 2 == 0 else C["bg"]
-        add_rect(slide, 0.4, y, 9.2, row_h - 0.05, fill)
-        add_rect(slide, 0.4, y, 0.06, row_h - 0.05, C["gold"])
-        add_text(slide, cls.get("name", ""), 0.6, y + 0.04, 4, row_h * 0.38,
-                 font_size=12, color=C["gold"], bold=True, align="left")
-        add_text(slide, cls.get("teacher", ""), 0.6, y + row_h * 0.40, 8.5, row_h * 0.50,
-                 font_size=18, color=C["offWhite"], align="left")
 
 
 def add_service_team_slide(prs, service_team, church):
