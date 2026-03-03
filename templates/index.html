@@ -932,23 +932,6 @@
   </div>
   {% endfor %}
 
-  <!-- ── Service Team ───────────────────────────────────────────────────── -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-title">Service Team</span>
-    </div>
-    <div class="section-body">
-      <div class="team-list" id="serviceTeam">
-        {% for member in program["service_team"] %}
-        <div class="team-row">
-          <div class="role-label">{{ member.role }}</div>
-          <input type="text" class="member-name" data-role="{{ member.role }}" value="{{ member.name }}" placeholder="{{ member.role }}">
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-
 
 </div><!-- /container -->
 </div><!-- /main-content -->
