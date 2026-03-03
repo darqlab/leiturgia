@@ -36,6 +36,65 @@ MISSION_STORY_COLS = [7, 8, 9, 10]
 MISSION_STORY_TARGET = (_SS, "ss-006")
 
 
+def parse_program_sheet(sheet_id: str, program_id: str) -> list:
+    """
+    Fetch a flat Google Sheet and return a list of typed program items.
+
+    Expected sheet format — row 1 is a header (skipped); each subsequent
+    non-empty row is one program item:
+
+      Col A  — Title
+      Col B  — Type ("song" | "participant"; defaults to "participant" if blank)
+      Col C  — Part / Role (defaults to Title if blank)
+      Col D  — Participant name  (for participant items)
+               Hymn number       (for song items, cast to int)
+
+    item_id is auto-generated as "{program_id}-{index:03d}".
+    """
+    url = EXPORT_URL.format(sheet_id=sheet_id)
+    r = requests.get(url, headers=HEADERS, timeout=15)
+    r.raise_for_status()
+
+    rows = list(csv.reader(io.StringIO(r.text)))
+    data_rows = rows[1:]  # skip header row
+
+    items = []
+    for row in data_rows:
+        # Pad to at least 4 columns
+        row = list(row) + [""] * (4 - len(row))
+        title = row[0].strip()
+        if not title:
+            continue
+
+        item_type = row[1].strip().lower() or "participant"
+        part      = row[2].strip() or title
+        col_d     = row[3].strip()
+        item_id   = f"{program_id}-{len(items) + 1:03d}"
+
+        if item_type == "song":
+            hymn_number = ""
+            try:
+                hymn_number = int(col_d)
+            except (ValueError, TypeError):
+                pass
+            items.append({
+                "item_id":     item_id,
+                "type":        "song",
+                "title":       title,
+                "hymn_number": hymn_number,
+            })
+        else:
+            items.append({
+                "item_id":     item_id,
+                "type":        "participant",
+                "title":       title,
+                "part":        part,
+                "participant": col_d,
+            })
+
+    return items
+
+
 def fetch_and_parse(sheet_id: str, date_str: str) -> dict:
     """
     Fetch the sheet CSV and return a flat updates dict:
