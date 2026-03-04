@@ -4,14 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Git & GitHub
 
-- **Personal account:** `darqlab` (arquillanodennis@gmail.com)
-- **Remote:** `git@github-personal:darqlab/leiturgia.git`
-- Always use the `github-personal` SSH alias when committing/pushing
-- Set identity per commit:
-  ```bash
-  git config user.name "Dennis"
-  git config user.email "arquillanodennis@gmail.com"
-  ```
+- **Personal account:** `darqlab` (arquillanodennis@gmail.com) — **default** (`github.com`)
+- **Work account:** `dennisarq` (darquillano@ssd.org) — use alias `github-work`
+- **Remote:** `git@github.com:darqlab/leiturgia.git`
+- Global git identity is already set to personal; no per-commit override needed here.
 
 ---
 
