@@ -441,7 +441,7 @@
       cursor: default;
     }
     .program-item.item-editing .item-header {
-      cursor: default;
+      cursor: pointer;
     }
 
     .item-header {
@@ -507,6 +507,13 @@
     .btn-reorder { background: none; border: none; color: var(--muted); font-size: 8px; line-height: 1; padding: 2px 4px; border-radius: 3px; cursor: pointer; transition: color 0.12s; }
     .btn-reorder:hover:not(:disabled) { color: var(--gold); }
     .btn-reorder:disabled { opacity: 0.2; cursor: not-allowed; }
+
+    .drag-handle { color: var(--muted); font-size: 16px; cursor: grab; flex-shrink: 0; padding: 0 4px; user-select: none; letter-spacing: -1px; }
+    .drag-handle:hover { color: var(--gold); }
+    .program-item.item-editing .drag-handle { display: none; }
+    .program-item.dragging { opacity: 0.35; }
+    .program-item.drop-above { border-top: 2px solid var(--gold); }
+    .program-item.drop-below { border-bottom: 2px solid var(--gold); }
 
     .item-type-badge {
       font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
@@ -720,6 +727,7 @@
     .hymnal-suggest-num { color: var(--gold); font-size: 11px; min-width: 28px; }
     .hymnal-suggest-title { color: var(--white); }
 
+
     .lyrics-status-text { font-size: 12px; white-space: nowrap; }
     .lyrics-status-text.ok  { color: var(--success); cursor: pointer; text-decoration: underline dotted; }
     .lyrics-status-text.err { color: var(--error); }
@@ -811,7 +819,7 @@
     <div class="outline-item {{ 'song' if is_song else '' }}" draggable="true" data-for="{{ sp.id }}-item-{{ counter.n }}" onclick="scrollToItem('{{ sp.id }}-item-{{ counter.n }}')">
       <div class="outline-thumb">{{ '♪' if is_song else counter.n + 1 }}</div>
       <div class="outline-info">
-        <div class="outline-title">{{ item.title }}</div>
+        <div class="outline-title">{% if is_song and item.get('part') %}{{ item.part }}{% else %}{{ item.title }}{% endif %}</div>
       </div>
       <div class="reorder-btns">
         <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'up')" title="Move up">▲</button>
@@ -914,11 +922,11 @@
         <div class="program-item" data-index="{{ loop.index0 }}" data-item-type="{{ _type }}" data-item-id="{{ item.get('item_id', '') }}" id="{{ sp.id }}-item-{{ sp_idx.n }}">
         {% set sp_idx.n = sp_idx.n + 1 %}
           <div class="item-header" onclick="selectItem(this)">
-            <div class="item-number">{{ loop.index }}</div>
+            <div class="drag-handle" draggable="true" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
             <div style="flex:1">
-              <div class="item-title-text">{{ item.title }}</div>
+              <div class="item-title-text">{{ item.get('part', '') if _is_song else item.title }}</div>
               {% if _is_song %}
-                {% if item.get('hymn_number') %}<div class="item-subtitle-text">Hymn #{{ item.hymn_number }}</div>{% endif %}
+                {% if item.get('hymn_number') %}<div class="item-detail-text">#{{ item.hymn_number }}{% if item.get('title') %} — {{ item.title }}{% endif %}</div>{% endif %}
               {% elif _is_content %}
                 <div class="item-detail-text">{{ item.get('content','')[:60] }}</div>
               {% else %}
@@ -930,25 +938,30 @@
             <span class="edit-hint">✎</span>
             <div class="item-chevron">▼</div>
             <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
+            <div class="item-number">{{ loop.index }}</div>
           </div>
           <div class="item-body">
+            {% if _is_song %}
+            <div class="field" style="margin-bottom:8px">
+              <label>Part</label>
+              <input type="text" class="item-part" value="{{ item.get('part', '') }}" placeholder="e.g. Opening Song">
+            </div>
+            <input type="hidden" class="item-title" value="{{ item.title }}">
+            <input type="hidden" class="item-hymn"  value="{{ item.get('hymn_number', '') }}">
+            {% else %}
             <div class="form-row">
               <div class="field">
                 <label>Title</label>
                 <input type="text" class="item-title" value="{{ item.title }}">
               </div>
-              {% if _is_song %}
-              <div class="field" style="flex:0 0 140px">
-                <label>Hymn #</label>
-                <input type="number" class="item-hymn" value="{{ item.get('hymn_number', '') }}" placeholder="e.g. 73" min="1" max="695">
-              </div>
-              {% elif not _is_content %}
+              {% if not _is_content %}
               <div class="field">
                 <label>Part</label>
                 <input type="text" class="item-part" value="{{ item.get('part', '') }}">
               </div>
               {% endif %}
             </div>
+            {% endif %}
             {% if _is_content %}
             <div class="field" style="margin-top:8px">
               <label>Content</label>
@@ -968,7 +981,7 @@
               <div class="lyrics-search-row">
                 <input type="text" class="lyrics-query"
                        placeholder="Hymn # or song title…"
-                       value="{{ item.get('hymn_number', '') or item.get('lyrics_key', '') }}"
+                       value="{{ ('#' ~ item.hymn_number|string ~ ' — ' ~ item.title) if (item.get('hymn_number') and item.get('title') and 'lyrics_key' in item) else (item.get('hymn_number', '') or item.get('lyrics_key', '')) }}"
                        oninput="hymnalSuggest(this)" onblur="closeSuggest(this)">
                 <div class="hymnal-suggest"></div>
                 <button class="btn btn-outline" onclick="searchLyrics(this)" style="height:38px; white-space:nowrap">Search Lyrics</button>
@@ -1020,10 +1033,12 @@
     if (type === "song") {
       badgeClass = "badge-song"; badgeLabel = "Song";
       bodyInner = `
-        <div class="form-row">
-          <div class="field"><label>Title</label><input type="text" class="item-title" value=""></div>
-          <div class="field" style="flex:0 0 140px"><label>Hymn #</label><input type="number" class="item-hymn" value="" placeholder="e.g. 73" min="1" max="695"></div>
+        <div class="field" style="margin-bottom:8px">
+          <label>Part</label>
+          <input type="text" class="item-part" value="" placeholder="e.g. Opening Song">
         </div>
+        <input type="hidden" class="item-title" value="">
+        <input type="hidden" class="item-hymn"  value="">
         <div class="rule" style="margin:10px 0 8px;"></div>
         <div class="lyrics-section">
           <div class="lyrics-search-row">
@@ -1066,12 +1081,13 @@
     itemsEl.insertAdjacentHTML("beforeend", `
       <div class="program-item" data-index="${count}" data-item-type="${type}" data-item-id="${itemId}" id="${domId}">
         <div class="item-header" onclick="selectItem(this)">
-          <div class="item-number">${num}</div>
+          <div class="drag-handle" draggable="true" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
           <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
           <span class="edit-hint">✎</span>
           <div class="item-chevron">▼</div>
           <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
+          <div class="item-number">${num}</div>
         </div>
         <div class="item-body">${bodyInner}</div>
       </div>`);
@@ -1109,10 +1125,12 @@
     if (type === "song") {
       const hymn_num  = el.querySelector(".item-hymn")?.value  || "";
       const lyricsKey = el.querySelector(".lyrics-key")?.value || "";
+      const songPart = el.querySelector(".item-part")?.value || "";
       const item = { type: "song", title };
       if (id)        item.item_id     = id;
       if (hymn_num)  item.hymn_number = hymn_num;
       if (lyricsKey) item.lyrics_key  = lyricsKey;
+      if (songPart)  item.part        = songPart;
       return item;
     } else if (type === "content") {
       const content = el.querySelector(".item-content")?.value || "";
@@ -1130,10 +1148,13 @@
 
   // ── Search and save lyrics ────────────────────────────────────────────────
   async function searchLyrics(btn) {
-    const section = btn.closest(".lyrics-section");
-    const query   = section.querySelector(".lyrics-query").value.trim();
-    const status  = section.querySelector(".lyrics-status-text");
-    const keyEl   = section.querySelector(".lyrics-key");
+    const section   = btn.closest(".lyrics-section");
+    const qInput    = section.querySelector(".lyrics-query");
+    const rawQuery  = qInput.value.trim();
+    // Strip "#N — Title" display format back to a plain search term
+    const query     = rawQuery.replace(/^#(\d+)\s*[-–—].*$/, "$1").trim() || rawQuery;
+    const status    = section.querySelector(".lyrics-status-text");
+    const keyEl     = section.querySelector(".lyrics-key");
 
     if (!query) {
       status.textContent = "Enter a title or hymn number";
@@ -1154,7 +1175,21 @@
         status.textContent = `✓ ${data.count} stanzas ${src} (${data.key})`;
         status.className = "lyrics-status-text ok";
         status.onclick = () => openLyricsModal(data.key, query);
+        // If server resolved a hymn number/title, update the hidden inputs
         const itemEl = section.closest(".program-item");
+        if (data.hymn_number) {
+          const hymnInput = itemEl?.querySelector(".item-hymn");
+          if (hymnInput) hymnInput.value = data.hymn_number;
+        }
+        if (data.title) {
+          const titleInput = itemEl?.querySelector(".item-title");
+          if (titleInput) titleInput.value = data.title;
+        }
+        // Update query input to show "#number — title"
+        const hymnNum   = itemEl?.querySelector(".item-hymn")?.value  || "";
+        const hymnTitle = itemEl?.querySelector(".item-title")?.value || "";
+        if (hymnNum && hymnTitle) qInput.value = `#${hymnNum} — ${hymnTitle}`;
+        else if (hymnNum)         qInput.value = `#${hymnNum}`;
         const disp = itemEl?.querySelector(".lyrics-display");
         if (disp) { disp.innerHTML = ""; delete disp.dataset.loaded; loadLyricsDisplay(itemEl); }
       } else {
@@ -1173,12 +1208,26 @@
   function clearLyrics(btn) {
     const section = btn.closest(".lyrics-section");
     section.querySelector(".lyrics-key").value = "";
+    section.querySelector(".lyrics-query").value = "";
     const status = section.querySelector(".lyrics-status-text");
     status.textContent = "";
     status.className = "lyrics-status-text";
     const itemEl = section.closest(".program-item");
     const disp = itemEl?.querySelector(".lyrics-display");
     if (disp) { disp.innerHTML = ""; delete disp.dataset.loaded; }
+    if (itemEl?.dataset.itemType === "song") {
+      const titleInput = itemEl.querySelector(".item-title");
+      const hymnInput  = itemEl.querySelector(".item-hymn");
+      const titleText  = itemEl.querySelector(".item-title-text");
+      const outline    = document.querySelector(`.outline-item[data-for="${itemEl.id}"]`);
+      if (titleInput) titleInput.value = "";
+      if (hymnInput)  hymnInput.value  = "";
+      if (titleText)  titleText.textContent = "";
+      if (outline) {
+        const partVal = itemEl.querySelector(".item-part")?.value || "";
+        outline.querySelector(".outline-title").textContent = partVal;
+      }
+    }
   }
 
   // ── Collect full program from DOM ─────────────────────────────────────────
@@ -1375,11 +1424,22 @@
   }
 
   document.getElementById("mainContainer").addEventListener("input", function(e) {
+    const item = e.target.closest(".program-item");
+    if (!item) { scheduleAutoSave(); return; }
+    const outline = document.querySelector(`.outline-item[data-for="${item.id}"]`);
+    const isSong  = item.dataset.itemType === "song";
+
     if (e.target.classList.contains("item-title")) {
-      const item = e.target.closest(".program-item");
-      if (item) {
-        const outline = document.querySelector(`.outline-item[data-for="${item.id}"]`);
-        if (outline) outline.querySelector(".outline-title").textContent = e.target.value;
+      const partVal = item.querySelector(".item-part")?.value || "";
+      if (outline && (!isSong || !partVal))
+        outline.querySelector(".outline-title").textContent = e.target.value;
+    }
+    if (e.target.classList.contains("item-part")) {
+      const val = e.target.value || (isSong ? "" : (item.querySelector(".item-title")?.value || ""));
+      if (outline) outline.querySelector(".outline-title").textContent = val;
+      if (isSong) {
+        const titleEl = item.querySelector(".item-title-text");
+        if (titleEl) titleEl.textContent = val;
       }
     }
     scheduleAutoSave();
@@ -1391,14 +1451,6 @@
     if (e.key === "Escape" && _activeItemId) closeActiveItem();
   });
 
-  // Click outside any program-item (and not in sidebar) → close active item
-  document.addEventListener("click", function(e) {
-    if (_activeItemId
-        && !e.target.closest(".program-item")
-        && !e.target.closest(".slide-panel")) {
-      closeActiveItem();
-    }
-  });
 
   // ── Item select / edit mode ──────────────────────────────────────────────
   // ── Load lyrics into the read-only display block ──────────────────────────
@@ -1437,7 +1489,7 @@
     if (!el) return;
 
     const id = el.id;
-    if (_activeItemId === id) { showAllExpanded(); return; }  // 2nd click → expand all
+    if (_activeItemId === id) { closeActiveItem(); return; }  // title bar click → back to list
     if (_activeItemId) closeActiveItem(true);  // switching item — silent close
 
     _activeItemId = id;
@@ -1448,14 +1500,6 @@
       container.querySelectorAll(".program-item").forEach(p => {
         p.style.display = p === el ? "" : "none";
       });
-      // Insert "← All items" back bar if not already there
-      if (!container.querySelector(".back-bar")) {
-        const bar = document.createElement("div");
-        bar.className = "back-bar";
-        bar.innerHTML = `<span>←</span> All items`;
-        bar.onclick = () => closeActiveItem();
-        container.insertBefore(bar, el);
-      }
     }
 
     // Open edit form
@@ -1479,7 +1523,6 @@
       // Restore all sibling items
       const container = el.closest(".program-items");
       if (container) {
-        container.querySelector(".back-bar")?.remove();
         container.querySelectorAll(".program-item").forEach(p => p.style.display = "");
       }
       syncItemHeader(el);
@@ -1515,14 +1558,17 @@
 
   function syncItemHeader(el) {
     const type = el.dataset.itemType || "participant";
-    const titleVal = el.querySelector(".item-title")?.value || "";
+    const titleVal = type === "song"
+      ? (el.querySelector(".item-part")?.value || "")
+      : (el.querySelector(".item-title")?.value || "");
     const titleEl  = el.querySelector(".item-title-text");
     const detailEl = el.querySelector(".item-detail-text");
     if (titleEl) titleEl.textContent = titleVal;
     if (!detailEl) return;
     if (type === "song") {
-      const hymn = el.querySelector(".item-hymn")?.value || "";
-      detailEl.textContent = hymn ? `Hymn #${hymn}` : "";
+      const hymn  = el.querySelector(".item-hymn")?.value  || "";
+      const title = el.querySelector(".item-title")?.value || "";
+      detailEl.textContent = hymn && title ? `#${hymn} — ${title}` : hymn ? `#${hymn}` : "";
     } else if (type === "participant") {
       const part = el.querySelector(".item-part")?.value || "";
       const name = el.querySelector(".item-participant")?.value || "";
@@ -1618,6 +1664,80 @@
 
   // Initialise reorder button states for all panels
   document.querySelectorAll('[id^="panel-"]').forEach(updateReorderButtons);
+
+  // ── Main-content drag-and-drop reorder ───────────────────────────────────
+  let _dragItem = null;
+  const mainContent = document.querySelector(".main-content");
+
+  mainContent.addEventListener("dragstart", function(e) {
+    const handle = e.target.closest(".drag-handle");
+    const item   = handle?.closest(".program-item");
+    if (!item || item.classList.contains("item-editing")) { e.preventDefault(); return; }
+    _dragItem = item;
+    item.classList.add("dragging");
+    e.dataTransfer.effectAllowed = "move";
+  });
+
+  mainContent.addEventListener("dragend", function() {
+    _dragItem?.classList.remove("dragging");
+    mainContent.querySelectorAll(".drop-above, .drop-below")
+      .forEach(el => el.classList.remove("drop-above", "drop-below"));
+    _dragItem = null;
+  });
+
+  mainContent.addEventListener("dragover", function(e) {
+    e.preventDefault();
+    const target = e.target.closest(".program-item");
+    if (!target || target === _dragItem) return;
+    mainContent.querySelectorAll(".drop-above, .drop-below")
+      .forEach(el => el.classList.remove("drop-above", "drop-below"));
+    const mid = target.getBoundingClientRect().top + target.offsetHeight / 2;
+    target.classList.add(e.clientY < mid ? "drop-above" : "drop-below");
+  });
+
+  mainContent.addEventListener("dragleave", function(e) {
+    if (!e.relatedTarget?.closest(".program-item")) {
+      mainContent.querySelectorAll(".drop-above, .drop-below")
+        .forEach(el => el.classList.remove("drop-above", "drop-below"));
+    }
+  });
+
+  mainContent.addEventListener("drop", function(e) {
+    e.preventDefault();
+    const above  = mainContent.querySelector(".drop-above");
+    const below  = mainContent.querySelector(".drop-below");
+    const target = above || below;
+    if (!target || !_dragItem || target === _dragItem) return;
+    target.classList.remove("drop-above", "drop-below");
+
+    const itemsEl   = _dragItem.closest(".program-items");
+    target.parentNode.insertBefore(_dragItem, above ? target : target.nextSibling);
+
+    // Sync sidebar outline order
+    const spEl      = itemsEl?.closest(".service-program");
+    const programId = spEl?.dataset.programId;
+    const panel     = document.getElementById("panel-" + programId);
+    if (panel) {
+      const addBtns = panel.querySelector(".panel-add-buttons");
+      itemsEl.querySelectorAll(".program-item[id]").forEach(pi => {
+        const outline = panel.querySelector(`.outline-item[data-for="${pi.id}"]`);
+        if (outline) {
+          if (addBtns) panel.insertBefore(outline, addBtns);
+          else panel.appendChild(outline);
+        }
+      });
+      updateReorderButtons(panel);
+    }
+    renumberItems(itemsEl);
+    scheduleAutoSave();
+  });
+
+  function renumberItems(itemsEl) {
+    itemsEl.querySelectorAll(".program-item").forEach((item, i) => {
+      const numEl = item.querySelector(".item-number");
+      if (numEl) numEl.textContent = i + 1;
+    });
+  }
 
   function showAll() { closeActiveItem(); }
 
@@ -1921,11 +2041,25 @@
   }
 
   function pickSuggest(item) {
-    const row   = item.closest(".lyrics-search-row");
-    const input = row.querySelector(".lyrics-query");
-    const drop  = row.querySelector(".hymnal-suggest");
-    input.value = item.dataset.number;   // use number so fetch hits DB directly
+    const row         = item.closest(".lyrics-search-row");
+    const input       = row.querySelector(".lyrics-query");
+    const drop        = row.querySelector(".hymnal-suggest");
+    const programItem = row.closest(".program-item");
+    const hymnInput   = programItem?.querySelector(".item-hymn");
+    const titleInput  = programItem?.querySelector(".item-title");
+    const outline     = document.querySelector(`.outline-item[data-for="${programItem?.id}"]`);
+
+    input.value = item.dataset.number;
+    if (hymnInput)  hymnInput.value  = item.dataset.number;
+    if (titleInput) titleInput.value = item.dataset.title;
+    if (outline) {
+      const partVal = programItem?.querySelector(".item-part")?.value || "";
+      outline.querySelector(".outline-title").textContent = partVal || item.dataset.title;
+    }
     drop.classList.remove("open");
+
+    const searchBtn = row.closest(".lyrics-section")?.querySelector(".btn:not(.btn-ghost)");
+    if (searchBtn) searchLyrics(searchBtn);
   }
 
   function closeSuggest(input) {
