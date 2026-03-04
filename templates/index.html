@@ -153,6 +153,25 @@
     }
     .btn-add-program:hover { border-color: var(--gold); color: var(--gold); }
 
+    .btn-delete-program {
+      width: 100%;
+      margin-top: 4px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--error);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      opacity: 0.6;
+    }
+    .btn-delete-program:hover:not(:disabled) { border-color: var(--error); background: rgba(224,82,82,0.08); opacity: 1; }
+    .btn-delete-program:disabled { opacity: 0.25; cursor: not-allowed; }
+
     /* ── Add Program Modal ── */
     #addProgramModal {
       display: none;
@@ -277,6 +296,10 @@
       padding: 8px 10px;
       border-top: 1px solid #0e1a30;
       margin-top: 4px;
+      position: sticky;
+      bottom: 0;
+      background: #070f1f;
+      z-index: 1;
     }
     .panel-add-buttons button {
       background: transparent;
@@ -392,41 +415,34 @@
     /* ── Program items ── */
     .program-items { display: flex; flex-direction: column; gap: 8px; }
 
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--muted);
+      font-size: 13px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+
     .program-item {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow: hidden;
       transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    .program-item.item-focused  {
-      border-color: var(--gold);
-      box-shadow: 0 0 0 2px rgba(212,168,67,0.15);
-    }
-
-    /* ── Focus bar ── */
-    .focus-bar {
-      display: flex; align-items: center; gap: 12px;
-      background: #0b1628;
-      border: 1px solid var(--gold);
-      border-radius: 6px;
-      padding: 8px 14px;
-      margin-bottom: 14px;
-      font-size: 13px; color: var(--text-muted);
-    }
-    .focus-bar strong { color: var(--text); }
-    .focus-bar .show-all-btn {
-      margin-left: auto;
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      padding: 3px 10px;
-      border-radius: 4px;
-      font-size: 12px;
       cursor: pointer;
     }
-    .focus-bar .show-all-btn:hover { border-color: var(--gold); color: var(--gold); }
-    .focus-bar-hidden { display: none !important; }
+    .program-item:hover {
+      border-color: #2a3f68;
+    }
+    .program-item.item-editing {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(212,168,67,0.15);
+      cursor: default;
+    }
+    .program-item.item-editing .item-header {
+      cursor: default;
+    }
 
     .item-header {
       padding: 10px 14px;
@@ -448,8 +464,18 @@
 
     .item-title-text { font-weight: 500; flex: 1; }
     .item-subtitle-text { font-size: 12px; color: var(--muted); }
-    .item-chevron { color: var(--muted); transition: transform 0.2s; font-size: 12px; }
-    .item-chevron.open { transform: rotate(180deg); }
+    .item-detail-text { font-size: 12px; color: var(--gold-dim); margin-top: 1px; }
+
+    .back-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 2px 10px;
+      font-size: 12px; color: var(--muted);
+      cursor: pointer; user-select: none;
+      transition: color 0.15s;
+    }
+    .back-bar:hover { color: var(--gold); }
+    .item-chevron { color: var(--muted); transition: transform 0.2s; font-size: 11px; opacity: 0.5; }
+    .item-chevron.open { transform: rotate(180deg); opacity: 1; }
 
     .outline-item { cursor: grab; }
     .outline-item:active { cursor: grabbing; }
@@ -462,13 +488,25 @@
       background: none; border: none;
       color: var(--error);
       font-size: 13px; line-height: 1;
-      padding: 3px 6px; border-radius: 4px;
+      padding: 8px; border-radius: 4px;
       cursor: pointer;
       transition: opacity 0.15s, background 0.15s;
       flex-shrink: 0;
     }
     .program-item:hover .item-delete { opacity: 0.45; }
     .item-delete:hover { opacity: 1 !important; background: rgba(224,82,82,0.12); }
+    @media (hover: none) { .item-delete { opacity: 0.45; } }
+
+    .edit-hint { font-size: 11px; color: var(--muted); opacity: 0; transition: opacity 0.15s; }
+    .program-item:hover .edit-hint { opacity: 0.6; }
+    @media (hover: none) { .edit-hint { display: none; } }
+
+    .reorder-btns { display: flex; flex-direction: column; gap: 1px; opacity: 0; transition: opacity 0.15s; margin-left: auto; flex-shrink: 0; }
+    .outline-item:hover .reorder-btns { opacity: 1; }
+    @media (hover: none) { .reorder-btns { opacity: 1; } }
+    .btn-reorder { background: none; border: none; color: var(--muted); font-size: 8px; line-height: 1; padding: 2px 4px; border-radius: 3px; cursor: pointer; transition: color 0.12s; }
+    .btn-reorder:hover:not(:disabled) { color: var(--gold); }
+    .btn-reorder:disabled { opacity: 0.2; cursor: not-allowed; }
 
     .item-type-badge {
       font-size: 9px; font-weight: 700; letter-spacing: 0.08em;
@@ -633,6 +671,18 @@
     #toast.success { border-color: var(--success); }
     #toast.error   { border-color: var(--error); }
 
+    .delete-toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 18px;
+      font-size: 13px; display: flex; align-items: center; gap: 12px;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+      z-index: 1000; white-space: nowrap;
+    }
+    .delete-toast.visible { opacity: 1; pointer-events: auto; }
+    .delete-toast button { background: none; border: none; color: var(--gold); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
+
     /* ── Rule ── */
     .rule {
       height: 1px;
@@ -748,6 +798,8 @@
       {% endfor %}
     </select>
     <button class="btn-add-program" onclick="openAddProgram()">+ Add Program</button>
+    <button class="btn-delete-program" id="btnDeleteProgram" onclick="deleteCurrentProgram()"
+      {% if program.service_programs|length <= 1 %}disabled{% endif %}>✕ Delete Program</button>
   </div>
 
   <!-- Program panels (one per service_program) -->
@@ -760,6 +812,10 @@
       <div class="outline-thumb">{{ '♪' if is_song else counter.n + 1 }}</div>
       <div class="outline-info">
         <div class="outline-title">{{ item.title }}</div>
+      </div>
+      <div class="reorder-btns">
+        <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'up')" title="Move up">▲</button>
+        <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'down')" title="Move down">▼</button>
       </div>
     </div>
     {% set counter.n = counter.n + 1 %}
@@ -842,9 +898,6 @@
   </div>
 </div>
 
-<!-- Focus wrapper: holds the single item card when in focus mode -->
-<div id="focusWrapper" style="display:none; padding: 1.5rem 2rem 24px;"></div>
-
 <div class="container" id="mainContainer">
 
 
@@ -853,24 +906,32 @@
   {% set sp_idx = namespace(n=0) %}
   <div class="service-program" data-program-id="{{ sp.id }}" data-program-name="{{ sp.name }}">
       <div class="program-items">
+        <div class="empty-state"{% if sp["items"] %} style="display:none"{% endif %}>No items yet. Add a Participant, Song, or Content item using the buttons below.</div>
         {% for item in sp["items"] %}
         {% set _type = item.get("type", "participant") %}
         {% set _is_song = _type == "song" %}
         {% set _is_content = _type == "content" %}
         <div class="program-item" data-index="{{ loop.index0 }}" data-item-type="{{ _type }}" data-item-id="{{ item.get('item_id', '') }}" id="{{ sp.id }}-item-{{ sp_idx.n }}">
         {% set sp_idx.n = sp_idx.n + 1 %}
-          <div class="item-header" onclick="toggleItem(this)">
+          <div class="item-header" onclick="selectItem(this)">
             <div class="item-number">{{ loop.index }}</div>
             <div style="flex:1">
               <div class="item-title-text">{{ item.title }}</div>
-              {% if _is_song and item.get('hymn_number') %}<div class="item-subtitle-text">Hymn #{{ item.hymn_number }}</div>
-              {% elif not _is_song and not _is_content and item.get('part') %}<div class="item-subtitle-text">{{ item.part }}</div>{% endif %}
+              {% if _is_song %}
+                {% if item.get('hymn_number') %}<div class="item-subtitle-text">Hymn #{{ item.hymn_number }}</div>{% endif %}
+              {% elif _is_content %}
+                <div class="item-detail-text">{{ item.get('content','')[:60] }}</div>
+              {% else %}
+                {% if item.get('part') %}<div class="item-subtitle-text">{{ item.part }}</div>{% endif %}
+                {% if item.get('participant') %}<div class="item-detail-text">{{ item.participant }}</div>{% endif %}
+              {% endif %}
             </div>
             <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else 'badge-participant') }}">{{ 'Song' if _is_song else ('Content' if _is_content else 'Participant') }}</span>
-            <div class="item-chevron open">▼</div>
+            <span class="edit-hint">✎</span>
+            <div class="item-chevron">▼</div>
             <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
           </div>
-          <div class="item-body open">
+          <div class="item-body">
             <div class="form-row">
               <div class="field">
                 <label>Title</label>
@@ -1004,14 +1065,15 @@
 
     itemsEl.insertAdjacentHTML("beforeend", `
       <div class="program-item" data-index="${count}" data-item-type="${type}" data-item-id="${itemId}" id="${domId}">
-        <div class="item-header" onclick="toggleItem(this)">
+        <div class="item-header" onclick="selectItem(this)">
           <div class="item-number">${num}</div>
-          <div style="flex:1"><div class="item-title-text"></div></div>
+          <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
           <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
-          <div class="item-chevron open">▼</div>
+          <span class="edit-hint">✎</span>
+          <div class="item-chevron">▼</div>
           <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
         </div>
-        <div class="item-body open">${bodyInner}</div>
+        <div class="item-body">${bodyInner}</div>
       </div>`);
 
     // Add outline entry in sidebar (before the add-buttons row)
@@ -1021,14 +1083,22 @@
       <div class="outline-item ${type === "song" ? "song" : ""}" draggable="true" data-for="${domId}" onclick="scrollToItem('${domId}')">
         <div class="outline-thumb">${type === "song" ? "♪" : num}</div>
         <div class="outline-info"><div class="outline-title">&nbsp;</div></div>
+        <div class="reorder-btns">
+          <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'up')" title="Move up">▲</button>
+          <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'down')" title="Move down">▼</button>
+        </div>
       </div>`;
     addBtns ? addBtns.insertAdjacentHTML("beforebegin", outline)
             : panel?.insertAdjacentHTML("beforeend", outline);
 
-    // Scroll & focus
-    const newEl = document.getElementById(domId);
-    newEl?.scrollIntoView({ behavior: "smooth", block: "center" });
-    newEl?.querySelector(".item-title")?.focus();
+    // Hide empty state now that there's an item
+    const emptyState = itemsEl.querySelector(".empty-state");
+    if (emptyState) emptyState.style.display = "none";
+
+    updateReorderButtons(panel);
+
+    // Open the new item in edit mode
+    selectItem(domId);
   }
 
   // ── Collect item from a .program-item element ─────────────────────────────
@@ -1140,13 +1210,88 @@
     });
   }
 
-  // ── Delete item ───────────────────────────────────────────────────────────
+  // ── Delete item (soft-delete with 5s undo) ───────────────────────────────
+  let _pendingDelete = null;
+
   function deleteItem(btn) {
     const item = btn.closest(".program-item");
-    const id   = item?.id;
-    item?.remove();
-    if (id) document.querySelector(`.outline-item[data-for="${id}"]`)?.remove();
+    if (!item) return;
+    const id = item.id;
+
+    // Commit any previous pending delete before starting a new one
+    if (_pendingDelete) commitPendingDelete();
+
+    // Save enough context to undo
+    const outline       = id ? document.querySelector(`.outline-item[data-for="${id}"]`) : null;
+    const nextItem      = item.nextElementSibling;
+    const parent        = item.parentElement;
+    const outlineNext   = outline?.nextElementSibling;
+    const outlineParent = outline?.parentElement;
+    const title         = item.querySelector(".item-title-text")?.textContent?.trim() || "Item";
+
+    if (id && _activeItemId === id) {
+      _activeItemId = null;
+      document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
+    }
+
+    item.remove();
+    outline?.remove();
+
+    // Show empty state if no items left
+    const emptyState = parent?.querySelector(".empty-state");
+    if (emptyState && !parent.querySelector(".program-item")) emptyState.style.display = "";
+
+    _pendingDelete = {
+      item, outline, nextItem, parent, outlineNext, outlineParent,
+      timer: setTimeout(commitPendingDelete, 5000),
+    };
+
+    showDeleteToast(title);
+  }
+
+  function commitPendingDelete() {
+    if (!_pendingDelete) return;
+    clearTimeout(_pendingDelete.timer);
+    _pendingDelete = null;
+    hideDeleteToast();
     autoSaveNow();
+  }
+
+  function undoDelete() {
+    if (!_pendingDelete) return;
+    clearTimeout(_pendingDelete.timer);
+    const { item, outline, nextItem, parent, outlineNext, outlineParent } = _pendingDelete;
+    _pendingDelete = null;
+
+    if (nextItem) parent.insertBefore(item, nextItem);
+    else parent.appendChild(item);
+
+    if (outline) {
+      if (outlineNext) outlineParent.insertBefore(outline, outlineNext);
+      else outlineParent.appendChild(outline);
+    }
+
+    // Hide empty state again
+    const emptyState = parent?.querySelector(".empty-state");
+    if (emptyState) emptyState.style.display = "none";
+
+    hideDeleteToast();
+  }
+
+  function showDeleteToast(title) {
+    let t = document.getElementById("deleteToast");
+    if (!t) {
+      t = document.createElement("div");
+      t.id = "deleteToast";
+      t.className = "delete-toast";
+      document.body.appendChild(t);
+    }
+    t.innerHTML = `<span>'${title}' removed.</span><button onclick="undoDelete()">Undo</button>`;
+    t.classList.add("visible");
+  }
+
+  function hideDeleteToast() {
+    document.getElementById("deleteToast")?.classList.remove("visible");
   }
 
   // ── Drag-and-drop reorder (sidebar outline items) ────────────────────────
@@ -1224,6 +1369,7 @@
   }
 
   function scheduleAutoSave() {
+    if (_pendingDelete) return;
     clearTimeout(_autoSaveTimer);
     _autoSaveTimer = setTimeout(autoSaveNow, 800);
   }
@@ -1240,7 +1386,21 @@
   });
   document.getElementById("mainContainer").addEventListener("change", scheduleAutoSave);
 
-  // ── Toggle item expand/collapse ───────────────────────────────────────────
+  // Escape key → close active item
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape" && _activeItemId) closeActiveItem();
+  });
+
+  // Click outside any program-item (and not in sidebar) → close active item
+  document.addEventListener("click", function(e) {
+    if (_activeItemId
+        && !e.target.closest(".program-item")
+        && !e.target.closest(".slide-panel")) {
+      closeActiveItem();
+    }
+  });
+
+  // ── Item select / edit mode ──────────────────────────────────────────────
   // ── Load lyrics into the read-only display block ──────────────────────────
   function loadLyricsDisplay(el) {
     const display = el.querySelector(".lyrics-display");
@@ -1264,13 +1424,112 @@
       .catch(() => { display.textContent = ""; });
   }
 
-  function toggleItem(header) {
-    const body    = header.nextElementSibling;
-    const chevron = header.querySelector(".item-chevron");
-    body.classList.toggle("open");
-    chevron.classList.toggle("open");
-    if (body.classList.contains("open")) {
-      loadLyricsDisplay(header.closest(".program-item"));
+  // ── Select item (open in edit mode) / deselect ───────────────────────────
+  let _activeItemId = null;
+
+  function selectItem(headerOrId) {
+    let el;
+    if (typeof headerOrId === "string") {
+      el = document.getElementById(headerOrId);
+    } else {
+      el = headerOrId.closest(".program-item");
+    }
+    if (!el) return;
+
+    const id = el.id;
+    if (_activeItemId === id) { showAllExpanded(); return; }  // 2nd click → expand all
+    if (_activeItemId) closeActiveItem(true);  // switching item — silent close
+
+    _activeItemId = id;
+
+    // Hide all sibling items; show only this one
+    const container = el.closest(".program-items");
+    if (container) {
+      container.querySelectorAll(".program-item").forEach(p => {
+        p.style.display = p === el ? "" : "none";
+      });
+      // Insert "← All items" back bar if not already there
+      if (!container.querySelector(".back-bar")) {
+        const bar = document.createElement("div");
+        bar.className = "back-bar";
+        bar.innerHTML = `<span>←</span> All items`;
+        bar.onclick = () => closeActiveItem();
+        container.insertBefore(bar, el);
+      }
+    }
+
+    // Open edit form
+    el.querySelector(".item-body")?.classList.add("open");
+    el.querySelector(".item-chevron")?.classList.add("open");
+    el.classList.add("item-editing");
+    loadLyricsDisplay(el);
+
+    // Highlight in sidebar
+    document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
+    document.querySelector(`.outline-item[data-for="${id}"]`)?.classList.add("active");
+
+    // Focus first meaningful input
+    el.querySelector(".item-participant, .item-title")?.focus();
+  }
+
+  function closeActiveItem(silent) {
+    if (!_activeItemId) return;
+    const el = document.getElementById(_activeItemId);
+    if (el) {
+      // Restore all sibling items
+      const container = el.closest(".program-items");
+      if (container) {
+        container.querySelector(".back-bar")?.remove();
+        container.querySelectorAll(".program-item").forEach(p => p.style.display = "");
+      }
+      syncItemHeader(el);
+      el.querySelector(".item-body")?.classList.remove("open");
+      el.querySelector(".item-chevron")?.classList.remove("open");
+      el.classList.remove("item-editing");
+    }
+    document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
+    _activeItemId = null;
+    if (!silent) autoSaveNow();
+  }
+
+  // 2nd sidebar click: restore all items and expand them all
+  function showAllExpanded() {
+    const el = _activeItemId ? document.getElementById(_activeItemId) : null;
+    const container = el?.closest(".program-items");
+    if (container) {
+      container.querySelector(".back-bar")?.remove();
+      container.querySelectorAll(".program-item").forEach(p => {
+        p.style.display = "";
+        p.querySelector(".item-body")?.classList.add("open");
+        p.querySelector(".item-chevron")?.classList.add("open");
+      });
+    }
+    if (el) {
+      syncItemHeader(el);
+      el.classList.remove("item-editing");
+    }
+    document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
+    _activeItemId = null;
+    autoSaveNow();
+  }
+
+  function syncItemHeader(el) {
+    const type = el.dataset.itemType || "participant";
+    const titleVal = el.querySelector(".item-title")?.value || "";
+    const titleEl  = el.querySelector(".item-title-text");
+    const detailEl = el.querySelector(".item-detail-text");
+    if (titleEl) titleEl.textContent = titleVal;
+    if (!detailEl) return;
+    if (type === "song") {
+      const hymn = el.querySelector(".item-hymn")?.value || "";
+      detailEl.textContent = hymn ? `Hymn #${hymn}` : "";
+    } else if (type === "participant") {
+      const part = el.querySelector(".item-part")?.value || "";
+      const name = el.querySelector(".item-participant")?.value || "";
+      detailEl.textContent = [part, name].filter(Boolean).join(" · ");
+    } else if (type === "content") {
+      const txt = el.querySelector(".item-content")?.value || "";
+      detailEl.textContent = txt.split("\n")[0].slice(0, 60);
     }
   }
 
@@ -1285,88 +1544,82 @@
     else        toast("Save failed", "error");
   }
 
-  // ── Slide panel navigation (focus mode) ──────────────────────────────────
-  let _focusedId     = null;
-  let _focusedOrigin = null;  // {parent, nextSibling} to restore item position
-
-  function scrollToItem(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-
-    // Toggle off if same item clicked again
-    if (_focusedId === id) { showAll(); return; }
-
-    // If another item was focused, restore it first
-    if (_focusedId) _restoreItem();
-
-    _focusedId = id;
-
-    // Highlight active panel item
-    document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
-    const panelItem = document.querySelector(`.outline-item[onclick="scrollToItem('${id}')"]`);
-    if (panelItem) panelItem.classList.add("active");
-
-    // Remember original DOM position so we can restore later
-    _focusedOrigin = { parent: el.parentNode, nextSibling: el.nextSibling };
-
-    // Ensure item body is expanded
-    const body = el.querySelector(".item-body");
-    const chev = el.querySelector(".item-chevron");
-    if (body && !body.classList.contains("open")) {
-      body.classList.add("open");
-      if (chev) chev.classList.add("open");
-    }
-    el.classList.add("item-focused");
-    loadLyricsDisplay(el);
-
-    // Move item into focus wrapper, hide main container
-    const wrapper = document.getElementById("focusWrapper");
-    wrapper.appendChild(el);
-    wrapper.style.display = "block";
-    document.getElementById("mainContainer").style.display = "none";
-
-    // Show focus bar
-    const label = el.querySelector(".item-title-text")?.textContent?.trim()
-                || el.querySelector(".item-title")?.value?.trim()
-                || id;
-
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  function _restoreItem() {
-    if (!_focusedId || !_focusedOrigin) return;
-    const el = document.getElementById(_focusedId);
-    if (el) {
-      el.classList.remove("item-focused");
-      // Re-insert at original position
-      if (_focusedOrigin.nextSibling) {
-        _focusedOrigin.parent.insertBefore(el, _focusedOrigin.nextSibling);
-      } else {
-        _focusedOrigin.parent.appendChild(el);
-      }
-    }
-    _focusedId     = null;
-    _focusedOrigin = null;
-  }
+  // Sidebar outline click → select item inline
+  function scrollToItem(id) { selectItem(id); }
 
   function switchPanelSection(val) {
+    closeActiveItem(true);
     document.querySelectorAll('[id^="panel-"]').forEach(el => el.style.display = "none");
     const el = document.getElementById("panel-" + val);
     if (el) el.style.display = "";
     document.querySelectorAll(".service-program").forEach(sp => {
       sp.style.display = sp.dataset.programId === val ? "" : "none";
     });
+    const count  = document.getElementById("panelSectionSelect")?.options.length || 0;
+    const delBtn = document.getElementById("btnDeleteProgram");
+    if (delBtn) delBtn.disabled = count <= 1;
+  }
+
+  // ── Delete program ──────────────────────────────────────────────────────
+  function deleteCurrentProgram() {
+    const sel = document.getElementById("panelSectionSelect");
+    const programId   = sel.value;
+    const programName = sel.options[sel.selectedIndex].text;
+    if (!confirm(`Delete "${programName}" and all its items? This cannot be undone.`)) return;
+    fetch(`/api/programs/${programId}`, { method: "DELETE" })
+      .then(r => r.json())
+      .then(data => {
+        if (data.ok) window.location.reload();
+        else toast(data.error || "Delete failed", "error");
+      })
+      .catch(() => toast("Delete failed", "error"));
+  }
+
+  // ── Up / Down reorder (touch alternative to drag) ───────────────────────
+  function reorderItem(btn, direction) {
+    const outline   = btn.closest(".outline-item");
+    const panel     = outline.closest('[id^="panel-"]');
+    const programId = panel?.id.replace("panel-", "");
+    const siblings  = [...panel.querySelectorAll(".outline-item")];
+    const idx       = siblings.indexOf(outline);
+    const swapIdx   = direction === "up" ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= siblings.length) return;
+    const swap = siblings[swapIdx];
+
+    if (direction === "up") panel.insertBefore(outline, swap);
+    else swap.insertAdjacentElement("afterend", outline);
+
+    // Sync main content order
+    const spEl    = document.querySelector(`.service-program[data-program-id="${programId}"]`);
+    const itemsEl = spEl?.querySelector(".program-items");
+    if (itemsEl) {
+      panel.querySelectorAll(".outline-item[data-for]").forEach(o => {
+        const item = document.getElementById(o.dataset.for);
+        if (item) itemsEl.appendChild(item);
+      });
+    }
+
+    updateReorderButtons(panel);
+    scheduleAutoSave();
+  }
+
+  function updateReorderButtons(panel) {
+    const items = [...panel.querySelectorAll(".outline-item")];
+    items.forEach((item, i) => {
+      const upBtn   = item.querySelector(".btn-reorder[title='Move up']");
+      const downBtn = item.querySelector(".btn-reorder[title='Move down']");
+      if (upBtn)   upBtn.disabled   = i === 0;
+      if (downBtn) downBtn.disabled = i === items.length - 1;
+    });
   }
 
   // Show only the initially selected program on load
   switchPanelSection(document.getElementById("panelSectionSelect").value);
 
-  function showAll() {
-    _restoreItem();
-    document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
-    document.getElementById("focusWrapper").style.display = "none";
-    document.getElementById("mainContainer").style.display = "";
-  }
+  // Initialise reorder button states for all panels
+  document.querySelectorAll('[id^="panel-"]').forEach(updateReorderButtons);
+
+  function showAll() { closeActiveItem(); }
 
   // ── Generate ──────────────────────────────────────────────────────────────
   async function generateSection(section, btn) {

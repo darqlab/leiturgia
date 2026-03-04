@@ -455,6 +455,17 @@ def add_program_from_sheet():
     return jsonify({"status": "ok", "id": pid, "item_count": len(items)})
 
 
+@app.route("/api/programs/<program_id>", methods=["DELETE"])
+def delete_program(program_id):
+    program = load_program()
+    programs = program.get("service_programs", [])
+    if len(programs) <= 1:
+        return jsonify({"error": "cannot delete last program"}), 400
+    program["service_programs"] = [p for p in programs if p["id"] != program_id]
+    save_program(program)
+    return jsonify({"ok": True, "selected": program["service_programs"][0]["id"]})
+
+
 @app.route("/api/reset", methods=["POST"])
 def reset():
     save_program(copy.deepcopy(DEFAULT_PROGRAM))
