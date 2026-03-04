@@ -7,7 +7,7 @@ from generator import generate_pptx
 from generator_odp import generate_odp
 from scraper import fetch_hymn_lyrics, fetch_lyrics_by_title
 from claude_helpers import clean_stanzas
-from hymnal import search_titles
+from hymnal import search_titles, get_by_title, get_by_number
 
 app = Flask(__name__)
 DATA_FILE    = "data/program.json"
@@ -32,6 +32,34 @@ def _slugify(name: str, existing_ids: list = None) -> str:
 
 def _lyrics_path(key: str) -> str:
     return os.path.join(LYRICS_DIR, f"{key}.json")
+
+
+def _load_lyrics(path, hint_number=None, hint_title=None):
+    """Load a lyrics JSON file. Migrates old plain-array format to the new
+    object format {hymn_number, title, stanzas} on first access.
+    Returns the data dict (always has a 'stanzas' key)."""
+    with open(path) as f:
+        data = json.load(f)
+
+    if isinstance(data, list):
+        # Old format — build metadata and re-save
+        hymn_number = hint_number
+        hymn_title  = hint_title
+        if not hymn_number:
+            key = os.path.splitext(os.path.basename(path))[0]
+            if key.isdigit():
+                hymn_number = int(key)
+        if hymn_number and not hymn_title:
+            db = get_by_number(hymn_number)
+            if db:
+                hymn_title = db["title"]
+        data = {"stanzas": data}
+        if hymn_number: data["hymn_number"] = hymn_number
+        if hymn_title:  data["title"]       = hymn_title
+        with open(path, "w") as f:
+            json.dump(data, f, indent=2)
+
+    return data
 
 
 def _output_pptx(program_id: str) -> str:
@@ -234,8 +262,10 @@ def _prepare_lyrics(items):
         if item.get("lyrics_key"):
             path = _lyrics_path(item["lyrics_key"])
             if os.path.exists(path):
-                with open(path) as f:
-                    item["lyrics"] = json.load(f)
+                data = _load_lyrics(path,
+                                    hint_number=item.get("hymn_number"),
+                                    hint_title=item.get("title"))
+                item["lyrics"] = data["stanzas"]
         elif item.get("hymn_number") and not item.get("lyrics"):
             try:
                 item["lyrics"] = fetch_hymn_lyrics(int(item["hymn_number"]))
@@ -320,19 +350,46 @@ def fetch_lyrics_route():
     if not q:
         return jsonify({"status": "error", "message": "No query provided"}), 400
     try:
-        key  = _lyrics_key(q)
+        hymn_number = None
+        hymn_title  = None
+
+        if q.isdigit():
+            key = q
+            hymn_number = int(q)
+        else:
+            # Resolve title → hymn number via local DB so key is always numeric
+            db_result = get_by_title(q)
+            if db_result:
+                key         = str(db_result["number"])
+                hymn_number = db_result["number"]
+                hymn_title  = db_result["title"]
+            else:
+                key = _lyrics_key(q)
+
         path = _lyrics_path(key)
         if os.path.exists(path):
-            with open(path) as f:
-                stanzas = json.load(f)
-            return jsonify({"status": "ok", "key": key, "count": len(stanzas), "source": "cache"})
-        stanzas = fetch_hymn_lyrics(int(q)) if q.isdigit() else fetch_lyrics_by_title(q)
+            data    = _load_lyrics(path, hint_number=hymn_number, hint_title=hymn_title)
+            stanzas = data["stanzas"]
+            hymn_number = hymn_number or data.get("hymn_number")
+            hymn_title  = hymn_title  or data.get("title")
+            resp = {"status": "ok", "key": key, "count": len(stanzas), "source": "cache"}
+            if hymn_number: resp["hymn_number"] = hymn_number
+            if hymn_title:  resp["title"]       = hymn_title
+            return jsonify(resp)
+
+        stanzas = fetch_hymn_lyrics(hymn_number) if hymn_number else fetch_lyrics_by_title(q)
         if not stanzas:
             return jsonify({"status": "error", "message": "No lyrics found"})
-        stanzas = clean_stanzas(stanzas, title=q)
+        stanzas = clean_stanzas(stanzas, title=hymn_title or q)
+        lyrics_data = {"stanzas": stanzas}
+        if hymn_number: lyrics_data["hymn_number"] = hymn_number
+        if hymn_title:  lyrics_data["title"]       = hymn_title
         with open(path, "w") as f:
-            json.dump(stanzas, f, indent=2)
-        return jsonify({"status": "ok", "key": key, "count": len(stanzas), "source": "web"})
+            json.dump(lyrics_data, f, indent=2)
+        resp = {"status": "ok", "key": key, "count": len(stanzas), "source": "web"}
+        if hymn_number: resp["hymn_number"] = hymn_number
+        if hymn_title:  resp["title"]       = hymn_title
+        return jsonify(resp)
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -342,9 +399,10 @@ def get_lyrics(key):
     path = _lyrics_path(key)
     if not os.path.exists(path):
         return jsonify({"status": "error", "message": "Lyrics file not found"}), 404
-    with open(path) as f:
-        stanzas = json.load(f)
-    return jsonify({"status": "ok", "stanzas": stanzas})
+    data = _load_lyrics(path)
+    return jsonify({"status": "ok", "stanzas": data["stanzas"],
+                    "hymn_number": data.get("hymn_number"),
+                    "title": data.get("title")})
 
 
 @app.route("/api/hymnal/search")

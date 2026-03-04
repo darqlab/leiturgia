@@ -1,0 +1,70 @@
+[
+  {
+    "number": 1,
+    "type": "verse",
+    "lines": [
+      "Hark! the herald angels sing,",
+      "\"Glory to the new born King,",
+      "peace on earth, and mercy mild,",
+      "God and sinners reconciled!\""
+    ]
+  },
+  {
+    "number": 2,
+    "type": "verse",
+    "lines": [
+      "Joyful, all ye nations rise,",
+      "join the triumph of the skies;",
+      "with th' angelic host proclaim,",
+      "\"Christ is born in Bethlehem!\""
+    ]
+  },
+  {
+    "number": 1,
+    "type": "refrain",
+    "lines": [
+      "Hark! the herald angels sing,",
+      "\"Glory to the new born King!\""
+    ]
+  },
+  {
+    "number": 3,
+    "type": "verse",
+    "lines": [
+      "Christ, by highest heaven adored;",
+      "Christ, the everlasting Lord;",
+      "late in time behold him come,",
+      "offspring of a virgin's womb."
+    ]
+  },
+  {
+    "number": 4,
+    "type": "verse",
+    "lines": [
+      "Veiled in flesh the Godhead see;",
+      "hail th' incarnate Deity,",
+      "pleased with us in flesh to dwell,",
+      "Jesus, our Emmanuel."
+    ]
+  },
+  {
+    "number": 5,
+    "type": "verse",
+    "lines": [
+      "Hail the heaven-born Prince of Peace!",
+      "Hail the Sun of Righteousness!",
+      "Light and life to all he brings,",
+      "risen with healing in his wings."
+    ]
+  },
+  {
+    "number": 6,
+    "type": "verse",
+    "lines": [
+      "Mild he lays his glory by,",
+      "born that we no more may die,",
+      "born to raise us from the earth,",
+      "born to give us second birth."
+    ]
+  }
+]
