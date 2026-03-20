@@ -1,4 +1,4 @@
-# Sabbath Program Builder
+# Leiturgia
 
 A lightweight Flask web app for generating Sabbath School PowerPoint presentations.
 Designed to run on a Raspberry Pi — accessible from any device on the same network.
@@ -6,12 +6,16 @@ Designed to run on a Raspberry Pi — accessible from any device on the same net
 ## Setup
 
 ```bash
-# 1. Clone / copy this folder to your Raspberry Pi
+# 1. Clone this repo onto your Raspberry Pi
 
-# 2. Install dependencies
+# 2. Create and activate a virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 3. Run
+# 4. Run
 python app.py
 ```
 
@@ -20,32 +24,60 @@ Then open a browser on any device on the same network:
 http://<raspberry-pi-ip>:5000
 ```
 
-## Auto-start on boot (optional)
+## Auto-start on boot (systemd)
 
-Add to crontab (`crontab -e`):
-```
-@reboot cd /home/pi/sabbath_app && python app.py &
+The recommended way to run Leiturgia persistently is via a systemd service.
+
+Create `/etc/systemd/system/leiturgia.service`:
+
+```ini
+[Unit]
+Description=Leiturgia Sabbath Program Builder
+After=network.target
+
+[Service]
+Type=simple
+User=<your-user>
+WorkingDirectory=/opt/yard/leiturgia
+ExecStart=/opt/yard/leiturgia/.venv/bin/python3 app.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
 ```
 
-## Weekly auto-generate (optional)
+Then enable and start it:
 
-Add to crontab to auto-generate every Saturday at 7 AM:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable leiturgia
+sudo systemctl start leiturgia
 ```
-0 7 * * 6 cd /home/pi/sabbath_app && python -c "from generator import generate_pptx; from app import load_program; generate_pptx(load_program(), 'output/SabbathSchool.pptx')"
+
+Useful commands:
+
+```bash
+sudo systemctl status leiturgia    # check status
+sudo systemctl restart leiturgia   # restart after code changes
+sudo journalctl -u leiturgia -f    # follow logs
 ```
 
 ## Project structure
 
 ```
-sabbath_app/
-├── app.py          # Flask web server
-├── generator.py    # python-pptx slide builder
-├── scraper.py      # hymn lyrics scraper
+leiturgia/
+├── app.py              # Flask web server
+├── generator.py        # python-pptx slide builder
+├── generator_odp.py    # LibreOffice ODP slide builder
+├── scraper.py          # hymn lyrics scraper
+├── hymnal.py           # local hymnal index
+├── claude_helpers.py   # AI-assisted utilities
 ├── requirements.txt
 ├── templates/
-│   └── index.html  # Web UI
+│   └── index.html      # Web UI
 ├── data/
-│   └── program.json  # saved program data
-└── output/
-    └── SabbathSchool.pptx  # generated file
+│   ├── program.json    # saved program state
+│   └── lyrics/         # cached hymn lyrics
+└── output/             # generated presentation files
 ```
