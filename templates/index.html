@@ -2755,13 +2755,11 @@
 
   function _projNext() {
     if (!_projItem || !_projStanzas.length) return;
-    if (_projStanzaIdx < _projStanzas.length - 1) {
-      _projStanzaIdx++;
-      const ch = _getChannel();
-      _sendCurrentStanza(ch,
-        _projItem.querySelector('.item-title')?.value || '',
-        _projItem.querySelector('.item-part')?.value  || '');
-    }
+    _projStanzaIdx = (_projStanzaIdx < _projStanzas.length - 1) ? _projStanzaIdx + 1 : 0;
+    const ch = _getChannel();
+    _sendCurrentStanza(ch,
+      _projItem.querySelector('.item-title')?.value || '',
+      _projItem.querySelector('.item-part')?.value  || '');
   }
 
   function _projPrev() {
