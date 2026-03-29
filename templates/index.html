@@ -2675,21 +2675,40 @@
             const data    = await res.json();
             const stanzas = (data.status === 'ok') ? data.stanzas : [];
             if (stanzas.length) {
+              // fullStanzas mirrors _projStanzas: index 0 = title card, 1+ = real stanzas
+              const fullStanzas = [{ type: '__title__' }, ...stanzas];
+
+              // Title card thumb (index 0)
+              slideNum++;
+              const titleThumb = document.createElement('div');
+              const titleActive = itemEl.id === _activeThumbItemId && 0 === _activeThumbStanzaIdx;
+              titleThumb.className        = 'strip-thumb' + (titleActive ? ' active' : '');
+              titleThumb.dataset.itemId   = itemEl.id;
+              titleThumb.dataset.stanzaIdx = 0;
+              titleThumb.innerHTML = `
+                <div class="strip-thumb-num">${slideNum} <span class="badge badge-song-s">♪</span></div>
+                <div class="strip-thumb-title">${_lpEsc(part || title)}</div>
+                <div class="strip-thumb-detail">Title</div>`;
+              titleThumb.addEventListener('click', () => _jumpToStanza(itemEl, fullStanzas, 0, title, part));
+              strip.appendChild(titleThumb);
+
+              // Stanza thumbs (indices 1+)
               stanzas.forEach((stanza, si) => {
                 slideNum++;
+                const projIdx = si + 1;
                 const t     = (stanza.type || 'verse').toLowerCase();
                 const label = t === 'chorus' ? 'Ch' : t === 'refrain' ? 'Ref'
                             : t === 'bridge' ? `Br${stanza.number}` : `V${stanza.number}`;
-                const isActive = itemEl.id === _activeThumbItemId && si === _activeThumbStanzaIdx;
+                const isActive = itemEl.id === _activeThumbItemId && projIdx === _activeThumbStanzaIdx;
                 const thumb = document.createElement('div');
-                thumb.className       = 'strip-thumb' + (isActive ? ' active' : '');
+                thumb.className        = 'strip-thumb' + (isActive ? ' active' : '');
                 thumb.dataset.itemId   = itemEl.id;
-                thumb.dataset.stanzaIdx = si;
+                thumb.dataset.stanzaIdx = projIdx;
                 thumb.innerHTML = `
                   <div class="strip-thumb-num">${slideNum} <span class="badge badge-song-s">♪</span></div>
                   <div class="strip-thumb-title">${_lpEsc(part || title)}</div>
                   <div class="strip-thumb-detail">${label}: ${_lpEsc((stanza.lines || [])[0] || '')}</div>`;
-                thumb.addEventListener('click', () => _jumpToStanza(itemEl, stanzas, si, title, part));
+                thumb.addEventListener('click', () => _jumpToStanza(itemEl, fullStanzas, projIdx, title, part));
                 strip.appendChild(thumb);
               });
               continue;
@@ -2773,7 +2792,9 @@
       try {
         const res  = await fetch(`/api/lyrics/${encodeURIComponent(lyricsKey)}`);
         const data = await res.json();
-        _projStanzas   = (data.status === 'ok') ? data.stanzas : [];
+        const fetched  = (data.status === 'ok') ? data.stanzas : [];
+        // Index 0 = title card, indices 1+ = stanzas
+        _projStanzas   = fetched.length ? [{ type: '__title__' }, ...fetched] : [];
         _projStanzaIdx = (startFromEnd && _projStanzas.length) ? _projStanzas.length - 1 : 0;
         _projItem      = itemEl;
         _activateStripThumb(itemEl, _projStanzas.length ? _projStanzaIdx : null);
@@ -2801,7 +2822,8 @@
   function _sendCurrentStanza(ch, title, part) {
     const stanza = _projStanzas[_projStanzaIdx] || null;
     const sd     = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
-    if (stanza) sd.stanza = stanza;
+    // Only attach stanza if it's a real stanza (not the title-card sentinel)
+    if (stanza && stanza.type !== '__title__') sd.stanza = stanza;
     _socket.emit('slide:show', sd);
     renderLivePreview(sd);
   }
