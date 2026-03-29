@@ -2748,7 +2748,7 @@
     if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
 
-  async function sendLive(itemEl) {
+  async function sendLive(itemEl, startFromEnd = false) {
     if (!itemEl) return;
     const ch      = _getChannel();
     const type    = itemEl.dataset.itemType || 'participant';
@@ -2774,9 +2774,9 @@
         const res  = await fetch(`/api/lyrics/${encodeURIComponent(lyricsKey)}`);
         const data = await res.json();
         _projStanzas   = (data.status === 'ok') ? data.stanzas : [];
-        _projStanzaIdx = 0;
+        _projStanzaIdx = (startFromEnd && _projStanzas.length) ? _projStanzas.length - 1 : 0;
         _projItem      = itemEl;
-        _activateStripThumb(itemEl, _projStanzas.length ? 0 : null);
+        _activateStripThumb(itemEl, _projStanzas.length ? _projStanzaIdx : null);
         _sendCurrentStanza(ch, title, part);
       } catch (e) {
         _projStanzas = []; _projItem = itemEl; _projStanzaIdx = 0;
@@ -2811,7 +2811,7 @@
     if (!items.length) return;
     const idx = _projItem ? items.indexOf(_projItem) : -1;
     const next = items[idx + dir];
-    if (next) sendLive(next);
+    if (next) sendLive(next, dir < 0);  // going backwards → start from last stanza
   }
 
   function _projNext() {
@@ -2827,7 +2827,16 @@
 
   function _projPrev() {
     if (!_projItem) return;
-    _projNextItem(-1);
+    if (!_projStanzas.length) { _projNextItem(-1); return; }
+    if (_projStanzaIdx > 0) {
+      _projStanzaIdx--;
+      _activateStripThumb(_projItem, _projStanzaIdx);
+      _sendCurrentStanza(_getChannel(),
+        _projItem.querySelector('.item-title')?.value || '',
+        _projItem.querySelector('.item-part')?.value  || '');
+    } else {
+      _projNextItem(-1);  // at first stanza → go to previous item (last stanza)
+    }
   }
 
   function _projBlank() {
