@@ -1,0 +1,43 @@
+{
+  "ch1": {
+    "type": "text",
+    "data": {
+      "type": "text",
+      "title": "We Gather Together",
+      "part": "Opening Song",
+      "channel": "ch1",
+      "theme_id": "default",
+      "stanza": {
+        "lines": [
+          "We all do extol Thee, Thou leader triumphant,",
+          "And pray that Thou still our defender wilt be.",
+          "Let Thy congregation escape tribulation;",
+          "Thy name be ever praised! O Lord, make us free!"
+        ],
+        "number": 3,
+        "type": "verse"
+      }
+    },
+    "theme_id": "default"
+  },
+  "ch2": {
+    "type": "timer",
+    "data": {
+      "seconds": 300,
+      "label": "Lesson Review",
+      "running": true,
+      "channel": "ch2",
+      "type": "timer"
+    },
+    "theme_id": "default"
+  },
+  "ch3": {
+    "type": "announcement",
+    "data": {
+      "type": "announcement",
+      "text": "walay potluck",
+      "channel": "ch3"
+    },
+    "theme_id": "default"
+  }
+}

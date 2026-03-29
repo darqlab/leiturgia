@@ -584,7 +584,9 @@ def on_join(data):
 def on_state_restore(data):
     channel = data.get('channel', 'ch1')
     state   = proj.get_state(channel)
-    emit('slide:show', state)
+    # Don't restore blank — display stays in "Waiting for content…" mode
+    if state.get('type') != 'blank':
+        emit('slide:show', state)
 
 @socketio.on('slide:show')
 def on_slide_show(data):
