@@ -67,15 +67,16 @@
 
     .slide-lines {
       display: flex; flex-direction: column;
-      align-items: center; gap: 1rem;
+      align-items: center; gap: 0.6em;
+      width: 100%;
     }
 
     .slide-line {
       font-family: var(--font-heading);
-      font-size: clamp(2.5rem, 5.5vw, 5rem);
+      font-size: 1em;
       color: var(--proj-off-white);
       text-align: center;
-      line-height: 1.4;
+      line-height: 1.35;
     }
 
     /* Body text (non-song items) */
@@ -307,6 +308,9 @@
         html += `<div class="slide-line">${esc(l)}</div>`;
       });
       html += `</div>`;
+      slide.innerHTML = html;
+      fitLyricsToSlide();
+      return;
     } else {
       // Non-song slide: show part + title
       if (data.part) {
@@ -420,6 +424,28 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+
+  // ── Fit lyrics to fill the slide ───────────────────────────────────────────
+  function fitLyricsToSlide() {
+    const slide = document.getElementById('slide');
+    const lines = slide.querySelector('.slide-lines');
+    if (!lines) return;
+    const st     = getComputedStyle(slide);
+    const availH = slide.clientHeight - parseFloat(st.paddingTop)  - parseFloat(st.paddingBottom);
+    const availW = slide.clientWidth  - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+    let lo = 12, hi = 400;
+    while (hi - lo > 2) {
+      const mid = (lo + hi) / 2;
+      lines.style.fontSize = mid + 'px';
+      if (lines.scrollHeight <= availH && lines.scrollWidth <= availW) lo = mid;
+      else hi = mid;
+    }
+    lines.style.fontSize = Math.floor(lo) + 'px';
+  }
+
+  window.addEventListener('resize', function () {
+    if (document.querySelector('#slide .slide-lines')) fitLyricsToSlide();
+  });
 </script>
 </body>
 </html>
