@@ -1048,6 +1048,28 @@
 
     /* Push page content above fixed footer strip */
     body { padding-bottom: 96px; }
+
+    /* ── Channel tiles (multi-channel overview) ── */
+    .channel-tiles {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .ch-tile {
+      flex: 1 1 calc(33% - 4px);
+      min-width: 60px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 5px 6px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      text-align: center;
+    }
+    .ch-tile:hover { border-color: var(--gold-dim); }
+    .ch-tile.selected { border-color: var(--gold); }
+    .ch-tile-name { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: 0.05em; }
+    .ch-tile-state { font-size: 8px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   </style>
 </head>
 <body>
@@ -1297,6 +1319,33 @@
         <option value="ch5">ch5</option>
       </select>
       <a id="openDisplayBtn" href="/ch1" target="_blank" class="btn btn-outline" style="font-size:11px;padding:5px 8px;" title="Open display in new tab">↗</a>
+    </div>
+  </div>
+
+  <!-- Channel tiles overview -->
+  <div>
+    <div class="rp-section-label">Channels</div>
+    <div class="channel-tiles" id="channelTiles">
+      <div class="ch-tile selected" data-ch="ch1" onclick="selectChannel('ch1')">
+        <div class="ch-tile-name">ch1</div>
+        <div class="ch-tile-state" id="ch-state-ch1">—</div>
+      </div>
+      <div class="ch-tile" data-ch="ch2" onclick="selectChannel('ch2')">
+        <div class="ch-tile-name">ch2</div>
+        <div class="ch-tile-state" id="ch-state-ch2">—</div>
+      </div>
+      <div class="ch-tile" data-ch="ch3" onclick="selectChannel('ch3')">
+        <div class="ch-tile-name">ch3</div>
+        <div class="ch-tile-state" id="ch-state-ch3">—</div>
+      </div>
+      <div class="ch-tile" data-ch="ch4" onclick="selectChannel('ch4')">
+        <div class="ch-tile-name">ch4</div>
+        <div class="ch-tile-state" id="ch-state-ch4">—</div>
+      </div>
+      <div class="ch-tile" data-ch="ch5" onclick="selectChannel('ch5')">
+        <div class="ch-tile-name">ch5</div>
+        <div class="ch-tile-state" id="ch-state-ch5">—</div>
+      </div>
     </div>
   </div>
 
@@ -2464,11 +2513,41 @@
     if (btn) btn.href = '/' + ch;
   }
 
+  // ── Channel tile selection ─────────────────────────────────────────────────
+  function selectChannel(ch) {
+    // Update dropdown
+    const sel = document.getElementById('channelSelect');
+    if (sel) sel.value = ch;
+    updateDisplayLink();
+    // Update tile highlight
+    document.querySelectorAll('.ch-tile').forEach(t => {
+      t.classList.toggle('selected', t.dataset.ch === ch);
+    });
+  }
+
+  // Track per-channel state summaries for tile labels
+  const _chStateSummary = {};
+
+  function _updateChTile(ch, data) {
+    const el = document.getElementById(`ch-state-${ch}`);
+    if (!el) return;
+    const type = data.type || 'text';
+    if (type === 'blank') { el.textContent = 'BLANK'; return; }
+    if (type === 'announcement') { el.textContent = 'Announcement'; return; }
+    if (type === 'image')  { el.textContent = 'Image'; return; }
+    if (type === 'video')  { el.textContent = 'Video'; return; }
+    if (type === 'timer')  { el.textContent = 'Timer'; return; }
+    const d = data.data || data;
+    el.textContent = d.title || d.part || '—';
+  }
+
   // ── Live preview (mini screen in right panel) ──────────────────────────────
   function renderLivePreview(data) {
     const screen = document.getElementById('livePreviewScreen');
     if (!screen) return;
     const type = data.type || 'text';
+    // Update the channel tile state label
+    _updateChTile(data.channel || _getChannel(), data);
     let html = '';
 
     if (type === 'blank') {
