@@ -2827,14 +2827,7 @@
 
   function _projPrev() {
     if (!_projItem) return;
-    if (!_projStanzas.length) { _projNextItem(-1); return; }
-    if (_projStanzaIdx > 0) {
-      _projStanzaIdx--;
-      _activateStripThumb(_projItem, _projStanzaIdx);
-      _sendCurrentStanza(_getChannel(),
-        _projItem.querySelector('.item-title')?.value || '',
-        _projItem.querySelector('.item-part')?.value  || '');
-    }
+    _projNextItem(-1);
   }
 
   function _projBlank() {
