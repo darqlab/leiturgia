@@ -2078,6 +2078,14 @@
     });
   }
 
+  // Live projection state — must be declared before switchPanelSection runs
+  // because buildSlideStrip (called from switchPanelSection) reads _activeThumbItemId
+  let _activeThumbItemId = null;
+  let _projItem      = null;
+  let _projStanzas   = [];
+  let _projStanzaIdx = 0;
+  const _chStateSummary = {};
+
   // Show only the initially selected program on load
   switchPanelSection(document.getElementById("panelSectionSelect").value);
 
@@ -2527,12 +2535,6 @@
   }
 
   // ── Live Projection ────────────────────────────────────────────────────────
-  // State vars declared first so they are never in TDZ regardless of init order
-  let _activeThumbItemId = null;
-  let _projItem      = null;
-  let _projStanzas   = [];
-  let _projStanzaIdx = 0;
-  const _chStateSummary = {};
 
   const _socket = io({ transports: ['websocket', 'polling'] });
 
