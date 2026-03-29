@@ -1,0 +1,45 @@
+{
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "verse",
+      "lines": [
+        "All people that on earth do dwell,",
+        "sing to the Lord with cheerful voice.",
+        "Him serve with mirth, his praise forth tell;",
+        "come ye before him and rejoice."
+      ]
+    },
+    {
+      "number": 2,
+      "type": "verse",
+      "lines": [
+        "Know that the Lord is God indeed;",
+        "without our aid he did us make;",
+        "we are his folk, he doth us feed,",
+        "and for his sheep he doth us take."
+      ]
+    },
+    {
+      "number": 3,
+      "type": "verse",
+      "lines": [
+        "O enter then his gates with praise;",
+        "approach with joy his courts unto;",
+        "praise, laud, and bless his name always,",
+        "for it is seemly so to do."
+      ]
+    },
+    {
+      "number": 4,
+      "type": "verse",
+      "lines": [
+        "For why! the Lord our God is good;",
+        "his mercy is forever sure;",
+        "his truth at all times firmly stood,",
+        "and shall from age to age endure."
+      ]
+    }
+  ],
+  "hymn_number": 16
+}

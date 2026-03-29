@@ -1,0 +1,55 @@
+{
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "verse",
+      "lines": [
+        "We love Thy Sabbath, Lord,",
+        "And worship at Thy will;",
+        "Oh may these hours sweet peace afford",
+        "And deeper faith instill."
+      ]
+    },
+    {
+      "number": 2,
+      "type": "verse",
+      "lines": [
+        "Thine angels sang for joy",
+        "Creation's work to see;",
+        "We too, this day, would raise our hearts",
+        "In grateful praise to Thee."
+      ]
+    },
+    {
+      "number": 3,
+      "type": "verse",
+      "lines": [
+        "Praise for Thy wondrous love,",
+        "That sealed this sacred day,",
+        "A sign that all may understand",
+        "We own Thy sovereign sway."
+      ]
+    },
+    {
+      "number": 4,
+      "type": "verse",
+      "lines": [
+        "O great Creator King,",
+        "Through Thy redeeming grace,",
+        "Renew and sanctify our hearts",
+        "That we may see Thy face."
+      ]
+    },
+    {
+      "number": 5,
+      "type": "verse",
+      "lines": [
+        "And with the white-robed throng,",
+        "Upon Mount Sion be,",
+        "And joyful sing our Sabbath song",
+        "Through all eternity."
+      ]
+    }
+  ],
+  "hymn_number": 390
+}

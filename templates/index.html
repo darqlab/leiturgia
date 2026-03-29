@@ -23,12 +23,16 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       background: var(--bg);
       color: var(--white);
       font-family: 'DM Sans', sans-serif;
       font-size: 14px;
-      min-height: 100vh;
     }
 
     /* ── Header ── */
@@ -86,7 +90,7 @@
     /* ── Layout ── */
     .page-layout {
       display: flex;
-      min-height: calc(100vh - 64px);
+      height: calc(100vh - 64px);
     }
 
     /* ── Slide panel (LibreOffice Impress-style) ── */
@@ -96,9 +100,7 @@
       flex-shrink: 0;
       background: #070f1f;
       border-right: 1px solid #0e1a30;
-      position: sticky;
-      top: 64px;
-      height: calc(100vh - 64px);
+      height: 100%;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #1e2f52 transparent;
@@ -233,6 +235,73 @@
     }
     .outline-cat-header + .outline-cat-header { margin-top: 8px; }
 
+    .panel-top-bar {
+      padding: 8px 10px;
+      border-bottom: 1px solid #0e1a30;
+      background: #070f1f;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .panel-top-bar .btn-add-program { margin-top: 0; }
+
+    .program-nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .program-nav-item:hover { background: #0f1e3a; }
+    .program-nav-item.active {
+      background: #162240;
+      border-left-color: var(--gold);
+    }
+    .program-nav-name {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--white);
+    }
+    .program-nav-item.active .program-nav-name { color: var(--gold-lt); }
+    .program-nav-item.dragging { opacity: 0.35; }
+    .program-nav-item.drop-above { border-top: 2px solid var(--gold); }
+    .program-nav-item.drop-below { border-bottom: 2px solid var(--gold); }
+    .program-nav-drag {
+      color: var(--muted);
+      font-size: 13px;
+      cursor: grab;
+      flex-shrink: 0;
+      margin-right: 2px;
+      opacity: 0.5;
+    }
+    .program-nav-item:hover .program-nav-drag { opacity: 1; }
+
+    .panel-program-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: default;
+      margin-top: 0;
+    }
+    .panel-program-header.active { color: var(--gold-lt); }
+    .btn-delete-prog-inline {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 10px;
+      cursor: pointer;
+      padding: 2px 5px;
+      border-radius: 3px;
+      opacity: 0.5;
+      line-height: 1;
+      transition: color 0.12s, opacity 0.12s;
+    }
+    .btn-delete-prog-inline:hover:not(:disabled) { color: var(--error); opacity: 1; }
+    .btn-delete-prog-inline:disabled { opacity: 0.15; cursor: not-allowed; }
+
     .outline-item {
       display: flex;
       align-items: flex-start;
@@ -317,13 +386,42 @@
     }
     .panel-add-buttons button:hover { border-color: var(--gold-dim); color: var(--white); }
 
-    .main-content { flex: 1; min-width: 0; }
-    .container { padding: 1.5rem 2rem; }
+    .items-add-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 0 4px;
+      flex-wrap: wrap;
+    }
+    .items-add-bar button {
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .items-add-bar button:hover { border-color: var(--gold); color: var(--gold); }
+
+    .main-content {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #1e2f52 transparent;
+    }
+    .main-content::-webkit-scrollbar { width: 4px; }
+    .main-content::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
+    .container { padding: 1.5rem 2rem 120px; }
 
     /* ── Toolbar (always-visible, sticky below header) ── */
     .toolbar {
       position: sticky;
-      top: 64px;
+      top: 0;
       z-index: 90;
       background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -824,9 +922,7 @@
       flex-shrink: 0;
       background: #070f1f;
       border-left: 1px solid #0e1a30;
-      position: sticky;
-      top: 64px;
-      height: calc(100vh - 64px);
+      height: 100%;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #1e2f52 transparent;
@@ -1090,41 +1186,23 @@
 <!-- ── Slide panel ───────────────────────────────────────────────────────── -->
 <aside class="slide-panel">
 
-  <!-- Section switcher dropdown -->
-  <div class="panel-switcher">
-    <select id="panelSectionSelect" onchange="switchPanelSection(this.value)">
-      {% for sp in program.service_programs %}
-      <option value="{{ sp.id }}">{{ sp.name }}</option>
-      {% endfor %}
-    </select>
+  <!-- Top bar: Add Program -->
+  <div class="panel-top-bar">
     <button class="btn-add-program" onclick="openAddProgram()">+ Add Program</button>
-    <button class="btn-delete-program" id="btnDeleteProgram" onclick="deleteCurrentProgram()"
-      {% if program.service_programs|length <= 1 %}disabled{% endif %}>✕ Delete Program</button>
   </div>
 
-  <!-- Program panels (one per service_program) -->
+  <!-- Program name list -->
   {% for sp in program.service_programs %}
-  <div id="panel-{{ sp.id }}" {% if not loop.first %}style="display:none"{% endif %}>
-    {% set counter = namespace(n=0) %}
-    {% for item in sp["items"] %}
-    {% set is_song = item.get("type", "participant") == "song" %}
-    <div class="outline-item {{ 'song' if is_song else '' }}" draggable="true" data-for="{{ sp.id }}-item-{{ counter.n }}" onclick="scrollToItem('{{ sp.id }}-item-{{ counter.n }}')">
-      <div class="outline-thumb">{{ '♪' if is_song else counter.n + 1 }}</div>
-      <div class="outline-info">
-        <div class="outline-title">{% if is_song and item.get('part') %}{{ item.part }}{% else %}{{ item.title }}{% endif %}</div>
-      </div>
-      <div class="reorder-btns">
-        <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'up')" title="Move up">▲</button>
-        <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'down')" title="Move down">▼</button>
-      </div>
-    </div>
-    {% set counter.n = counter.n + 1 %}
-    {% endfor %}
-    <div class="panel-add-buttons">
-      <button onclick="addProgramItem('{{ sp.id }}', 'participant')">+ Participant</button>
-      <button onclick="addProgramItem('{{ sp.id }}', 'song')">+ Song</button>
-      <button onclick="addProgramItem('{{ sp.id }}', 'content')">+ Content</button>
-    </div>
+  <div class="program-nav-item{% if loop.first %} active{% endif %}"
+       data-program-id="{{ sp.id }}"
+       draggable="true"
+       onclick="switchPanelSection('{{ sp.id }}')">
+    <span class="program-nav-drag" title="Drag to reorder">⠿</span>
+    <span class="program-nav-name">{{ sp.name }}</span>
+    <button class="btn-delete-prog-inline"
+            onclick="event.stopPropagation(); deleteProgram('{{ sp.id }}', {{ sp.name | tojson }})"
+            {% if program.service_programs|length <= 1 %}disabled{% endif %}
+            title="Delete program">✕</button>
   </div>
   {% endfor %}
 
@@ -1295,6 +1373,11 @@
           </div>
         </div>
         {% endfor %}
+      </div>
+      <div class="items-add-bar">
+        <button onclick="addProgramItem('{{ sp.id }}', 'participant')">+ Participant</button>
+        <button onclick="addProgramItem('{{ sp.id }}', 'song')">+ Song</button>
+        <button onclick="addProgramItem('{{ sp.id }}', 'content')">+ Content</button>
       </div>
   </div>
   {% endfor %}
@@ -1834,8 +1917,7 @@
     }).then(r => {
         if (r.ok) {
           toast("Saved", "success");
-          const sel = document.getElementById('panelSectionSelect');
-          if (sel) buildSlideStrip(sel.value);
+          if (_activeProgram) buildSlideStrip(_activeProgram);
         }
       })
       .catch(() => toast("Save failed", "error"));
@@ -2018,24 +2100,20 @@
   function scrollToItem(id) { selectItem(id); }
 
   function switchPanelSection(val) {
-    closeActiveItem(true);
-    document.querySelectorAll('[id^="panel-"]').forEach(el => el.style.display = "none");
-    const el = document.getElementById("panel-" + val);
-    if (el) el.style.display = "";
-    document.querySelectorAll(".service-program").forEach(sp => {
-      sp.style.display = sp.dataset.programId === val ? "" : "none";
+    _activeProgram = val;
+    // Highlight active nav item
+    document.querySelectorAll('.program-nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.programId === val);
     });
-    const count  = document.getElementById("panelSectionSelect")?.options.length || 0;
-    const delBtn = document.getElementById("btnDeleteProgram");
-    if (delBtn) delBtn.disabled = count <= 1;
+    // Show only the selected program in main content
+    document.querySelectorAll('.service-program').forEach(sp => {
+      sp.style.display = sp.dataset.programId === val ? '' : 'none';
+    });
     buildSlideStrip(val);
   }
 
   // ── Delete program ──────────────────────────────────────────────────────
-  function deleteCurrentProgram() {
-    const sel = document.getElementById("panelSectionSelect");
-    const programId   = sel.value;
-    const programName = sel.options[sel.selectedIndex].text;
+  function deleteProgram(programId, programName) {
     if (!confirm(`Delete "${programName}" and all its items? This cannot be undone.`)) return;
     fetch(`/api/programs/${programId}`, { method: "DELETE" })
       .then(r => r.json())
@@ -2045,6 +2123,66 @@
       })
       .catch(() => toast("Delete failed", "error"));
   }
+
+  // ── Program nav drag-and-drop reorder ───────────────────────────────────
+  (function () {
+    const panel = document.querySelector('.slide-panel');
+    let _dragNav = null;
+
+    panel.addEventListener('dragstart', function (e) {
+      const nav = e.target.closest('.program-nav-item');
+      if (!nav) return;
+      _dragNav = nav;
+      nav.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    panel.addEventListener('dragend', function () {
+      if (_dragNav) _dragNav.classList.remove('dragging');
+      panel.querySelectorAll('.drop-above, .drop-below')
+        .forEach(el => el.classList.remove('drop-above', 'drop-below'));
+      _dragNav = null;
+    });
+
+    panel.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      const target = e.target.closest('.program-nav-item');
+      if (!target || target === _dragNav) return;
+      panel.querySelectorAll('.drop-above, .drop-below')
+        .forEach(el => el.classList.remove('drop-above', 'drop-below'));
+      const mid = target.getBoundingClientRect().top + target.offsetHeight / 2;
+      target.classList.add(e.clientY < mid ? 'drop-above' : 'drop-below');
+    });
+
+    panel.addEventListener('dragleave', function (e) {
+      if (!e.relatedTarget?.closest('.program-nav-item')) {
+        panel.querySelectorAll('.drop-above, .drop-below')
+          .forEach(el => el.classList.remove('drop-above', 'drop-below'));
+      }
+    });
+
+    panel.addEventListener('drop', function (e) {
+      e.preventDefault();
+      const target = e.target.closest('.program-nav-item');
+      if (!target || target === _dragNav || !_dragNav) return;
+
+      const above = target.classList.contains('drop-above');
+      if (above) panel.insertBefore(_dragNav, target);
+      else        target.insertAdjacentElement('afterend', _dragNav);
+
+      // Mirror order in main content
+      const container = document.querySelector('.container');
+      panel.querySelectorAll('.program-nav-item').forEach(nav => {
+        const sp = document.querySelector(`.service-program[data-program-id="${nav.dataset.programId}"]`);
+        if (sp) container.appendChild(sp);
+      });
+
+      panel.querySelectorAll('.drop-above, .drop-below')
+        .forEach(el => el.classList.remove('drop-above', 'drop-below'));
+
+      scheduleAutoSave();
+    });
+  })();
 
   // ── Up / Down reorder (touch alternative to drag) ───────────────────────
   function reorderItem(btn, direction) {
@@ -2075,6 +2213,7 @@
   }
 
   function updateReorderButtons(panel) {
+    if (!panel) return;
     const items = [...panel.querySelectorAll(".outline-item")];
     items.forEach((item, i) => {
       const upBtn   = item.querySelector(".btn-reorder[title='Move up']");
@@ -2092,12 +2231,13 @@
   let _projStanzas   = [];
   let _projStanzaIdx = 0;
   const _chStateSummary = {};
+  let _activeProgram = null;
 
-  // Show only the initially selected program on load
-  switchPanelSection(document.getElementById("panelSectionSelect").value);
-
-  // Initialise reorder button states for all panels
-  document.querySelectorAll('[id^="panel-"]').forEach(updateReorderButtons);
+  // Initialise active program from first nav item
+  (function () {
+    const firstNav = document.querySelector('.program-nav-item');
+    if (firstNav) switchPanelSection(firstNav.dataset.programId);
+  })();
 
   // ── Main-content drag-and-drop reorder ───────────────────────────────────
   let _dragItem = null;
@@ -2423,11 +2563,9 @@
   (function() {
     const sel = new URLSearchParams(location.search).get("select");
     if (sel) {
-      const selectEl = document.getElementById("panelSectionSelect");
-      if (selectEl) {
-        selectEl.value = sel;
-        switchPanelSection(sel);
-      }
+      switchPanelSection(sel);
+      const spEl = document.querySelector(`.service-program[data-program-id="${sel}"]`);
+      if (spEl) spEl.scrollIntoView({ behavior: 'smooth' });
       // Clean URL without reloading
       history.replaceState(null, "", location.pathname);
     }
@@ -2892,12 +3030,6 @@
       _projBlank();
     }
   });
-
-  // ── Init slide strip on page load ──────────────────────────────────────────
-  (function () {
-    const sel = document.getElementById('panelSectionSelect');
-    if (sel) buildSlideStrip(sel.value);
-  })();
 
   // ── Timer controls ──────────────────────────────────────────────────────────
   function _timerSecs() {
