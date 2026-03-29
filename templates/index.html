@@ -2811,7 +2811,7 @@
   function _projNext() {
     if (!_projItem) return;
     if (!_projStanzas.length) { _projNextItem(1); return; }
-    if (_projStanzaIdx >= _projStanzas.length - 1) return;
+    if (_projStanzaIdx >= _projStanzas.length - 1) { _projNextItem(1); return; }
     _projStanzaIdx++;
     _activateStripThumb(_projItem, _projStanzaIdx);
     _sendCurrentStanza(_getChannel(),
