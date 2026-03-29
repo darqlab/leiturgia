@@ -300,25 +300,19 @@
     const slide = document.getElementById('slide');
     let html = '';
 
-    if (data.part) {
-      html += `<div class="slide-part">${esc(data.part)}</div>`;
-    }
-
-    html += `<div class="slide-title">${esc(data.title || '')}</div>`;
-
     if (data.stanza) {
-      const s = data.stanza;
-      const t = (s.type || 'verse').toLowerCase();
-      let label = t === 'chorus'  ? 'Chorus'
-                : t === 'refrain' ? 'Refrain'
-                : t === 'bridge'  ? `Bridge ${s.number}`
-                : `Verse ${s.number}`;
-      html += `<div class="slide-stanza-label">${esc(label)}</div>`;
+      // Song slide: lyrics only — no title, no part label, no stanza label
       html += `<div class="slide-lines">`;
-      (s.lines || []).forEach(l => {
+      (data.stanza.lines || []).forEach(l => {
         html += `<div class="slide-line">${esc(l)}</div>`;
       });
       html += `</div>`;
+    } else {
+      // Non-song slide: show part + title
+      if (data.part) {
+        html += `<div class="slide-part">${esc(data.part)}</div>`;
+      }
+      html += `<div class="slide-title">${esc(data.title || '')}</div>`;
     }
 
     if (data.body) {
