@@ -2753,8 +2753,17 @@
     renderLivePreview(sd);
   }
 
+  function _projNextItem(dir) {
+    const items = Array.from(document.querySelectorAll('.service-program:not([style*="none"]) .program-item'));
+    if (!items.length) return;
+    const idx = _projItem ? items.indexOf(_projItem) : -1;
+    const next = items[idx + dir];
+    if (next) sendLive(next);
+  }
+
   function _projNext() {
-    if (!_projItem || !_projStanzas.length) return;
+    if (!_projItem) return;
+    if (!_projStanzas.length) { _projNextItem(1); return; }
     _projStanzaIdx = (_projStanzaIdx < _projStanzas.length - 1) ? _projStanzaIdx + 1 : 0;
     const ch = _getChannel();
     _sendCurrentStanza(ch,
@@ -2763,7 +2772,8 @@
   }
 
   function _projPrev() {
-    if (!_projItem || !_projStanzas.length) return;
+    if (!_projItem) return;
+    if (!_projStanzas.length) { _projNextItem(-1); return; }
     if (_projStanzaIdx > 0) {
       _projStanzaIdx--;
       const ch = _getChannel();
