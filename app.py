@@ -15,10 +15,12 @@ from claude_helpers import clean_stanzas
 from hymnal import search_titles, get_by_title, get_by_number
 from projection import ProjectionStateManager
 from media_manager import list_media
+from timer import TimerManager
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
-proj = ProjectionStateManager()
+proj  = ProjectionStateManager()
+timer = TimerManager()
 DATA_FILE    = "data/program.json"
 HISTORY_FILE = "data/history.json"
 HISTORY_MAX  = 6
@@ -608,6 +610,40 @@ def on_announcement(data):
     state   = {'type': 'announcement', 'data': data, 'theme_id': 'default'}
     proj.set_state(channel, state)
     emit('announcement', data, to=channel)
+
+@socketio.on('timer:show')
+def on_timer_show(data):
+    channel = data.get('channel', 'ch1')
+    state_d = timer.show(channel, int(data.get('seconds', 0)), data.get('label', ''))
+    state_d.update({'channel': channel, 'type': 'timer'})
+    proj.set_state(channel, {'type': 'timer', 'data': state_d, 'theme_id': 'default'})
+    emit('timer:show', state_d, to=channel)
+
+@socketio.on('timer:start')
+def on_timer_start(data):
+    channel = data.get('channel', 'ch1')
+    secs    = data.get('seconds')
+    label   = data.get('label')
+    state_d = timer.start(channel, int(secs) if secs is not None else None, label)
+    state_d.update({'channel': channel, 'type': 'timer'})
+    proj.set_state(channel, {'type': 'timer', 'data': state_d, 'theme_id': 'default'})
+    emit('timer:start', state_d, to=channel)
+
+@socketio.on('timer:pause')
+def on_timer_pause(data):
+    channel = data.get('channel', 'ch1')
+    state_d = timer.pause(channel)
+    state_d.update({'channel': channel})
+    emit('timer:pause', state_d, to=channel)
+
+@socketio.on('timer:reset')
+def on_timer_reset(data):
+    channel = data.get('channel', 'ch1')
+    secs    = data.get('seconds')
+    state_d = timer.reset(channel, int(secs) if secs is not None else None)
+    state_d.update({'channel': channel, 'type': 'timer'})
+    proj.set_state(channel, {'type': 'timer', 'data': state_d, 'theme_id': 'default'})
+    emit('timer:reset', state_d, to=channel)
 
 
 # ── Media routes ─────────────────────────────────────────────────────────────

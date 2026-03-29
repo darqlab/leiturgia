@@ -1360,6 +1360,26 @@
   <!-- Blank button -->
   <button class="btn-rp-blank" onclick="_projBlank()">■ Blank Screen</button>
 
+  <!-- Timer controls -->
+  <div>
+    <div class="rp-section-label">Countdown Timer</div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+      <input id="timerMinutes" type="number" min="0" max="99" value="5"
+        style="width:46px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--white);padding:5px 6px;font-size:13px;text-align:center;">
+      <span style="color:var(--muted);font-size:13px;">:</span>
+      <input id="timerSeconds" type="number" min="0" max="59" value="0"
+        style="width:46px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--white);padding:5px 6px;font-size:13px;text-align:center;">
+      <input id="timerLabel" type="text" placeholder="Label…"
+        style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--white);padding:5px 7px;font-size:11px;">
+    </div>
+    <div style="display:flex;gap:5px;">
+      <button class="btn-rp-blank" style="flex:1;" onclick="timerShow()">Set</button>
+      <button class="btn-rp-blank" style="flex:1;color:#4caf82;border-color:#4caf82;" onclick="timerStart()">▶</button>
+      <button class="btn-rp-blank" style="flex:1;" onclick="timerPause()">⏸</button>
+      <button class="btn-rp-blank" style="flex:1;" onclick="timerReset()">↺</button>
+    </div>
+  </div>
+
   <!-- Announcement console -->
   <div>
     <div class="rp-section-label">Announcement</div>
@@ -2757,6 +2777,40 @@
     const sel = document.getElementById('panelSectionSelect');
     if (sel) buildSlideStrip(sel.value);
   })();
+
+  // ── Timer controls ──────────────────────────────────────────────────────────
+  function _timerSecs() {
+    const m = parseInt(document.getElementById('timerMinutes')?.value || '0', 10);
+    const s = parseInt(document.getElementById('timerSeconds')?.value || '0', 10);
+    return m * 60 + s;
+  }
+  function _timerLabel() {
+    return document.getElementById('timerLabel')?.value.trim() || '';
+  }
+
+  function timerShow() {
+    const ch   = _getChannel();
+    const data = { channel: ch, seconds: _timerSecs(), label: _timerLabel(), type: 'timer' };
+    _socket.emit('timer:show', data);
+    renderLivePreview(data);
+  }
+  function timerStart() {
+    const ch   = _getChannel();
+    const data = { channel: ch, seconds: _timerSecs(), label: _timerLabel(), running: true, type: 'timer' };
+    _socket.emit('timer:start', data);
+    renderLivePreview(data);
+  }
+  function timerPause() {
+    const ch = _getChannel();
+    _socket.emit('timer:pause', { channel: ch });
+    _updateChTile(ch, { type: 'timer' });
+  }
+  function timerReset() {
+    const ch   = _getChannel();
+    const data = { channel: ch, seconds: _timerSecs(), type: 'timer' };
+    _socket.emit('timer:reset', data);
+    renderLivePreview(data);
+  }
 
   // ── Announcement ────────────────────────────────────────────────────────────
   function sendAnnouncement() {
