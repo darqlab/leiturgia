@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leiturgia — {{ channel }}</title>
-  <link rel="stylesheet" href="/static/themes/default.css">
+  <link id="themeLink" rel="stylesheet" href="/static/themes/default.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -260,8 +260,21 @@
   socket.on('timer:reset',  function (data) { resetTimer(data); });
 
   // ── Render dispatcher ──────────────────────────────────────────────────────
+  // ── Theme switching ──────────────────────────────────────────────────────
+  let _currentTheme = 'default';
+
+  function applyTheme(themeId) {
+    if (!themeId || themeId === _currentTheme) return;
+    const link = document.getElementById('themeLink');
+    if (link) {
+      link.href = `/static/themes/${themeId}.css`;
+      _currentTheme = themeId;
+    }
+  }
+
   function renderState(state) {
     const type = state.type || 'blank';
+    applyTheme(state.theme_id || (state.data && state.data.theme_id));
     stopTimer();
 
     switch (type) {

@@ -1322,6 +1322,23 @@
     </div>
   </div>
 
+  <!-- Theme selector -->
+  <div>
+    <div class="rp-section-label">Theme</div>
+    <select id="themeSelect" class="channel-select" style="width:100%;">
+      <option value="default">Default (Navy/Gold)</option>
+      <option value="midnight">Midnight</option>
+      <option value="dawn">Dawn</option>
+      <option value="forest">Forest</option>
+      <option value="slate">Slate</option>
+      <option value="ivory">Ivory (Light)</option>
+      <option value="ocean">Ocean</option>
+      <option value="ember">Ember</option>
+      <option value="pearl">Pearl</option>
+      <option value="royal">Royal</option>
+    </select>
+  </div>
+
   <!-- Channel tiles overview -->
   <div>
     <div class="rp-section-label">Channels</div>
@@ -2527,6 +2544,10 @@
     return document.getElementById('channelSelect')?.value || 'ch1';
   }
 
+  function _getTheme() {
+    return document.getElementById('themeSelect')?.value || 'default';
+  }
+
   function updateDisplayLink() {
     const ch  = _getChannel();
     const btn = document.getElementById('openDisplayBtn');
@@ -2693,7 +2714,7 @@
       const lyricsKey = itemEl.querySelector('.lyrics-key')?.value || '';
       if (!lyricsKey) {
         _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
-        const sd = { type: 'text', title, part, channel: ch, theme_id: 'default' };
+        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
         return;
@@ -2707,7 +2728,7 @@
         _sendCurrentStanza(ch, title, part);
       } catch (e) {
         _projStanzas = []; _projItem = itemEl; _projStanzaIdx = 0;
-        const sd = { type: 'text', title, part, channel: ch, theme_id: 'default' };
+        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
       }
@@ -2715,7 +2736,7 @@
       _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
       const participant = itemEl.querySelector('.item-participant')?.value || '';
       const body        = itemEl.querySelector('.item-content')?.value     || '';
-      const sd = { type: 'text', title, part, channel: ch, theme_id: 'default' };
+      const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
       if (participant) sd.participants = [{ role: part || '', name: participant }];
       if (body)        sd.body = body;
       _socket.emit('slide:show', sd);
@@ -2725,7 +2746,7 @@
 
   function _sendCurrentStanza(ch, title, part) {
     const stanza = _projStanzas[_projStanzaIdx] || null;
-    const sd     = { type: 'text', title, part, channel: ch, theme_id: 'default' };
+    const sd     = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
     if (stanza) sd.stanza = stanza;
     _socket.emit('slide:show', sd);
     renderLivePreview(sd);

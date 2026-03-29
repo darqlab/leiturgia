@@ -551,10 +551,27 @@ def projection_channel(n):
 # ── Static theme files ───────────────────────────────────────────────────────
 from flask import send_from_directory
 
+_THEMES = [
+    {"id": "default",  "name": "Default (Navy/Gold)"},
+    {"id": "midnight", "name": "Midnight"},
+    {"id": "dawn",     "name": "Dawn"},
+    {"id": "forest",   "name": "Forest"},
+    {"id": "slate",    "name": "Slate"},
+    {"id": "ivory",    "name": "Ivory (Light)"},
+    {"id": "ocean",    "name": "Ocean"},
+    {"id": "ember",    "name": "Ember"},
+    {"id": "pearl",    "name": "Pearl"},
+    {"id": "royal",    "name": "Royal"},
+]
+
 @app.route("/static/themes/<path:filename>")
 def serve_theme(filename):
     themes_dir = os.path.join(app.root_path, "templates", "themes")
     return send_from_directory(themes_dir, filename)
+
+@app.route("/api/themes")
+def api_themes():
+    return jsonify(_THEMES)
 
 
 # ── SocketIO event handlers ──────────────────────────────────────────────────
