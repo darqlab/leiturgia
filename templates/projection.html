@@ -65,6 +65,16 @@
       text-align: center;
     }
 
+    .slide-song-title {
+      font-family: var(--font-body);
+      font-size: clamp(0.8rem, 1.6vw, 1.3rem);
+      color: var(--proj-gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
     .slide-lines {
       display: flex; flex-direction: column;
       align-items: center; gap: 0.1em;
@@ -302,7 +312,10 @@
     let html = '';
 
     if (data.stanza) {
-      // Song slide: lyrics only — no title, no part label, no stanza label
+      if (data.title || data.part) {
+        const label = [data.part, data.title].filter(Boolean).join(' — ');
+        html += `<div class="slide-song-title">${esc(label)}</div>`;
+      }
       html += `<div class="slide-lines">`;
       (data.stanza.lines || []).forEach(l => {
         html += `<div class="slide-line">${esc(l)}</div>`;
@@ -430,9 +443,14 @@
     const slide = document.getElementById('slide');
     const lines = slide.querySelector('.slide-lines');
     if (!lines) return;
-    const st     = getComputedStyle(slide);
-    const availH = slide.clientHeight - parseFloat(st.paddingTop)  - parseFloat(st.paddingBottom);
-    const availW = slide.clientWidth  - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+    const st      = getComputedStyle(slide);
+    const availW  = slide.clientWidth  - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+    let   availH  = slide.clientHeight - parseFloat(st.paddingTop)  - parseFloat(st.paddingBottom);
+    const titleEl = slide.querySelector('.slide-song-title');
+    if (titleEl) {
+      const ts = getComputedStyle(titleEl);
+      availH -= titleEl.offsetHeight + parseFloat(ts.marginBottom);
+    }
     let lo = 12, hi = 400;
     while (hi - lo > 2) {
       const mid = (lo + hi) / 2;
