@@ -816,6 +816,238 @@
     }
     .btn-live:hover { background: var(--gold); color: var(--bg); border-color: var(--gold); }
     .btn-live.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+
+    /* ── Right panel (live control) ── */
+    .right-panel {
+      width: 248px;
+      min-width: 248px;
+      flex-shrink: 0;
+      background: #070f1f;
+      border-left: 1px solid #0e1a30;
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #1e2f52 transparent;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      gap: 12px;
+    }
+    .right-panel::-webkit-scrollbar { width: 4px; }
+    .right-panel::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
+
+    .rp-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    /* Mini projection screen */
+    .live-preview-screen {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 6px;
+      border: 1px solid #1e2f52;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      position: relative;
+      min-height: 0;
+    }
+
+    .lp-part {
+      font-size: 6px;
+      color: #D4A843;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-align: center;
+      margin-bottom: 3px;
+      width: 100%;
+    }
+    .lp-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.3;
+      width: 100%;
+      word-break: break-word;
+    }
+    .lp-stanza-label {
+      font-size: 5px;
+      color: #8C9AB5;
+      text-transform: uppercase;
+      text-align: center;
+      margin: 3px 0 2px;
+    }
+    .lp-lines {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 7.5px;
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.5;
+      width: 100%;
+    }
+    .lp-body {
+      font-size: 7.5px;
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.4;
+      margin-top: 3px;
+    }
+    .lp-participants {
+      margin-top: 3px;
+      font-size: 7px;
+      color: #E8EAF0;
+      text-align: center;
+    }
+    .lp-participant-role {
+      color: #8C9AB5;
+      margin-right: 2px;
+    }
+    .lp-blank-label {
+      font-size: 8px;
+      color: #333;
+      letter-spacing: 0.1em;
+    }
+    .lp-announce-label {
+      font-size: 6px;
+      color: #D4A843;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+    .lp-announce-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      color: #fff;
+      text-align: center;
+    }
+    .lp-waiting { font-size: 8px; color: #333; letter-spacing: 0.06em; }
+
+    /* Channel selector row */
+    .rp-channel-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Control buttons in right panel */
+    .btn-rp-blank {
+      width: 100%;
+      padding: 7px;
+      background: transparent;
+      border: 1px solid #1e2f52;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .btn-rp-blank:hover { border-color: var(--error); color: var(--error); }
+
+    /* ── Slide strip (fixed footer) ── */
+    .slide-strip {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 96px;
+      background: #040b18;
+      border-top: 1px solid #0e1a30;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: #1e2f52 transparent;
+      z-index: 90;
+    }
+    .slide-strip::-webkit-scrollbar { height: 4px; }
+    .slide-strip::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
+
+    .strip-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      writing-mode: horizontal-tb;
+      flex-shrink: 0;
+      padding-right: 8px;
+      border-right: 1px solid #0e1a30;
+    }
+
+    .strip-thumb {
+      flex-shrink: 0;
+      width: 104px;
+      height: 72px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 6px 8px;
+      transition: border-color 0.15s, background 0.15s;
+      overflow: hidden;
+      position: relative;
+    }
+    .strip-thumb:hover { border-color: var(--gold-dim); background: #1a2b5c22; }
+    .strip-thumb.active { border-color: var(--gold); background: #1a2b5c44; }
+
+    .strip-thumb-num {
+      font-size: 9px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .strip-thumb-num .badge {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 8px;
+      font-weight: 700;
+      margin-left: 4px;
+    }
+    .badge-song-s   { background: #1a3a6a; color: #7ba7e0; }
+    .badge-part-s   { background: #1a3a2a; color: #7ac09a; }
+    .badge-cont-s   { background: #3a2a1a; color: #c09a7a; }
+
+    .strip-thumb-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .strip-thumb-detail {
+      font-size: 9px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    /* Push page content above fixed footer strip */
+    body { padding-bottom: 96px; }
   </style>
 </head>
 <body>
@@ -826,15 +1058,6 @@
     <div class="logo-text">Sabbath <span>Program</span></div>
   </div>
   <div class="header-actions">
-    <span id="live-status" class="live-status offline" title="Projection: disconnected"></span>
-    <select id="channelSelect" class="channel-select" onchange="updateDisplayLink()">
-      <option value="ch1">ch1</option>
-      <option value="ch2">ch2</option>
-      <option value="ch3">ch3</option>
-      <option value="ch4">ch4</option>
-      <option value="ch5">ch5</option>
-    </select>
-    <a id="openDisplayBtn" href="/ch1" target="_blank" class="btn btn-outline" style="font-size:12px">Open Display</a>
     <button class="btn btn-ghost" onclick="resetProgram()">Reset</button>
     <button class="btn btn-outline" onclick="saveProgram()">Save Draft</button>
   </div>
@@ -1057,7 +1280,46 @@
 
 </div><!-- /container -->
 </div><!-- /main-content -->
+
+<!-- ── Right panel: Live Control ──────────────────────────────────────────── -->
+<aside class="right-panel">
+
+  <!-- Channel + connection -->
+  <div>
+    <div class="rp-section-label">Channel</div>
+    <div class="rp-channel-row">
+      <span id="live-status" class="live-status offline" title="Projection: disconnected"></span>
+      <select id="channelSelect" class="channel-select" style="flex:1" onchange="updateDisplayLink()">
+        <option value="ch1">ch1</option>
+        <option value="ch2">ch2</option>
+        <option value="ch3">ch3</option>
+        <option value="ch4">ch4</option>
+        <option value="ch5">ch5</option>
+      </select>
+      <a id="openDisplayBtn" href="/ch1" target="_blank" class="btn btn-outline" style="font-size:11px;padding:5px 8px;" title="Open display in new tab">↗</a>
+    </div>
+  </div>
+
+  <!-- Live preview -->
+  <div>
+    <div class="rp-section-label">Live Preview</div>
+    <div class="live-preview-screen" id="livePreviewScreen">
+      <span class="lp-waiting">Waiting…</span>
+    </div>
+  </div>
+
+  <!-- Blank button -->
+  <button class="btn-rp-blank" onclick="_projBlank()">■ Blank Screen</button>
+
+</aside>
+
 </div><!-- /page-layout -->
+
+<!-- ── Slide strip (footer) ──────────────────────────────────────────────── -->
+<div id="slideStrip" class="slide-strip">
+  <span class="strip-section-label" id="stripSectionLabel">Program</span>
+  <!-- Thumbnails injected by JS -->
+</div>
 
 <!-- Toast -->
 <div id="toast">
@@ -1654,6 +1916,7 @@
     const count  = document.getElementById("panelSectionSelect")?.options.length || 0;
     const delBtn = document.getElementById("btnDeleteProgram");
     if (delBtn) delBtn.disabled = count <= 1;
+    buildSlideStrip(val);
   }
 
   // ── Delete program ──────────────────────────────────────────────────────
@@ -2181,6 +2444,115 @@
     if (btn) btn.href = '/' + ch;
   }
 
+  // ── Live preview (mini screen in right panel) ──────────────────────────────
+  function renderLivePreview(data) {
+    const screen = document.getElementById('livePreviewScreen');
+    if (!screen) return;
+    const type = data.type || 'text';
+    let html = '';
+
+    if (type === 'blank') {
+      html = `<span class="lp-blank-label">BLANK</span>`;
+      screen.style.background = '#000';
+    } else if (type === 'announcement') {
+      screen.style.background = '#091428';
+      const txt = data.text || data.data?.text || '';
+      html = `<div class="lp-announce-label">Announcement</div>
+              <div class="lp-announce-text">${_lpEsc(txt)}</div>`;
+    } else if (type === 'image') {
+      const url = data.url || data.data?.url || '';
+      screen.style.background = '#000';
+      html = `<img src="${_lpEsc(url)}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+    } else if (type === 'timer') {
+      screen.style.background = '#091428';
+      const secs = data.seconds || data.data?.seconds || 0;
+      const m = Math.floor(secs / 60), s = secs % 60;
+      html = `<div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#F0C96A;font-weight:700;">${m}:${String(s).padStart(2,'0')}</div>
+              <div style="font-size:7px;color:#8C9AB5;margin-top:3px;">${_lpEsc(data.label || data.data?.label || '')}</div>`;
+    } else {
+      // text
+      screen.style.background = '#0D1B3E';
+      const d = data.data || data;
+      if (d.part)  html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
+      if (d.title) html += `<div class="lp-title">${_lpEsc(d.title)}</div>`;
+      if (d.stanza) {
+        const t = (d.stanza.type || 'verse').toLowerCase();
+        const label = t === 'chorus' ? 'Chorus' : t === 'refrain' ? 'Refrain' : `Verse ${d.stanza.number}`;
+        html += `<div class="lp-stanza-label">${label}</div>`;
+        html += `<div class="lp-lines">${(d.stanza.lines || []).map(_lpEsc).join('<br>')}</div>`;
+      }
+      if (d.body) html += `<div class="lp-body">${_lpEsc(d.body)}</div>`;
+      if (d.participants?.length) {
+        html += `<div class="lp-participants">${d.participants.map(p =>
+          `<div>${p.role ? `<span class="lp-participant-role">${_lpEsc(p.role)}</span>` : ''}${_lpEsc(p.name || '')}</div>`
+        ).join('')}</div>`;
+      }
+    }
+
+    screen.innerHTML = html || `<span class="lp-waiting">Waiting…</span>`;
+  }
+
+  function _lpEsc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Slide strip ────────────────────────────────────────────────────────────
+  let _activeThumbItemId = null;
+
+  function buildSlideStrip(programId) {
+    const strip = document.getElementById('slideStrip');
+    const labelEl = document.getElementById('stripSectionLabel');
+    if (!strip) return;
+
+    const spEl = document.querySelector(`.service-program[data-program-id="${programId}"]`);
+    if (spEl && labelEl) labelEl.textContent = spEl.dataset.programName || programId;
+
+    // Remove existing thumbs
+    strip.querySelectorAll('.strip-thumb').forEach(t => t.remove());
+
+    if (!spEl) return;
+
+    spEl.querySelectorAll('.program-item').forEach((itemEl, i) => {
+      const type        = itemEl.dataset.itemType || 'participant';
+      const title       = itemEl.querySelector('.item-title')?.value || '';
+      const part        = itemEl.querySelector('.item-part')?.value  || '';
+      const displayText = (type === 'song' ? part : title) || title || '(untitled)';
+      const num         = i + 1;
+
+      let badge = '', detail = '';
+      if (type === 'song') {
+        badge  = `<span class="badge badge-song-s">♪</span>`;
+        const lk = itemEl.querySelector('.lyrics-key')?.value || '';
+        detail = lk ? 'lyrics ready' : 'no lyrics';
+      } else if (type === 'content') {
+        badge  = `<span class="badge badge-cont-s">C</span>`;
+      } else {
+        badge  = `<span class="badge badge-part-s">P</span>`;
+        detail = itemEl.querySelector('.item-participant')?.value || '';
+      }
+
+      const thumb = document.createElement('div');
+      thumb.className = 'strip-thumb' + (itemEl.id === _activeThumbItemId ? ' active' : '');
+      thumb.dataset.itemId = itemEl.id;
+      thumb.innerHTML = `
+        <div class="strip-thumb-num">${num} ${badge}</div>
+        <div class="strip-thumb-title">${_lpEsc(displayText)}</div>
+        ${detail ? `<div class="strip-thumb-detail">${_lpEsc(detail)}</div>` : ''}`;
+      thumb.addEventListener('click', () => sendLive(itemEl));
+      strip.appendChild(thumb);
+    });
+  }
+
+  function _activateStripThumb(itemEl) {
+    _activeThumbItemId = itemEl?.id || null;
+    document.querySelectorAll('.strip-thumb').forEach(t => {
+      t.classList.toggle('active', t.dataset.itemId === _activeThumbItemId);
+    });
+    // Scroll active thumb into view
+    const active = document.querySelector('.strip-thumb.active');
+    if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
   // Per-item stanza tracking for keyboard navigation
   let _projItem      = null;  // active .program-item element
   let _projStanzas   = [];    // array of stanza objects
@@ -2193,20 +2565,18 @@
     const title   = itemEl.querySelector('.item-title')?.value || '';
     const part    = itemEl.querySelector('.item-part')?.value  || '';
 
-    // Highlight active live button
+    // Highlight active live button + strip thumb
     document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
-    const liveBtn = itemEl.querySelector('.btn-live');
-    if (liveBtn) liveBtn.classList.add('active');
+    itemEl.querySelector('.btn-live')?.classList.add('active');
+    _activateStripThumb(itemEl);
 
     if (type === 'song') {
       const lyricsKey = itemEl.querySelector('.lyrics-key')?.value || '';
       if (!lyricsKey) {
-        // No lyrics — send title slide only
-        _projItem = itemEl;
-        _projStanzas = [];
-        _projStanzaIdx = 0;
-        const slideData = { type: 'text', title, part, channel: ch, theme_id: 'default' };
-        _socket.emit('slide:show', slideData);
+        _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
+        const sd = { type: 'text', title, part, channel: ch, theme_id: 'default' };
+        _socket.emit('slide:show', sd);
+        renderLivePreview(sd);
         return;
       }
       try {
@@ -2217,41 +2587,39 @@
         _projItem      = itemEl;
         _sendCurrentStanza(ch, title, part);
       } catch (e) {
-        _projStanzas   = [];
-        _projItem      = itemEl;
-        _projStanzaIdx = 0;
-        const slideData = { type: 'text', title, part, channel: ch, theme_id: 'default' };
-        _socket.emit('slide:show', slideData);
+        _projStanzas = []; _projItem = itemEl; _projStanzaIdx = 0;
+        const sd = { type: 'text', title, part, channel: ch, theme_id: 'default' };
+        _socket.emit('slide:show', sd);
+        renderLivePreview(sd);
       }
     } else {
-      // Participant / content item
-      _projItem      = itemEl;
-      _projStanzas   = [];
-      _projStanzaIdx = 0;
+      _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
       const participant = itemEl.querySelector('.item-participant')?.value || '';
       const body        = itemEl.querySelector('.item-content')?.value     || '';
-      const slideData = { type: 'text', title, part, channel: ch, theme_id: 'default' };
-      if (participant) slideData.participants = [{ role: part || '', name: participant }];
-      if (body)        slideData.body = body;
-      _socket.emit('slide:show', slideData);
+      const sd = { type: 'text', title, part, channel: ch, theme_id: 'default' };
+      if (participant) sd.participants = [{ role: part || '', name: participant }];
+      if (body)        sd.body = body;
+      _socket.emit('slide:show', sd);
+      renderLivePreview(sd);
     }
   }
 
   function _sendCurrentStanza(ch, title, part) {
-    const stanza    = _projStanzas[_projStanzaIdx] || null;
-    const slideData = { type: 'text', title, part, channel: ch, theme_id: 'default' };
-    if (stanza) slideData.stanza = stanza;
-    _socket.emit('slide:show', slideData);
+    const stanza = _projStanzas[_projStanzaIdx] || null;
+    const sd     = { type: 'text', title, part, channel: ch, theme_id: 'default' };
+    if (stanza) sd.stanza = stanza;
+    _socket.emit('slide:show', sd);
+    renderLivePreview(sd);
   }
 
   function _projNext() {
     if (!_projItem || !_projStanzas.length) return;
     if (_projStanzaIdx < _projStanzas.length - 1) {
       _projStanzaIdx++;
-      const ch    = _getChannel();
-      const title = _projItem.querySelector('.item-title')?.value || '';
-      const part  = _projItem.querySelector('.item-part')?.value  || '';
-      _sendCurrentStanza(ch, title, part);
+      const ch = _getChannel();
+      _sendCurrentStanza(ch,
+        _projItem.querySelector('.item-title')?.value || '',
+        _projItem.querySelector('.item-part')?.value  || '');
     }
   }
 
@@ -2259,20 +2627,20 @@
     if (!_projItem || !_projStanzas.length) return;
     if (_projStanzaIdx > 0) {
       _projStanzaIdx--;
-      const ch    = _getChannel();
-      const title = _projItem.querySelector('.item-title')?.value || '';
-      const part  = _projItem.querySelector('.item-part')?.value  || '';
-      _sendCurrentStanza(ch, title, part);
+      const ch = _getChannel();
+      _sendCurrentStanza(ch,
+        _projItem.querySelector('.item-title')?.value || '',
+        _projItem.querySelector('.item-part')?.value  || '');
     }
   }
 
   function _projBlank() {
     _socket.emit('slide:blank', { channel: _getChannel() });
+    renderLivePreview({ type: 'blank' });
   }
 
   // ── Keyboard clicker ───────────────────────────────────────────────────────
   document.addEventListener('keydown', function (e) {
-    // Ignore when typing in an input/textarea
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
     if (e.key === 'ArrowRight' || e.key === ' ') {
       e.preventDefault();
@@ -2284,6 +2652,12 @@
       _projBlank();
     }
   });
+
+  // ── Init slide strip on page load ──────────────────────────────────────────
+  (function () {
+    const sel = document.getElementById('panelSectionSelect');
+    if (sel) buildSlideStrip(sel.value);
+  })();
 </script>
 
 <!-- ── Lyrics preview modal ─────────────────────────────────────────────── -->
