@@ -65,6 +65,16 @@
       text-align: center;
     }
 
+    .slide-song-title {
+      font-family: var(--font-body);
+      font-size: clamp(0.8rem, 1.6vw, 1.3rem);
+      color: var(--proj-gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
     .slide-lines {
       display: flex; flex-direction: column;
       align-items: center; gap: 0.1em;
@@ -216,11 +226,35 @@
       opacity: 0.4;
       pointer-events: none;
     }
+
+    /* ── Audio unlock overlay ── */
+    #audio-unlock {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 1rem;
+      background: rgba(0,0,0,0.75);
+      z-index: 999;
+      cursor: pointer;
+    }
+    #audio-unlock.hidden { display: none; }
+    #audio-unlock .unlock-icon { font-size: 3rem; }
+    #audio-unlock .unlock-text {
+      font-size: 1rem;
+      color: var(--proj-muted);
+      letter-spacing: 0.1em;
+    }
   </style>
 </head>
 <body>
 
 <div id="channel-badge">{{ channel }}</div>
+
+<!-- Shown once on first load; click unlocks browser audio policy -->
+<div id="audio-unlock" onclick="unlockAudio()">
+  <div class="unlock-icon">🔊</div>
+  <div class="unlock-text">Click anywhere to enable audio</div>
+</div>
 
 <div id="slide" class="type-blank">
   <!-- Content injected by JS -->
@@ -302,7 +336,7 @@
     let html = '';
 
     if (data.stanza) {
-      // Song slide: lyrics only — no title, no part label, no stanza label
+      // Stanza slide: lyrics only
       html += `<div class="slide-lines">`;
       (data.stanza.lines || []).forEach(l => {
         html += `<div class="slide-line">${esc(l)}</div>`;
@@ -362,8 +396,30 @@
   // ── Video ──────────────────────────────────────────────────────────────────
   function renderVideo(data) {
     setSlideType('video');
+    const src      = esc(data.url || data.src || '');
+    const loop     = data.loop     ? 'loop'     : '';
+    const autoplay = data.autoplay !== false ? 'autoplay' : '';
+    const muted    = data.mute     !== false ? 'muted'    : '';
     document.getElementById('slide').innerHTML =
-      `<video autoplay loop muted src="${esc(data.url || data.src || '')}"></video>`;
+      `<video ${autoplay} ${loop} ${muted} playsinline src="${src}"></video>`;
+    const vid = document.getElementById('slide').querySelector('video');
+    if (vid) {
+      vid.play().catch(() => {
+        // Autoplay blocked — unmute and let browser show native play prompt
+        vid.muted = true;
+        vid.play().catch(() => {});
+      });
+    }
+  }
+
+  // ── Audio unlock (one-time user gesture to satisfy browser autoplay policy) ─
+  let _audioUnlocked = false;
+  function unlockAudio() {
+    _audioUnlocked = true;
+    document.getElementById('audio-unlock').classList.add('hidden');
+    // Resume any currently playing video with correct mute state
+    const vid = document.querySelector('#slide video');
+    if (vid) vid.play().catch(() => {});
   }
 
   // ── Timer ──────────────────────────────────────────────────────────────────

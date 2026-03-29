@@ -23,12 +23,16 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       background: var(--bg);
       color: var(--white);
       font-family: 'DM Sans', sans-serif;
       font-size: 14px;
-      min-height: 100vh;
     }
 
     /* ── Header ── */
@@ -86,7 +90,7 @@
     /* ── Layout ── */
     .page-layout {
       display: flex;
-      min-height: calc(100vh - 64px);
+      height: calc(100vh - 64px);
     }
 
     /* ── Slide panel (LibreOffice Impress-style) ── */
@@ -96,9 +100,7 @@
       flex-shrink: 0;
       background: #070f1f;
       border-right: 1px solid #0e1a30;
-      position: sticky;
-      top: 64px;
-      height: calc(100vh - 64px);
+      height: 100%;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #1e2f52 transparent;
@@ -233,6 +235,73 @@
     }
     .outline-cat-header + .outline-cat-header { margin-top: 8px; }
 
+    .panel-top-bar {
+      padding: 8px 10px;
+      border-bottom: 1px solid #0e1a30;
+      background: #070f1f;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .panel-top-bar .btn-add-program { margin-top: 0; }
+
+    .program-nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .program-nav-item:hover { background: #0f1e3a; }
+    .program-nav-item.active {
+      background: #162240;
+      border-left-color: var(--gold);
+    }
+    .program-nav-name {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--white);
+    }
+    .program-nav-item.active .program-nav-name { color: var(--gold-lt); }
+    .program-nav-item.dragging { opacity: 0.35; }
+    .program-nav-item.drop-above { border-top: 2px solid var(--gold); }
+    .program-nav-item.drop-below { border-bottom: 2px solid var(--gold); }
+    .program-nav-drag {
+      color: var(--muted);
+      font-size: 13px;
+      cursor: grab;
+      flex-shrink: 0;
+      margin-right: 2px;
+      opacity: 0.5;
+    }
+    .program-nav-item:hover .program-nav-drag { opacity: 1; }
+
+    .panel-program-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: default;
+      margin-top: 0;
+    }
+    .panel-program-header.active { color: var(--gold-lt); }
+    .btn-delete-prog-inline {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 10px;
+      cursor: pointer;
+      padding: 2px 5px;
+      border-radius: 3px;
+      opacity: 0.5;
+      line-height: 1;
+      transition: color 0.12s, opacity 0.12s;
+    }
+    .btn-delete-prog-inline:hover:not(:disabled) { color: var(--error); opacity: 1; }
+    .btn-delete-prog-inline:disabled { opacity: 0.15; cursor: not-allowed; }
+
     .outline-item {
       display: flex;
       align-items: flex-start;
@@ -317,21 +386,38 @@
     }
     .panel-add-buttons button:hover { border-color: var(--gold-dim); color: var(--white); }
 
-    .main-content { flex: 1; min-width: 0; }
-    .container { padding: 1.5rem 2rem; }
-
-    /* ── Toolbar (always-visible, sticky below header) ── */
-    .toolbar {
-      position: sticky;
-      top: 64px;
-      z-index: 90;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.6rem 1.6rem;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 1rem;
+    .items-add-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 0 4px;
       flex-wrap: wrap;
     }
+    .items-add-bar button {
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .items-add-bar button:hover { border-color: var(--gold); color: var(--gold); }
+
+    .main-content {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #1e2f52 transparent;
+    }
+    .main-content::-webkit-scrollbar { width: 4px; }
+    .main-content::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
+    .container { padding: 1.5rem 2rem 120px; }
+
 
     .status-group { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; }
 
@@ -522,8 +608,116 @@
     }
     .badge-song    { background: #1a2a4a; color: #7aade8; border: 1px solid #1e3560; }
     .badge-content { background: #1a2a1a; color: #7ab87a; border: 1px solid #1e3a1e; }
+    .badge-media   { background: #2a1a3a; color: #c07ae8; border: 1px solid #3a1e52; }
+
+    .media-picker-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      max-height: 140px;
+      overflow-y: auto;
+      padding: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-top: 4px;
+    }
+    .media-picker-thumb {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 5px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      width: 72px;
+      transition: border-color 0.12s;
+      background: var(--bg);
+    }
+    .media-picker-thumb:hover { border-color: var(--gold-dim); }
+    .media-picker-thumb.selected { border-color: var(--gold); background: #162240; }
+    .media-picker-thumb img {
+      width: 60px; height: 40px;
+      object-fit: cover;
+      border-radius: 3px;
+    }
+    .media-picker-thumb .media-icon {
+      width: 60px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      background: #0a1628;
+      border-radius: 3px;
+    }
+    .media-picker-thumb span {
+      font-size: 9px;
+      color: var(--muted);
+      text-align: center;
+      word-break: break-all;
+      max-width: 64px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
     .item-body { padding: 14px; border-top: 1px solid var(--border); display: none; }
     .item-body.open { display: block; }
+
+    /* ── YouTube download controls ── */
+    .yt-download-controls {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+    .yt-download-controls.visible { display: flex; }
+    .yt-quality-select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--white);
+      font-size: 11px;
+      padding: 4px 6px;
+      cursor: pointer;
+    }
+    .yt-download-btn {
+      background: #1a3a1a;
+      border: 1px solid #2e6b2e;
+      border-radius: 5px;
+      color: #7dda7d;
+      font-size: 11px;
+      padding: 4px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.12s;
+    }
+    .yt-download-btn:hover:not(:disabled) { background: #214d21; }
+    .yt-download-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .yt-progress-wrap {
+      display: none;
+      margin-top: 6px;
+    }
+    .yt-progress-wrap.visible { display: block; }
+    .yt-progress-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--card);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .yt-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2e6b2e, #7dda7d);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .yt-progress-info {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
 
     /* ── Participants ── */
     .participants { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
@@ -824,9 +1018,7 @@
       flex-shrink: 0;
       background: #070f1f;
       border-left: 1px solid #0e1a30;
-      position: sticky;
-      top: 64px;
-      height: calc(100vh - 64px);
+      height: 100%;
       overflow-y: auto;
       scrollbar-width: thin;
       scrollbar-color: #1e2f52 transparent;
@@ -1028,6 +1220,7 @@
     .badge-song-s   { background: #1a3a6a; color: #7ba7e0; }
     .badge-part-s   { background: #1a3a2a; color: #7ac09a; }
     .badge-cont-s   { background: #3a2a1a; color: #c09a7a; }
+    .badge-media-s  { background: #2a1a3a; color: #c07ae8; }
 
     .strip-thumb-title {
       font-size: 11px;
@@ -1090,41 +1283,23 @@
 <!-- ── Slide panel ───────────────────────────────────────────────────────── -->
 <aside class="slide-panel">
 
-  <!-- Section switcher dropdown -->
-  <div class="panel-switcher">
-    <select id="panelSectionSelect" onchange="switchPanelSection(this.value)">
-      {% for sp in program.service_programs %}
-      <option value="{{ sp.id }}">{{ sp.name }}</option>
-      {% endfor %}
-    </select>
+  <!-- Top bar: Add Program -->
+  <div class="panel-top-bar">
     <button class="btn-add-program" onclick="openAddProgram()">+ Add Program</button>
-    <button class="btn-delete-program" id="btnDeleteProgram" onclick="deleteCurrentProgram()"
-      {% if program.service_programs|length <= 1 %}disabled{% endif %}>✕ Delete Program</button>
   </div>
 
-  <!-- Program panels (one per service_program) -->
+  <!-- Program name list -->
   {% for sp in program.service_programs %}
-  <div id="panel-{{ sp.id }}" {% if not loop.first %}style="display:none"{% endif %}>
-    {% set counter = namespace(n=0) %}
-    {% for item in sp["items"] %}
-    {% set is_song = item.get("type", "participant") == "song" %}
-    <div class="outline-item {{ 'song' if is_song else '' }}" draggable="true" data-for="{{ sp.id }}-item-{{ counter.n }}" onclick="scrollToItem('{{ sp.id }}-item-{{ counter.n }}')">
-      <div class="outline-thumb">{{ '♪' if is_song else counter.n + 1 }}</div>
-      <div class="outline-info">
-        <div class="outline-title">{% if is_song and item.get('part') %}{{ item.part }}{% else %}{{ item.title }}{% endif %}</div>
-      </div>
-      <div class="reorder-btns">
-        <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'up')" title="Move up">▲</button>
-        <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'down')" title="Move down">▼</button>
-      </div>
-    </div>
-    {% set counter.n = counter.n + 1 %}
-    {% endfor %}
-    <div class="panel-add-buttons">
-      <button onclick="addProgramItem('{{ sp.id }}', 'participant')">+ Participant</button>
-      <button onclick="addProgramItem('{{ sp.id }}', 'song')">+ Song</button>
-      <button onclick="addProgramItem('{{ sp.id }}', 'content')">+ Content</button>
-    </div>
+  <div class="program-nav-item{% if loop.first %} active{% endif %}"
+       data-program-id="{{ sp.id }}"
+       draggable="true"
+       onclick="switchPanelSection('{{ sp.id }}')">
+    <span class="program-nav-drag" title="Drag to reorder">⠿</span>
+    <span class="program-nav-name">{{ sp.name }}</span>
+    <button class="btn-delete-prog-inline"
+            onclick="event.stopPropagation(); deleteProgram('{{ sp.id }}', {{ sp.name | tojson }})"
+            {% if program.service_programs|length <= 1 %}disabled{% endif %}
+            title="Delete program">✕</button>
   </div>
   {% endfor %}
 
@@ -1133,19 +1308,6 @@
 <!-- ── Main content ───────────────────────────────────────────────────────── -->
 <div class="main-content">
 
-<!-- ── Toolbar (always visible) ─────────────────────────────────────────── -->
-<div class="toolbar">
-  <button class="btn btn-outline" style="font-size:12px" onclick="openHistory()">&#128337; History</button>
-  <button class="btn btn-outline" style="font-size:12px" onclick="importSheet(this)">&#8659; Import from Sheet</button>
-  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-left:auto;">
-    {% for sp in program.service_programs %}
-    <button class="btn btn-generate" onclick="generateSection('{{ sp.id }}', this)">
-      <div class="spinner"></div>
-      <span>Generate {{ sp.name }}</span>
-    </button>
-    {% endfor %}
-  </div>
-</div>
 
 <!-- ── History Modal ─────────────────────────────────────────────────────── -->
 <div id="historyModal" style="display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.6); overflow-y:auto;">
@@ -1211,6 +1373,7 @@
         {% set _type = item.get("type", "participant") %}
         {% set _is_song = _type == "song" %}
         {% set _is_content = _type == "content" %}
+        {% set _is_media = _type == "media" %}
         <div class="program-item" data-index="{{ loop.index0 }}" data-item-type="{{ _type }}" data-item-id="{{ item.get('item_id', '') }}" id="{{ sp.id }}-item-{{ sp_idx.n }}">
         {% set sp_idx.n = sp_idx.n + 1 %}
           <div class="item-header" onclick="selectItem(this)">
@@ -1221,12 +1384,14 @@
                 {% if item.get('hymn_number') %}<div class="item-detail-text">#{{ item.hymn_number }}{% if item.get('title') %} — {{ item.title }}{% endif %}</div>{% endif %}
               {% elif _is_content %}
                 <div class="item-detail-text">{{ item.get('content','')[:60] }}</div>
+              {% elif _is_media %}
+                <div class="item-detail-text">{{ item.get('media_type','').capitalize() }}{% if item.get('url') %} — {{ item['url'].split('/')[-1] }}{% endif %}</div>
               {% else %}
                 {% if item.get('part') %}<div class="item-subtitle-text">{{ item.part }}</div>{% endif %}
                 {% if item.get('participant') %}<div class="item-detail-text">{{ item.participant }}</div>{% endif %}
               {% endif %}
             </div>
-            <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else 'badge-participant') }}">{{ 'Song' if _is_song else ('Content' if _is_content else 'Participant') }}</span>
+            <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else ('badge-media' if _is_media else 'badge-participant')) }}">{{ 'Song' if _is_song else ('Content' if _is_content else ('Media' if _is_media else 'Participant')) }}</span>
             <span class="edit-hint">✎</span>
             <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
             <div class="item-chevron">▼</div>
@@ -1234,7 +1399,64 @@
             <div class="item-number">{{ loop.index }}</div>
           </div>
           <div class="item-body">
-            {% if _is_song %}
+            {% if _is_media %}
+            <div class="form-row single">
+              <div class="field">
+                <label>Title</label>
+                <input type="text" class="item-title" value="{{ item.title }}" placeholder="e.g. Welcome Slide">
+              </div>
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label>Pick file <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px" onclick="loadMediaPickerFor(this.closest('.program-item'))">↺ Refresh</button></label>
+              <div class="media-picker-grid">Loading…</div>
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label>Upload new file</label>
+              <input type="file" class="media-upload-input" accept="image/*,video/*"
+                     onchange="uploadMediaFor(this.closest('.program-item'), this.files[0])"
+                     style="color:var(--white);font-size:12px;">
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label>Or paste URL</label>
+              <input type="text" class="item-media-url" value="{{ item.get('url','') }}"
+                     placeholder="https://… or /media/images/file.jpg"
+                     oninput="onMediaUrlInput(this.closest('.program-item'))">
+              <div class="yt-download-controls">
+                <select class="yt-quality-select">
+                  <option value="best">Best quality</option>
+                  <option value="1080p">1080p</option>
+                  <option value="720p">720p</option>
+                  <option value="480p">480p</option>
+                  <option value="360p">360p</option>
+                  <option value="audio">Audio only</option>
+                </select>
+                <button class="yt-download-btn" onclick="startYTDownload(this.closest('.program-item'))">↓ Download</button>
+              </div>
+              <div class="yt-progress-wrap">
+                <div class="yt-progress-bar"><div class="yt-progress-fill"></div></div>
+                <div class="yt-progress-info">Starting…</div>
+              </div>
+            </div>
+            <div class="media-selected-info" style="margin-top:6px;font-size:11px;color:var(--gold)">
+              {% if item.get('url') %}{{ item.get('media_type','').capitalize() }}: {{ item['url'].split('/')[-1] }}{% endif %}
+            </div>
+            <input type="hidden" class="item-media-type" value="{{ item.get('media_type','') }}">
+            <div class="media-video-options" style="margin-top:10px;{% if item.get('media_type') != 'video' %}display:none{% endif %}">
+              <label style="margin-bottom:6px">Playback options</label>
+              <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--white)">
+                  <input type="checkbox" class="media-opt-autoplay" {% if item.get('autoplay', True) %}checked{% endif %}> Autoplay
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--white)">
+                  <input type="checkbox" class="media-opt-loop" {% if item.get('loop', False) %}checked{% endif %}> Loop
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--white)">
+                  <input type="checkbox" class="media-opt-mute" {% if item.get('mute', False) %}checked{% endif %}> Mute
+                </label>
+              </div>
+            </div>
+            <input type="hidden" class="lyrics-key" value="">
+            {% elif _is_song %}
             <div class="field" style="margin-bottom:8px">
               <label>Part</label>
               <input type="text" class="item-part" value="{{ item.get('part', '') }}" placeholder="e.g. Opening Song">
@@ -1260,7 +1482,7 @@
               <label>Content</label>
               <textarea class="item-content" rows="3" placeholder="Free-form text displayed on the slide…" style="width:100%; resize:vertical; background:var(--card); color:var(--white); border:1px solid var(--border); border-radius:6px; padding:8px; font-family:inherit; font-size:13px;">{{ item.get('content', '') }}</textarea>
             </div>
-            {% elif not _is_song %}
+            {% elif not _is_song and not _is_media %}
             <div class="participants">
               <div class="participant">
                 <div class="role-label">Participant</div>
@@ -1295,6 +1517,12 @@
           </div>
         </div>
         {% endfor %}
+      </div>
+      <div class="items-add-bar">
+        <button onclick="addProgramItem('{{ sp.id }}', 'participant')">+ Participant</button>
+        <button onclick="addProgramItem('{{ sp.id }}', 'song')">+ Song</button>
+        <button onclick="addProgramItem('{{ sp.id }}', 'content')">+ Content</button>
+        <button onclick="addProgramItem('{{ sp.id }}', 'media')">+ Media</button>
       </div>
   </div>
   {% endfor %}
@@ -1406,17 +1634,6 @@
     <button class="btn-rp-blank" style="margin-top:6px;" onclick="sendAnnouncement()">▶ Send Announcement</button>
   </div>
 
-  <!-- Media picker -->
-  <div>
-    <div class="rp-section-label" style="display:flex;justify-content:space-between;align-items:center;">
-      Media
-      <button onclick="loadMediaList()" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:0;">↺ Refresh</button>
-    </div>
-    <div id="mediaList" style="display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto;">
-      <span style="color:var(--muted);font-size:11px;">Click ↺ to load media files.</span>
-    </div>
-  </div>
-
 </aside>
 
 </div><!-- /page-layout -->
@@ -1477,6 +1694,59 @@
         <div class="field" style="margin-top:8px">
           <label>Content</label>
           <textarea class="item-content" rows="3" placeholder="Free-form text displayed on the slide…" style="width:100%; resize:vertical; background:var(--card); color:var(--white); border:1px solid var(--border); border-radius:6px; padding:8px; font-family:inherit; font-size:13px;"></textarea>
+        </div>
+        <input type="hidden" class="lyrics-key" value="">`;
+    } else if (type === "media") {
+      badgeClass = "badge-media"; badgeLabel = "Media";
+      bodyInner = `
+        <div class="form-row single">
+          <div class="field"><label>Title</label><input type="text" class="item-title" value="" placeholder="e.g. Welcome Slide"></div>
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label>Pick file <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px" onclick="loadMediaPickerFor(this.closest('.program-item'))">↺ Refresh</button></label>
+          <div class="media-picker-grid">Loading…</div>
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label>Upload new file</label>
+          <input type="file" class="media-upload-input" accept="image/*,video/*"
+                 onchange="uploadMediaFor(this.closest('.program-item'), this.files[0])"
+                 style="color:var(--white);font-size:12px;">
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label>Or paste URL</label>
+          <input type="text" class="item-media-url" value="" placeholder="https://… or /media/images/file.jpg"
+                 oninput="onMediaUrlInput(this.closest('.program-item'))">
+          <div class="yt-download-controls">
+            <select class="yt-quality-select">
+              <option value="best">Best quality</option>
+              <option value="1080p">1080p</option>
+              <option value="720p">720p</option>
+              <option value="480p">480p</option>
+              <option value="360p">360p</option>
+              <option value="audio">Audio only</option>
+            </select>
+            <button class="yt-download-btn" onclick="startYTDownload(this.closest('.program-item'))">↓ Download</button>
+          </div>
+          <div class="yt-progress-wrap">
+            <div class="yt-progress-bar"><div class="yt-progress-fill"></div></div>
+            <div class="yt-progress-info">Starting…</div>
+          </div>
+        </div>
+        <div class="media-selected-info" style="margin-top:6px;font-size:11px;color:var(--gold)"></div>
+        <input type="hidden" class="item-media-type" value="">
+        <div class="media-video-options" style="margin-top:10px;display:none">
+          <label style="margin-bottom:6px">Playback options</label>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px">
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--white)">
+              <input type="checkbox" class="media-opt-autoplay" checked> Autoplay
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--white)">
+              <input type="checkbox" class="media-opt-loop"> Loop
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--white)">
+              <input type="checkbox" class="media-opt-mute"> Mute
+            </label>
+          </div>
         </div>
         <input type="hidden" class="lyrics-key" value="">`;
     } else {
@@ -1553,6 +1823,15 @@
     } else if (type === "content") {
       const content = el.querySelector(".item-content")?.value || "";
       const item = { type: "content", title, content };
+      if (id) item.item_id = id;
+      return item;
+    } else if (type === "media") {
+      const url        = el.querySelector(".item-media-url")?.value.trim()  || "";
+      const media_type = el.querySelector(".item-media-type")?.value        || "image";
+      const autoplay   = el.querySelector(".media-opt-autoplay")?.checked   ?? true;
+      const loop       = el.querySelector(".media-opt-loop")?.checked       ?? false;
+      const mute       = el.querySelector(".media-opt-mute")?.checked       ?? false;
+      const item = { type: "media", title, url, media_type, autoplay, loop, mute };
       if (id) item.item_id = id;
       return item;
     } else {
@@ -1831,7 +2110,12 @@
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    collectProgram(),
-    }).then(r => { if (r.ok) toast("Saved", "success"); })
+    }).then(r => {
+        if (r.ok) {
+          toast("Saved", "success");
+          if (_activeProgram) buildSlideStrip(_activeProgram);
+        }
+      })
       .catch(() => toast("Save failed", "error"));
   }
 
@@ -1925,6 +2209,7 @@
     el.querySelector(".item-chevron")?.classList.add("open");
     el.classList.add("item-editing");
     loadLyricsDisplay(el);
+    if (el.dataset.itemType === 'media') loadMediaPickerFor(el);
 
     // Highlight in sidebar
     document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
@@ -1994,6 +2279,11 @@
     } else if (type === "content") {
       const txt = el.querySelector(".item-content")?.value || "";
       detailEl.textContent = txt.split("\n")[0].slice(0, 60);
+    } else if (type === "media") {
+      const mtype = el.querySelector(".item-media-type")?.value || "";
+      const url   = el.querySelector(".item-media-url")?.value  || "";
+      const fname = url.split("/").pop();
+      detailEl.textContent = mtype ? `${mtype.charAt(0).toUpperCase() + mtype.slice(1)}${fname ? ' — ' + fname : ''}` : '';
     }
   }
 
@@ -2012,24 +2302,20 @@
   function scrollToItem(id) { selectItem(id); }
 
   function switchPanelSection(val) {
-    closeActiveItem(true);
-    document.querySelectorAll('[id^="panel-"]').forEach(el => el.style.display = "none");
-    const el = document.getElementById("panel-" + val);
-    if (el) el.style.display = "";
-    document.querySelectorAll(".service-program").forEach(sp => {
-      sp.style.display = sp.dataset.programId === val ? "" : "none";
+    _activeProgram = val;
+    // Highlight active nav item
+    document.querySelectorAll('.program-nav-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.programId === val);
     });
-    const count  = document.getElementById("panelSectionSelect")?.options.length || 0;
-    const delBtn = document.getElementById("btnDeleteProgram");
-    if (delBtn) delBtn.disabled = count <= 1;
+    // Show only the selected program in main content
+    document.querySelectorAll('.service-program').forEach(sp => {
+      sp.style.display = sp.dataset.programId === val ? '' : 'none';
+    });
     buildSlideStrip(val);
   }
 
   // ── Delete program ──────────────────────────────────────────────────────
-  function deleteCurrentProgram() {
-    const sel = document.getElementById("panelSectionSelect");
-    const programId   = sel.value;
-    const programName = sel.options[sel.selectedIndex].text;
+  function deleteProgram(programId, programName) {
     if (!confirm(`Delete "${programName}" and all its items? This cannot be undone.`)) return;
     fetch(`/api/programs/${programId}`, { method: "DELETE" })
       .then(r => r.json())
@@ -2039,6 +2325,162 @@
       })
       .catch(() => toast("Delete failed", "error"));
   }
+
+  // ── Media item helpers ───────────────────────────────────────────────────
+
+  // Task 3.2 — load file picker grid from /api/media
+  async function loadMediaPickerFor(itemEl) {
+    const grid = itemEl.querySelector('.media-picker-grid');
+    if (!grid) return;
+    grid.textContent = 'Loading…';
+    try {
+      const res  = await fetch('/api/media');
+      const data = await res.json();
+      const files = [...(data.images || []).map(f => ({...f, media_type: 'image'})),
+                     ...(data.videos || []).map(f => ({...f, media_type: 'video'}))];
+      if (!files.length) { grid.textContent = 'No media files found.'; return; }
+      grid.innerHTML = '';
+      const currentUrl = itemEl.querySelector('.item-media-url')?.value || '';
+      files.forEach(f => {
+        const thumb = document.createElement('div');
+        thumb.className = 'media-picker-thumb' + (f.url === currentUrl ? ' selected' : '');
+        if (f.media_type === 'image') {
+          thumb.innerHTML = `<img src="${f.url}" alt="${f.name}"><span>${f.name}</span>`;
+        } else {
+          thumb.innerHTML = `<div class="media-icon">▶</div><span>${f.name}</span>`;
+        }
+        thumb.addEventListener('click', () => {
+          grid.querySelectorAll('.media-picker-thumb').forEach(t => t.classList.remove('selected'));
+          thumb.classList.add('selected');
+          _setMediaItem(itemEl, f.url, f.media_type);
+        });
+        grid.appendChild(thumb);
+      });
+    } catch (e) {
+      grid.textContent = 'Failed to load media.';
+    }
+  }
+
+  // Task 3.3 — upload a new file
+  async function uploadMediaFor(itemEl, file) {
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res  = await fetch('/api/media/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        _setMediaItem(itemEl, data.url, data.media_type);
+        loadMediaPickerFor(itemEl);   // refresh grid to show new file
+      } else {
+        toast(data.message || 'Upload failed', 'error');
+      }
+    } catch (e) {
+      toast('Upload failed', 'error');
+    }
+  }
+
+  // Platform URL detection
+  const PLATFORM_URL_RE = /youtube\.com|youtu\.be|vimeo\.com|facebook\.com|fb\.watch|twitter\.com|x\.com|tiktok\.com|instagram\.com|dailymotion\.com|twitch\.tv/i;
+
+  function _checkPlatformUrl(itemEl) {
+    const url      = itemEl.querySelector('.item-media-url')?.value.trim() || '';
+    const controls = itemEl.querySelector('.yt-download-controls');
+    if (!controls) return;
+    if (PLATFORM_URL_RE.test(url)) {
+      controls.classList.add('visible');
+    } else {
+      controls.classList.remove('visible');
+      // also hide progress if URL changed away from a platform URL
+      const wrap = itemEl.querySelector('.yt-progress-wrap');
+      if (wrap) wrap.classList.remove('visible');
+    }
+  }
+
+  // URL paste handler
+  function onMediaUrlInput(itemEl) {
+    const url = itemEl.querySelector('.item-media-url')?.value.trim() || '';
+    _checkPlatformUrl(itemEl);
+    if (!url || PLATFORM_URL_RE.test(url)) return;  // platform URLs need Download button, not auto-set
+    const ext = url.split('?')[0].split('.').pop().toLowerCase();
+    const imgExts = ['jpg','jpeg','png','gif','webp'];
+    const vidExts = ['mp4','webm','mov'];
+    const media_type = imgExts.includes(ext) ? 'image' : vidExts.includes(ext) ? 'video' : 'image';
+    _setMediaItem(itemEl, url, media_type);
+  }
+
+  // Internal: apply a selected file to the item editor
+  function _setMediaItem(itemEl, url, media_type) {
+    const urlInput  = itemEl.querySelector('.item-media-url');
+    const typeInput = itemEl.querySelector('.item-media-type');
+    const info      = itemEl.querySelector('.media-selected-info');
+    const videoOpts = itemEl.querySelector('.media-video-options');
+    if (urlInput)  urlInput.value  = url;
+    if (typeInput) typeInput.value = media_type;
+    if (info)      info.textContent = media_type.charAt(0).toUpperCase() + media_type.slice(1) + ': ' + url.split('/').pop();
+    if (videoOpts) videoOpts.style.display = media_type === 'video' ? '' : 'none';
+    scheduleAutoSave();
+  }
+
+  // ── Program nav drag-and-drop reorder ───────────────────────────────────
+  (function () {
+    const panel = document.querySelector('.slide-panel');
+    let _dragNav = null;
+
+    panel.addEventListener('dragstart', function (e) {
+      const nav = e.target.closest('.program-nav-item');
+      if (!nav) return;
+      _dragNav = nav;
+      nav.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    panel.addEventListener('dragend', function () {
+      if (_dragNav) _dragNav.classList.remove('dragging');
+      panel.querySelectorAll('.drop-above, .drop-below')
+        .forEach(el => el.classList.remove('drop-above', 'drop-below'));
+      _dragNav = null;
+    });
+
+    panel.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      const target = e.target.closest('.program-nav-item');
+      if (!target || target === _dragNav) return;
+      panel.querySelectorAll('.drop-above, .drop-below')
+        .forEach(el => el.classList.remove('drop-above', 'drop-below'));
+      const mid = target.getBoundingClientRect().top + target.offsetHeight / 2;
+      target.classList.add(e.clientY < mid ? 'drop-above' : 'drop-below');
+    });
+
+    panel.addEventListener('dragleave', function (e) {
+      if (!e.relatedTarget?.closest('.program-nav-item')) {
+        panel.querySelectorAll('.drop-above, .drop-below')
+          .forEach(el => el.classList.remove('drop-above', 'drop-below'));
+      }
+    });
+
+    panel.addEventListener('drop', function (e) {
+      e.preventDefault();
+      const target = e.target.closest('.program-nav-item');
+      if (!target || target === _dragNav || !_dragNav) return;
+
+      const above = target.classList.contains('drop-above');
+      if (above) panel.insertBefore(_dragNav, target);
+      else        target.insertAdjacentElement('afterend', _dragNav);
+
+      // Mirror order in main content
+      const container = document.querySelector('.container');
+      panel.querySelectorAll('.program-nav-item').forEach(nav => {
+        const sp = document.querySelector(`.service-program[data-program-id="${nav.dataset.programId}"]`);
+        if (sp) container.appendChild(sp);
+      });
+
+      panel.querySelectorAll('.drop-above, .drop-below')
+        .forEach(el => el.classList.remove('drop-above', 'drop-below'));
+
+      scheduleAutoSave();
+    });
+  })();
 
   // ── Up / Down reorder (touch alternative to drag) ───────────────────────
   function reorderItem(btn, direction) {
@@ -2069,6 +2511,7 @@
   }
 
   function updateReorderButtons(panel) {
+    if (!panel) return;
     const items = [...panel.querySelectorAll(".outline-item")];
     items.forEach((item, i) => {
       const upBtn   = item.querySelector(".btn-reorder[title='Move up']");
@@ -2086,12 +2529,13 @@
   let _projStanzas   = [];
   let _projStanzaIdx = 0;
   const _chStateSummary = {};
+  let _activeProgram = null;
 
-  // Show only the initially selected program on load
-  switchPanelSection(document.getElementById("panelSectionSelect").value);
-
-  // Initialise reorder button states for all panels
-  document.querySelectorAll('[id^="panel-"]').forEach(updateReorderButtons);
+  // Initialise active program from first nav item
+  (function () {
+    const firstNav = document.querySelector('.program-nav-item');
+    if (firstNav) switchPanelSection(firstNav.dataset.programId);
+  })();
 
   // ── Main-content drag-and-drop reorder ───────────────────────────────────
   let _dragItem = null;
@@ -2417,11 +2861,9 @@
   (function() {
     const sel = new URLSearchParams(location.search).get("select");
     if (sel) {
-      const selectEl = document.getElementById("panelSectionSelect");
-      if (selectEl) {
-        selectEl.value = sel;
-        switchPanelSection(sel);
-      }
+      switchPanelSection(sel);
+      const spEl = document.querySelector(`.service-program[data-program-id="${sel}"]`);
+      if (spEl) spEl.scrollIntoView({ behavior: 'smooth' });
       // Clean URL without reloading
       history.replaceState(null, "", location.pathname);
     }
@@ -2550,6 +2992,77 @@
     el.title = 'Projection: disconnected';
   });
 
+  // ── YouTube download ──────────────────────────────────────────────────────
+
+  function startYTDownload(itemEl) {
+    const url     = itemEl.querySelector('.item-media-url')?.value.trim() || '';
+    const quality = itemEl.querySelector('.yt-quality-select')?.value || 'best';
+    const itemId  = itemEl.dataset.itemId || String(Date.now());
+    if (!url) { toast('Paste a URL first', 'error'); return; }
+
+    // Store item_id on the element so listeners can find it
+    itemEl.dataset.ytItemId = itemId;
+
+    // Disable button, show progress bar
+    const btn  = itemEl.querySelector('.yt-download-btn');
+    const wrap = itemEl.querySelector('.yt-progress-wrap');
+    const fill = itemEl.querySelector('.yt-progress-fill');
+    const info = itemEl.querySelector('.yt-progress-info');
+    if (btn)  { btn.disabled = true; btn.textContent = '⏳ Downloading…'; }
+    if (wrap) wrap.classList.add('visible');
+    if (fill) fill.style.width = '0%';
+    if (info) info.textContent = 'Starting…';
+
+    _socket.emit('yt:download:start', { url, quality, item_id: itemId });
+  }
+
+  _socket.on('yt:progress', function (data) {
+    const itemEl = document.querySelector(`[data-yt-item-id="${data.item_id}"]`);
+    if (!itemEl) return;
+    const fill   = itemEl.querySelector('.yt-progress-fill');
+    const info   = itemEl.querySelector('.yt-progress-info');
+    const pct    = Math.min(100, Math.round(data.percent || 0));
+    if (fill) fill.style.width = pct + '%';
+    if (info) {
+      if (data.status === 'processing') {
+        info.textContent = 'Processing… (merging audio/video)';
+      } else {
+        const speed = data.speed ? `  •  ${data.speed}` : '';
+        const eta   = data.eta   ? `  •  ETA ${data.eta}s` : '';
+        info.textContent = `${pct}%${speed}${eta}`;
+      }
+    }
+  });
+
+  _socket.on('yt:done', function (data) {
+    const itemEl = document.querySelector(`[data-yt-item-id="${data.item_id}"]`);
+    if (!itemEl) return;
+    // Auto-select the downloaded file
+    _setMediaItem(itemEl, data.url, 'video');
+    // Hide progress, re-enable button, hide download controls
+    const btn  = itemEl.querySelector('.yt-download-btn');
+    const wrap = itemEl.querySelector('.yt-progress-wrap');
+    const ctrl = itemEl.querySelector('.yt-download-controls');
+    if (btn)  { btn.disabled = false; btn.textContent = '↓ Download'; }
+    if (wrap) wrap.classList.remove('visible');
+    if (ctrl) ctrl.classList.remove('visible');
+    // Refresh picker so the new file appears
+    loadMediaPickerFor(itemEl);
+    toast('Download complete: ' + data.filename);
+  });
+
+  _socket.on('yt:error', function (data) {
+    const itemEl = document.querySelector(`[data-yt-item-id="${data.item_id}"]`);
+    if (!itemEl) return;
+    const btn  = itemEl.querySelector('.yt-download-btn');
+    const wrap = itemEl.querySelector('.yt-progress-wrap');
+    const info = itemEl.querySelector('.yt-progress-info');
+    if (btn)  { btn.disabled = false; btn.textContent = '↓ Download'; }
+    if (wrap) wrap.classList.remove('visible');
+    if (info) info.textContent = '';
+    toast('Download failed: ' + (data.message || 'Unknown error'), 'error');
+  });
+
   function _getChannel() {
     return document.getElementById('channelSelect')?.value || 'ch1';
   }
@@ -2667,23 +3180,42 @@
           try {
             const res     = await fetch(`/api/lyrics/${encodeURIComponent(lk)}`);
             const data    = await res.json();
-            const stanzas = (data.status === 'ok') ? data.stanzas : [];
+            const stanzas = _interleaveStanzas((data.status === 'ok') ? data.stanzas : []);
             if (stanzas.length) {
+              // fullStanzas mirrors _projStanzas: index 0 = title card, 1+ = real stanzas
+              const fullStanzas = [{ type: '__title__' }, ...stanzas];
+
+              // Title card thumb (index 0)
+              slideNum++;
+              const titleThumb = document.createElement('div');
+              const titleActive = itemEl.id === _activeThumbItemId && 0 === _activeThumbStanzaIdx;
+              titleThumb.className        = 'strip-thumb' + (titleActive ? ' active' : '');
+              titleThumb.dataset.itemId   = itemEl.id;
+              titleThumb.dataset.stanzaIdx = 0;
+              titleThumb.innerHTML = `
+                <div class="strip-thumb-num">${slideNum} <span class="badge badge-song-s">♪</span></div>
+                <div class="strip-thumb-title">${_lpEsc(part || title)}</div>
+                <div class="strip-thumb-detail">Title</div>`;
+              titleThumb.addEventListener('click', () => _jumpToStanza(itemEl, fullStanzas, 0, title, part));
+              strip.appendChild(titleThumb);
+
+              // Stanza thumbs (indices 1+)
               stanzas.forEach((stanza, si) => {
                 slideNum++;
+                const projIdx = si + 1;
                 const t     = (stanza.type || 'verse').toLowerCase();
                 const label = t === 'chorus' ? 'Ch' : t === 'refrain' ? 'Ref'
                             : t === 'bridge' ? `Br${stanza.number}` : `V${stanza.number}`;
-                const isActive = itemEl.id === _activeThumbItemId && si === _activeThumbStanzaIdx;
+                const isActive = itemEl.id === _activeThumbItemId && projIdx === _activeThumbStanzaIdx;
                 const thumb = document.createElement('div');
-                thumb.className       = 'strip-thumb' + (isActive ? ' active' : '');
+                thumb.className        = 'strip-thumb' + (isActive ? ' active' : '');
                 thumb.dataset.itemId   = itemEl.id;
-                thumb.dataset.stanzaIdx = si;
+                thumb.dataset.stanzaIdx = projIdx;
                 thumb.innerHTML = `
                   <div class="strip-thumb-num">${slideNum} <span class="badge badge-song-s">♪</span></div>
                   <div class="strip-thumb-title">${_lpEsc(part || title)}</div>
                   <div class="strip-thumb-detail">${label}: ${_lpEsc((stanza.lines || [])[0] || '')}</div>`;
-                thumb.addEventListener('click', () => _jumpToStanza(itemEl, stanzas, si, title, part));
+                thumb.addEventListener('click', () => _jumpToStanza(itemEl, fullStanzas, projIdx, title, part));
                 strip.appendChild(thumb);
               });
               continue;
@@ -2694,12 +3226,22 @@
 
       // Single thumb (non-song, or song with no lyrics)
       slideNum++;
-      let badge = '', detail = '';
+      let badge = '', detail = '', thumbExtra = '';
       if (type === 'song') {
         badge  = `<span class="badge badge-song-s">♪</span>`;
         detail = 'no lyrics';
       } else if (type === 'content') {
         badge  = `<span class="badge badge-cont-s">C</span>`;
+      } else if (type === 'media') {
+        badge  = `<span class="badge badge-media-s">M</span>`;
+        const url   = itemEl.querySelector('.item-media-url')?.value  || '';
+        const mtype = itemEl.querySelector('.item-media-type')?.value || '';
+        detail = url.split('/').pop() || '';
+        if (mtype === 'image' && url) {
+          thumbExtra = `<img src="${url}" alt="" style="width:100%;height:36px;object-fit:cover;border-radius:3px;margin-top:3px;">`;
+        } else if (mtype === 'video') {
+          thumbExtra = `<div style="width:100%;height:36px;display:flex;align-items:center;justify-content:center;background:#0a1628;border-radius:3px;margin-top:3px;font-size:18px;">▶</div>`;
+        }
       } else {
         badge  = `<span class="badge badge-part-s">P</span>`;
         detail = itemEl.querySelector('.item-participant')?.value || '';
@@ -2711,7 +3253,8 @@
       thumb.innerHTML = `
         <div class="strip-thumb-num">${slideNum} ${badge}</div>
         <div class="strip-thumb-title">${_lpEsc(type === 'song' ? (part || title) : title)}</div>
-        ${detail ? `<div class="strip-thumb-detail">${_lpEsc(detail)}</div>` : ''}`;
+        ${detail ? `<div class="strip-thumb-detail">${_lpEsc(detail)}</div>` : ''}
+        ${thumbExtra}`;
       thumb.addEventListener('click', () => sendLive(itemEl));
       strip.appendChild(thumb);
     }
@@ -2742,7 +3285,18 @@
     if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
 
-  async function sendLive(itemEl) {
+  // Interleave chorus/refrain after every verse: V1 Ch V2 Ch V3 Ch ...
+  function _interleaveStanzas(stanzas) {
+    const isRefrain = s => ['chorus','refrain'].includes((s.type || 'verse').toLowerCase());
+    const verses    = stanzas.filter(s => !isRefrain(s));
+    const refrains  = stanzas.filter(s =>  isRefrain(s));
+    if (!refrains.length || !verses.length) return stanzas;
+    const result = [];
+    verses.forEach(v => { result.push(v); refrains.forEach(r => result.push(r)); });
+    return result;
+  }
+
+  async function sendLive(itemEl, startFromEnd = false) {
     if (!itemEl) return;
     const ch      = _getChannel();
     const type    = itemEl.dataset.itemType || 'participant';
@@ -2767,10 +3321,12 @@
       try {
         const res  = await fetch(`/api/lyrics/${encodeURIComponent(lyricsKey)}`);
         const data = await res.json();
-        _projStanzas   = (data.status === 'ok') ? data.stanzas : [];
-        _projStanzaIdx = 0;
+        const fetched  = _interleaveStanzas((data.status === 'ok') ? data.stanzas : []);
+        // Index 0 = title card, indices 1+ = stanzas
+        _projStanzas   = fetched.length ? [{ type: '__title__' }, ...fetched] : [];
+        _projStanzaIdx = (startFromEnd && _projStanzas.length) ? _projStanzas.length - 1 : 0;
         _projItem      = itemEl;
-        _activateStripThumb(itemEl, _projStanzas.length ? 0 : null);
+        _activateStripThumb(itemEl, _projStanzas.length ? _projStanzaIdx : null);
         _sendCurrentStanza(ch, title, part);
       } catch (e) {
         _projStanzas = []; _projItem = itemEl; _projStanzaIdx = 0;
@@ -2779,6 +3335,19 @@
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
       }
+    } else if (type === 'media') {
+      _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
+      _activateStripThumb(itemEl, null);
+      const url        = itemEl.querySelector('.item-media-url')?.value.trim()  || '';
+      const media_type = itemEl.querySelector('.item-media-type')?.value        || 'image';
+      const autoplay   = itemEl.querySelector('.media-opt-autoplay')?.checked   ?? true;
+      const loop       = itemEl.querySelector('.media-opt-loop')?.checked       ?? false;
+      const mute       = itemEl.querySelector('.media-opt-mute')?.checked       ?? false;
+      if (!url) { toast('No media file selected', 'error'); return; }
+      const event = media_type === 'video' ? 'media:video' : 'media:image';
+      const sd = { channel: ch, type: media_type, url, autoplay, loop, mute, theme_id: _getTheme() };
+      _socket.emit(event, sd);
+      renderLivePreview({ type: media_type, data: sd });
     } else {
       _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
       _activateStripThumb(itemEl, null);
@@ -2795,7 +3364,8 @@
   function _sendCurrentStanza(ch, title, part) {
     const stanza = _projStanzas[_projStanzaIdx] || null;
     const sd     = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
-    if (stanza) sd.stanza = stanza;
+    // Only attach stanza if it's a real stanza (not the title-card sentinel)
+    if (stanza && stanza.type !== '__title__') sd.stanza = stanza;
     _socket.emit('slide:show', sd);
     renderLivePreview(sd);
   }
@@ -2805,7 +3375,7 @@
     if (!items.length) return;
     const idx = _projItem ? items.indexOf(_projItem) : -1;
     const next = items[idx + dir];
-    if (next) sendLive(next);
+    if (next) sendLive(next, dir < 0);  // going backwards → start from last stanza
   }
 
   function _projNext() {
@@ -2828,6 +3398,8 @@
       _sendCurrentStanza(_getChannel(),
         _projItem.querySelector('.item-title')?.value || '',
         _projItem.querySelector('.item-part')?.value  || '');
+    } else {
+      _projNextItem(-1);  // at first stanza → go to previous item (last stanza)
     }
   }
 
@@ -2838,6 +3410,7 @@
 
   // ── Keyboard clicker ───────────────────────────────────────────────────────
   document.addEventListener('keydown', function (e) {
+    if (e.repeat) return;  // ignore key-hold auto-repeat
     const tag = document.activeElement?.tagName || '';
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || document.activeElement?.isContentEditable) return;
     if (e.key === 'ArrowRight' || e.code === 'ArrowRight' || e.key === ' ' || e.code === 'Space') {
@@ -2850,12 +3423,6 @@
       _projBlank();
     }
   });
-
-  // ── Init slide strip on page load ──────────────────────────────────────────
-  (function () {
-    const sel = document.getElementById('panelSectionSelect');
-    if (sel) buildSlideStrip(sel.value);
-  })();
 
   // ── Timer controls ──────────────────────────────────────────────────────────
   function _timerSecs() {
@@ -2901,45 +3468,6 @@
     renderLivePreview(data);
   }
 
-  // ── Media ───────────────────────────────────────────────────────────────────
-  async function loadMediaList() {
-    const list = document.getElementById('mediaList');
-    list.innerHTML = '<span style="color:var(--muted);font-size:11px;">Loading…</span>';
-    try {
-      const res  = await fetch('/api/media');
-      const data = await res.json();
-      const images = data.images || [];
-      const videos = data.videos || [];
-      if (!images.length && !videos.length) {
-        list.innerHTML = '<span style="color:var(--muted);font-size:11px;">No media files found in media/images/ or media/videos/.</span>';
-        return;
-      }
-      list.innerHTML = '';
-      images.forEach(f => list.appendChild(_mediaThumb(f, 'image')));
-      videos.forEach(f => list.appendChild(_mediaThumb(f, 'video')));
-    } catch (e) {
-      list.innerHTML = '<span style="color:var(--error);font-size:11px;">Failed to load media.</span>';
-    }
-  }
-
-  function _mediaThumb(file, type) {
-    const btn = document.createElement('button');
-    btn.style.cssText = 'width:100%;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--white);font-size:11px;padding:5px 8px;cursor:pointer;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:border-color 0.15s;';
-    btn.title = file.name;
-    btn.textContent = (type === 'image' ? '🖼 ' : '▶ ') + file.name;
-    btn.addEventListener('mouseenter', () => btn.style.borderColor = 'var(--gold)');
-    btn.addEventListener('mouseleave', () => btn.style.borderColor = 'var(--border)');
-    btn.addEventListener('click', () => sendMedia(file.url, type));
-    return btn;
-  }
-
-  function sendMedia(url, type) {
-    const ch   = _getChannel();
-    const event = type === 'image' ? 'media:image' : 'media:video';
-    const data  = { type, url, channel: ch };
-    _socket.emit(event, data);
-    renderLivePreview(data);
-  }
 </script>
 
 <!-- ── Lyrics preview modal ─────────────────────────────────────────────── -->

@@ -3,20 +3,11 @@
     "type": "text",
     "data": {
       "type": "text",
-      "title": "We Gather Together",
-      "part": "Opening Song",
+      "title": "Happy Sabbath",
+      "part": "",
       "channel": "ch1",
       "theme_id": "default",
-      "stanza": {
-        "lines": [
-          "We all do extol Thee, Thou leader triumphant,",
-          "And pray that Thou still our defender wilt be.",
-          "Let Thy congregation escape tribulation;",
-          "Thy name be ever praised! O Lord, make us free!"
-        ],
-        "number": 3,
-        "type": "verse"
-      }
+      "body": "Happy Sabbath"
     },
     "theme_id": "default"
   },
@@ -24,7 +15,7 @@
     "type": "timer",
     "data": {
       "seconds": 300,
-      "label": "Lesson Review",
+      "label": "",
       "running": true,
       "channel": "ch2",
       "type": "timer"

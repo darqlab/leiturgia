@@ -1,56 +1,19 @@
 [
   {
-    "saved_at": "2026-03-29T13:09:48.043834",
+    "saved_at": "2026-03-29T23:23:00.142785",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "midweek",
-        "name": "Midweek",
-        "items": [
-          {
-            "type": "song",
-            "title": "Shall We Gather at the River",
-            "item_id": "midweek-001",
-            "hymn_number": "432",
-            "lyrics_key": "432",
-            "part": "Song Service"
-          },
-          {
-            "type": "song",
-            "title": "When We All Get to Heaven",
-            "item_id": "midweek-002",
-            "hymn_number": "633",
-            "lyrics_key": "633",
-            "part": "Song Service 2"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remark",
-            "part": "Welcome remarks",
-            "participant": "John Smith",
-            "item_id": "midweek-003"
-          },
-          {
-            "type": "song",
-            "title": "",
-            "item_id": "midweek-004",
-            "hymn_number": "53",
-            "lyrics_key": "53",
-            "part": "All praise to thee"
-          },
-          {
-            "type": "content",
-            "title": "content ",
-            "content": "What is Lorem Ipsum?\nLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\nWhy do we use it?\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).\n\n\nWhere does it come from?\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus Bonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum dolor sit amet..\", comes from a line in section 1.10.32.\n\nThe standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from \"de Finibus Bonorum et Malorum\" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.\n\nWhere can I get some?\nThere are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.",
-            "item_id": "midweek-005"
-          }
-        ]
-      },
-      {
         "id": "sabbath-school",
         "name": "Sabbath School",
         "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-014"
+          },
           {
             "type": "participant",
             "title": "Welcome Remarks",
@@ -65,63 +28,374 @@
             "hymn_number": "8",
             "lyrics_key": "8",
             "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "XO Olasiman",
+            "item_id": "sabbath-school-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Palar  Kids",
+            "item_id": "sabbath-school-004"
+          },
+          {
+            "type": "participant",
+            "title": "Mission Story",
+            "part": "Mission Story",
+            "participant": "Sancho Agno",
+            "item_id": "sabbath-school-005"
+          },
+          {
+            "type": "participant",
+            "title": "Intermission Song",
+            "part": "Intermission Song",
+            "participant": "kid's Class",
+            "item_id": "sabbath-school-006"
+          },
+          {
+            "type": "participant",
+            "title": "Instrumental Number",
+            "part": "Instrumental Number",
+            "participant": "Yuri Corder, EJ & XO Alasiman",
+            "item_id": "sabbath-school-008"
+          },
+          {
+            "type": "participant",
+            "title": "Memory Verse",
+            "part": "Memory Verse",
+            "participant": "Kids Class",
+            "item_id": "sabbath-school-009"
+          },
+          {
+            "type": "participant",
+            "title": "Song",
+            "part": "Song",
+            "participant": "Kids & Teen Class",
+            "item_id": "sabbath-school-010"
+          },
+          {
+            "type": "content",
+            "title": "Lesson Study",
+            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
+            "item_id": "sabbath-school-007"
+          },
+          {
+            "type": "song",
+            "title": "We Gather Together",
+            "item_id": "sabbath-school-011",
+            "hymn_number": "8",
+            "lyrics_key": "8",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Amara Gandeza",
+            "item_id": "sabbath-school-012"
+          },
+          {
+            "type": "media",
+            "title": "",
+            "url": "/media/videos/Mission Theme Song by Jader Santos.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "sabbath-school-015"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-013"
+          }
+        ]
+      },
+      {
+        "id": "divine-service",
+        "name": "Divine Service",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-012"
+          },
+          {
+            "type": "participant",
+            "title": "Call To Worship",
+            "part": "Call To Worship",
+            "participant": "Joy Olasiman",
+            "item_id": "divine-service-001"
+          },
+          {
+            "type": "song",
+            "title": "Holy, Holy, Holy",
+            "item_id": "divine-service-002",
+            "hymn_number": "73",
+            "lyrics_key": "73",
+            "part": "Introit"
+          },
+          {
+            "type": "song",
+            "title": "We Love Thy Sabbath, Lord",
+            "item_id": "divine-service-003",
+            "hymn_number": "390",
+            "lyrics_key": "390",
+            "part": "Hymn Of Celebration"
+          },
+          {
+            "type": "participant",
+            "title": "Invocation",
+            "part": "Invocation",
+            "participant": "Speaker",
+            "item_id": "divine-service-004"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "divine-service-005",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Hymn of Adoration"
+          },
+          {
+            "type": "participant",
+            "title": "Scripture Reading",
+            "part": "Scripture Reading",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-006"
+          },
+          {
+            "type": "song",
+            "title": "Come, Christians, Join to Sing",
+            "item_id": "divine-service-007",
+            "hymn_number": "10",
+            "lyrics_key": "10",
+            "part": "Prayer Hymn"
+          },
+          {
+            "type": "participant",
+            "title": "Pastoral Prayer",
+            "part": "Pastoral Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-008"
+          },
+          {
+            "type": "song",
+            "title": "O Thou Who Hearest",
+            "item_id": "divine-service-009",
+            "hymn_number": "668",
+            "lyrics_key": "668",
+            "part": "Hymn of Response"
+          },
+          {
+            "type": "participant",
+            "title": "Toughts On Stewardship",
+            "part": "Toughts On Stewardship",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-010"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Music",
+            "part": "Offertory Music",
+            "participant": "KC Barbajano",
+            "item_id": "divine-service-011"
+          },
+          {
+            "type": "song",
+            "title": "Praise God, From Whom All Blessings",
+            "item_id": "divine-service-013",
+            "hymn_number": "694",
+            "lyrics_key": "694",
+            "part": "Hymn of Gratitude"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Prayer",
+            "part": "Offertory Prayer",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-014"
+          },
+          {
+            "type": "participant",
+            "title": "Children Homily",
+            "part": "Children Homily",
+            "participant": "Renee Mwamakamba",
+            "item_id": "divine-service-015"
+          },
+          {
+            "type": "participant",
+            "title": "Ministry In Song",
+            "part": "Ministry In Song",
+            "participant": "Jean Andres",
+            "item_id": "divine-service-016"
+          },
+          {
+            "type": "participant",
+            "title": "Child Dedication ",
+            "part": "Child Dedication ",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-017"
+          },
+          {
+            "type": "participant",
+            "title": "The Spoken Word",
+            "part": "The Spoken Word",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-018"
+          },
+          {
+            "type": "song",
+            "title": "All People That on Earth Do Well",
+            "item_id": "divine-service-019",
+            "hymn_number": "16",
+            "lyrics_key": "16",
+            "part": "Hymn of Consecration"
+          },
+          {
+            "type": "participant",
+            "title": "Hymn of Hope",
+            "part": "Hymn of Hope",
+            "participant": "The Mission",
+            "item_id": "divine-service-020"
+          },
+          {
+            "type": "participant",
+            "title": "Benediction",
+            "part": "Benediction",
+            "participant": "Speaker",
+            "item_id": "divine-service-021"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-022"
+          }
+        ]
+      },
+      {
+        "id": "ay",
+        "name": "AY",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-011"
+          },
+          {
+            "type": "participant",
+            "title": "Singspiration",
+            "part": "Singspiration",
+            "participant": "Floribel Doplon",
+            "item_id": "ay-002"
+          },
+          {
+            "type": "participant",
+            "title": "Welcome",
+            "part": "Welcome",
+            "participant": "Aimyrrh Boholist",
+            "item_id": "ay-001"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "ay-004",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "Arnel Llaguno",
+            "item_id": "ay-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Chiqlette Marcera",
+            "item_id": "ay-005"
+          },
+          {
+            "type": "content",
+            "title": "Bible Quiz",
+            "content": "Kahoot - Book of Genesis",
+            "item_id": "ay-006"
+          },
+          {
+            "type": "content",
+            "title": "Intermission Number",
+            "content": "",
+            "item_id": "ay-007"
+          },
+          {
+            "type": "content",
+            "title": "Song Game",
+            "content": "Find My Tune",
+            "item_id": "ay-008"
+          },
+          {
+            "type": "song",
+            "title": "Turn Your Eyes Upon Jesus",
+            "item_id": "ay-009",
+            "hymn_number": "290",
+            "lyrics_key": "290",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "ay-010"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-012"
+          },
+          {
+            "type": "media",
+            "title": "rytytyr",
+            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
+            "media_type": "image",
+            "autoplay": true,
+            "loop": false,
+            "mute": true,
+            "item_id": "ay-013"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T13:09:47.336088",
+    "saved_at": "2026-03-29T23:22:50.478075",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "midweek",
-        "name": "Midweek",
-        "items": [
-          {
-            "type": "song",
-            "title": "Shall We Gather at the River",
-            "item_id": "midweek-001",
-            "hymn_number": "432",
-            "lyrics_key": "432",
-            "part": "Song Service"
-          },
-          {
-            "type": "song",
-            "title": "When We All Get to Heaven",
-            "item_id": "midweek-002",
-            "hymn_number": "633",
-            "lyrics_key": "633",
-            "part": "Song Service 2"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remark",
-            "part": "Welcome remarks",
-            "participant": "John Smith",
-            "item_id": "midweek-003"
-          },
-          {
-            "type": "song",
-            "title": "",
-            "item_id": "midweek-004",
-            "hymn_number": "53",
-            "lyrics_key": "53",
-            "part": "All praise to thee"
-          },
-          {
-            "type": "content",
-            "title": "content ",
-            "content": "What is Lorem Ipsum?\nLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\nWhy do we use it?\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).\n\n\nWhere does it come from?\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus Bonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum dolor sit amet..\", comes from a line in section 1.10.32.\n\nThe standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from \"de Finibus Bonorum et Malorum\" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.\n\nWhere can I get some?\nThere are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.",
-            "item_id": "midweek-005"
-          }
-        ]
-      },
-      {
         "id": "sabbath-school",
         "name": "Sabbath School",
         "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-014"
+          },
           {
             "type": "participant",
             "title": "Welcome Remarks",
@@ -136,63 +410,374 @@
             "hymn_number": "8",
             "lyrics_key": "8",
             "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "XO Olasiman",
+            "item_id": "sabbath-school-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Palar  Kids",
+            "item_id": "sabbath-school-004"
+          },
+          {
+            "type": "participant",
+            "title": "Mission Story",
+            "part": "Mission Story",
+            "participant": "Sancho Agno",
+            "item_id": "sabbath-school-005"
+          },
+          {
+            "type": "participant",
+            "title": "Intermission Song",
+            "part": "Intermission Song",
+            "participant": "kid's Class",
+            "item_id": "sabbath-school-006"
+          },
+          {
+            "type": "participant",
+            "title": "Instrumental Number",
+            "part": "Instrumental Number",
+            "participant": "Yuri Corder, EJ & XO Alasiman",
+            "item_id": "sabbath-school-008"
+          },
+          {
+            "type": "participant",
+            "title": "Memory Verse",
+            "part": "Memory Verse",
+            "participant": "Kids Class",
+            "item_id": "sabbath-school-009"
+          },
+          {
+            "type": "participant",
+            "title": "Song",
+            "part": "Song",
+            "participant": "Kids & Teen Class",
+            "item_id": "sabbath-school-010"
+          },
+          {
+            "type": "content",
+            "title": "Lesson Study",
+            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
+            "item_id": "sabbath-school-007"
+          },
+          {
+            "type": "song",
+            "title": "We Gather Together",
+            "item_id": "sabbath-school-011",
+            "hymn_number": "8",
+            "lyrics_key": "8",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Amara Gandeza",
+            "item_id": "sabbath-school-012"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-013"
+          },
+          {
+            "type": "media",
+            "title": "",
+            "url": "/media/videos/Mission Theme Song by Jader Santos.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "sabbath-school-015"
+          }
+        ]
+      },
+      {
+        "id": "divine-service",
+        "name": "Divine Service",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-012"
+          },
+          {
+            "type": "participant",
+            "title": "Call To Worship",
+            "part": "Call To Worship",
+            "participant": "Joy Olasiman",
+            "item_id": "divine-service-001"
+          },
+          {
+            "type": "song",
+            "title": "Holy, Holy, Holy",
+            "item_id": "divine-service-002",
+            "hymn_number": "73",
+            "lyrics_key": "73",
+            "part": "Introit"
+          },
+          {
+            "type": "song",
+            "title": "We Love Thy Sabbath, Lord",
+            "item_id": "divine-service-003",
+            "hymn_number": "390",
+            "lyrics_key": "390",
+            "part": "Hymn Of Celebration"
+          },
+          {
+            "type": "participant",
+            "title": "Invocation",
+            "part": "Invocation",
+            "participant": "Speaker",
+            "item_id": "divine-service-004"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "divine-service-005",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Hymn of Adoration"
+          },
+          {
+            "type": "participant",
+            "title": "Scripture Reading",
+            "part": "Scripture Reading",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-006"
+          },
+          {
+            "type": "song",
+            "title": "Come, Christians, Join to Sing",
+            "item_id": "divine-service-007",
+            "hymn_number": "10",
+            "lyrics_key": "10",
+            "part": "Prayer Hymn"
+          },
+          {
+            "type": "participant",
+            "title": "Pastoral Prayer",
+            "part": "Pastoral Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-008"
+          },
+          {
+            "type": "song",
+            "title": "O Thou Who Hearest",
+            "item_id": "divine-service-009",
+            "hymn_number": "668",
+            "lyrics_key": "668",
+            "part": "Hymn of Response"
+          },
+          {
+            "type": "participant",
+            "title": "Toughts On Stewardship",
+            "part": "Toughts On Stewardship",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-010"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Music",
+            "part": "Offertory Music",
+            "participant": "KC Barbajano",
+            "item_id": "divine-service-011"
+          },
+          {
+            "type": "song",
+            "title": "Praise God, From Whom All Blessings",
+            "item_id": "divine-service-013",
+            "hymn_number": "694",
+            "lyrics_key": "694",
+            "part": "Hymn of Gratitude"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Prayer",
+            "part": "Offertory Prayer",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-014"
+          },
+          {
+            "type": "participant",
+            "title": "Children Homily",
+            "part": "Children Homily",
+            "participant": "Renee Mwamakamba",
+            "item_id": "divine-service-015"
+          },
+          {
+            "type": "participant",
+            "title": "Ministry In Song",
+            "part": "Ministry In Song",
+            "participant": "Jean Andres",
+            "item_id": "divine-service-016"
+          },
+          {
+            "type": "participant",
+            "title": "Child Dedication ",
+            "part": "Child Dedication ",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-017"
+          },
+          {
+            "type": "participant",
+            "title": "The Spoken Word",
+            "part": "The Spoken Word",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-018"
+          },
+          {
+            "type": "song",
+            "title": "All People That on Earth Do Well",
+            "item_id": "divine-service-019",
+            "hymn_number": "16",
+            "lyrics_key": "16",
+            "part": "Hymn of Consecration"
+          },
+          {
+            "type": "participant",
+            "title": "Hymn of Hope",
+            "part": "Hymn of Hope",
+            "participant": "The Mission",
+            "item_id": "divine-service-020"
+          },
+          {
+            "type": "participant",
+            "title": "Benediction",
+            "part": "Benediction",
+            "participant": "Speaker",
+            "item_id": "divine-service-021"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-022"
+          }
+        ]
+      },
+      {
+        "id": "ay",
+        "name": "AY",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-011"
+          },
+          {
+            "type": "participant",
+            "title": "Singspiration",
+            "part": "Singspiration",
+            "participant": "Floribel Doplon",
+            "item_id": "ay-002"
+          },
+          {
+            "type": "participant",
+            "title": "Welcome",
+            "part": "Welcome",
+            "participant": "Aimyrrh Boholist",
+            "item_id": "ay-001"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "ay-004",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "Arnel Llaguno",
+            "item_id": "ay-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Chiqlette Marcera",
+            "item_id": "ay-005"
+          },
+          {
+            "type": "content",
+            "title": "Bible Quiz",
+            "content": "Kahoot - Book of Genesis",
+            "item_id": "ay-006"
+          },
+          {
+            "type": "content",
+            "title": "Intermission Number",
+            "content": "",
+            "item_id": "ay-007"
+          },
+          {
+            "type": "content",
+            "title": "Song Game",
+            "content": "Find My Tune",
+            "item_id": "ay-008"
+          },
+          {
+            "type": "song",
+            "title": "Turn Your Eyes Upon Jesus",
+            "item_id": "ay-009",
+            "hymn_number": "290",
+            "lyrics_key": "290",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "ay-010"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-012"
+          },
+          {
+            "type": "media",
+            "title": "rytytyr",
+            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
+            "media_type": "image",
+            "autoplay": true,
+            "loop": false,
+            "mute": true,
+            "item_id": "ay-013"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T13:09:41.609915",
+    "saved_at": "2026-03-29T23:18:48.232614",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "midweek",
-        "name": "Midweek",
-        "items": [
-          {
-            "type": "song",
-            "title": "Shall We Gather at the River",
-            "item_id": "midweek-001",
-            "hymn_number": "432",
-            "lyrics_key": "432",
-            "part": "Song Service"
-          },
-          {
-            "type": "song",
-            "title": "When We All Get to Heaven",
-            "item_id": "midweek-002",
-            "hymn_number": "633",
-            "lyrics_key": "633",
-            "part": "Song Service 2"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remark",
-            "part": "Welcome remarks",
-            "participant": "John Smith",
-            "item_id": "midweek-003"
-          },
-          {
-            "type": "song",
-            "title": "",
-            "item_id": "midweek-004",
-            "hymn_number": "53",
-            "lyrics_key": "53",
-            "part": "All praise to thee"
-          },
-          {
-            "type": "content",
-            "title": "content ",
-            "content": "What is Lorem Ipsum?\nLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\nWhy do we use it?\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).\n\n\nWhere does it come from?\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus Bonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum dolor sit amet..\", comes from a line in section 1.10.32.\n\nThe standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from \"de Finibus Bonorum et Malorum\" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.\n\nWhere can I get some?\nThere are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.",
-            "item_id": "midweek-005"
-          }
-        ]
-      },
-      {
         "id": "sabbath-school",
         "name": "Sabbath School",
         "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-014"
+          },
           {
             "type": "participant",
             "title": "Welcome Remarks",
@@ -207,63 +792,374 @@
             "hymn_number": "8",
             "lyrics_key": "8",
             "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "XO Olasiman",
+            "item_id": "sabbath-school-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Palar  Kids",
+            "item_id": "sabbath-school-004"
+          },
+          {
+            "type": "participant",
+            "title": "Mission Story",
+            "part": "Mission Story",
+            "participant": "Sancho Agno",
+            "item_id": "sabbath-school-005"
+          },
+          {
+            "type": "participant",
+            "title": "Intermission Song",
+            "part": "Intermission Song",
+            "participant": "kid's Class",
+            "item_id": "sabbath-school-006"
+          },
+          {
+            "type": "participant",
+            "title": "Instrumental Number",
+            "part": "Instrumental Number",
+            "participant": "Yuri Corder, EJ & XO Alasiman",
+            "item_id": "sabbath-school-008"
+          },
+          {
+            "type": "participant",
+            "title": "Memory Verse",
+            "part": "Memory Verse",
+            "participant": "Kids Class",
+            "item_id": "sabbath-school-009"
+          },
+          {
+            "type": "participant",
+            "title": "Song",
+            "part": "Song",
+            "participant": "Kids & Teen Class",
+            "item_id": "sabbath-school-010"
+          },
+          {
+            "type": "content",
+            "title": "Lesson Study",
+            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
+            "item_id": "sabbath-school-007"
+          },
+          {
+            "type": "song",
+            "title": "We Gather Together",
+            "item_id": "sabbath-school-011",
+            "hymn_number": "8",
+            "lyrics_key": "8",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Amara Gandeza",
+            "item_id": "sabbath-school-012"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-013"
+          },
+          {
+            "type": "media",
+            "title": "",
+            "url": "/media/videos/Mission Theme Song by Jader Santos.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "sabbath-school-015"
+          }
+        ]
+      },
+      {
+        "id": "divine-service",
+        "name": "Divine Service",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-012"
+          },
+          {
+            "type": "participant",
+            "title": "Call To Worship",
+            "part": "Call To Worship",
+            "participant": "Joy Olasiman",
+            "item_id": "divine-service-001"
+          },
+          {
+            "type": "song",
+            "title": "Holy, Holy, Holy",
+            "item_id": "divine-service-002",
+            "hymn_number": "73",
+            "lyrics_key": "73",
+            "part": "Introit"
+          },
+          {
+            "type": "song",
+            "title": "We Love Thy Sabbath, Lord",
+            "item_id": "divine-service-003",
+            "hymn_number": "390",
+            "lyrics_key": "390",
+            "part": "Hymn Of Celebration"
+          },
+          {
+            "type": "participant",
+            "title": "Invocation",
+            "part": "Invocation",
+            "participant": "Speaker",
+            "item_id": "divine-service-004"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "divine-service-005",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Hymn of Adoration"
+          },
+          {
+            "type": "participant",
+            "title": "Scripture Reading",
+            "part": "Scripture Reading",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-006"
+          },
+          {
+            "type": "song",
+            "title": "Come, Christians, Join to Sing",
+            "item_id": "divine-service-007",
+            "hymn_number": "10",
+            "lyrics_key": "10",
+            "part": "Prayer Hymn"
+          },
+          {
+            "type": "participant",
+            "title": "Pastoral Prayer",
+            "part": "Pastoral Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-008"
+          },
+          {
+            "type": "song",
+            "title": "O Thou Who Hearest",
+            "item_id": "divine-service-009",
+            "hymn_number": "668",
+            "lyrics_key": "668",
+            "part": "Hymn of Response"
+          },
+          {
+            "type": "participant",
+            "title": "Toughts On Stewardship",
+            "part": "Toughts On Stewardship",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-010"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Music",
+            "part": "Offertory Music",
+            "participant": "KC Barbajano",
+            "item_id": "divine-service-011"
+          },
+          {
+            "type": "song",
+            "title": "Praise God, From Whom All Blessings",
+            "item_id": "divine-service-013",
+            "hymn_number": "694",
+            "lyrics_key": "694",
+            "part": "Hymn of Gratitude"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Prayer",
+            "part": "Offertory Prayer",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-014"
+          },
+          {
+            "type": "participant",
+            "title": "Children Homily",
+            "part": "Children Homily",
+            "participant": "Renee Mwamakamba",
+            "item_id": "divine-service-015"
+          },
+          {
+            "type": "participant",
+            "title": "Ministry In Song",
+            "part": "Ministry In Song",
+            "participant": "Jean Andres",
+            "item_id": "divine-service-016"
+          },
+          {
+            "type": "participant",
+            "title": "Child Dedication ",
+            "part": "Child Dedication ",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-017"
+          },
+          {
+            "type": "participant",
+            "title": "The Spoken Word",
+            "part": "The Spoken Word",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-018"
+          },
+          {
+            "type": "song",
+            "title": "All People That on Earth Do Well",
+            "item_id": "divine-service-019",
+            "hymn_number": "16",
+            "lyrics_key": "16",
+            "part": "Hymn of Consecration"
+          },
+          {
+            "type": "participant",
+            "title": "Hymn of Hope",
+            "part": "Hymn of Hope",
+            "participant": "The Mission",
+            "item_id": "divine-service-020"
+          },
+          {
+            "type": "participant",
+            "title": "Benediction",
+            "part": "Benediction",
+            "participant": "Speaker",
+            "item_id": "divine-service-021"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-022"
+          }
+        ]
+      },
+      {
+        "id": "ay",
+        "name": "AY",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-011"
+          },
+          {
+            "type": "participant",
+            "title": "Singspiration",
+            "part": "Singspiration",
+            "participant": "Floribel Doplon",
+            "item_id": "ay-002"
+          },
+          {
+            "type": "participant",
+            "title": "Welcome",
+            "part": "Welcome",
+            "participant": "Aimyrrh Boholist",
+            "item_id": "ay-001"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "ay-004",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "Arnel Llaguno",
+            "item_id": "ay-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Chiqlette Marcera",
+            "item_id": "ay-005"
+          },
+          {
+            "type": "content",
+            "title": "Bible Quiz",
+            "content": "Kahoot - Book of Genesis",
+            "item_id": "ay-006"
+          },
+          {
+            "type": "content",
+            "title": "Intermission Number",
+            "content": "",
+            "item_id": "ay-007"
+          },
+          {
+            "type": "content",
+            "title": "Song Game",
+            "content": "Find My Tune",
+            "item_id": "ay-008"
+          },
+          {
+            "type": "song",
+            "title": "Turn Your Eyes Upon Jesus",
+            "item_id": "ay-009",
+            "hymn_number": "290",
+            "lyrics_key": "290",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "ay-010"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-012"
+          },
+          {
+            "type": "media",
+            "title": "rytytyr",
+            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
+            "media_type": "image",
+            "autoplay": true,
+            "loop": false,
+            "mute": true,
+            "item_id": "ay-013"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T13:09:14.051066",
+    "saved_at": "2026-03-29T23:18:44.996325",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "midweek",
-        "name": "Midweek",
-        "items": [
-          {
-            "type": "song",
-            "title": "Shall We Gather at the River",
-            "item_id": "midweek-001",
-            "hymn_number": "432",
-            "lyrics_key": "432",
-            "part": "Song Service"
-          },
-          {
-            "type": "song",
-            "title": "When We All Get to Heaven",
-            "item_id": "midweek-002",
-            "hymn_number": "633",
-            "lyrics_key": "633",
-            "part": "Song Service 2"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remark",
-            "part": "Welcome remarks",
-            "participant": "John Smith",
-            "item_id": "midweek-003"
-          },
-          {
-            "type": "song",
-            "title": "",
-            "item_id": "midweek-004",
-            "hymn_number": "53",
-            "lyrics_key": "53",
-            "part": "All praise to thee"
-          },
-          {
-            "type": "content",
-            "title": "content ",
-            "content": "What is Lorem Ipsum?\nLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\nWhy do we use it?\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).\n\n\nWhere does it come from?\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus Bonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum dolor sit amet..\", comes from a line in section 1.10.32.\n\nThe standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from \"de Finibus Bonorum et Malorum\" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.\n\nWhere can I get some?\nThere are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.",
-            "item_id": "midweek-005"
-          }
-        ]
-      },
-      {
         "id": "sabbath-school",
         "name": "Sabbath School",
         "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-014"
+          },
           {
             "type": "participant",
             "title": "Welcome Remarks",
@@ -276,64 +1172,376 @@
             "title": "We Gather Together",
             "item_id": "sabbath-school-002",
             "hymn_number": "8",
+            "lyrics_key": "8",
             "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "XO Olasiman",
+            "item_id": "sabbath-school-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Palar  Kids",
+            "item_id": "sabbath-school-004"
+          },
+          {
+            "type": "participant",
+            "title": "Mission Story",
+            "part": "Mission Story",
+            "participant": "Sancho Agno",
+            "item_id": "sabbath-school-005"
+          },
+          {
+            "type": "participant",
+            "title": "Intermission Song",
+            "part": "Intermission Song",
+            "participant": "kid's Class",
+            "item_id": "sabbath-school-006"
+          },
+          {
+            "type": "participant",
+            "title": "Instrumental Number",
+            "part": "Instrumental Number",
+            "participant": "Yuri Corder, EJ & XO Alasiman",
+            "item_id": "sabbath-school-008"
+          },
+          {
+            "type": "participant",
+            "title": "Memory Verse",
+            "part": "Memory Verse",
+            "participant": "Kids Class",
+            "item_id": "sabbath-school-009"
+          },
+          {
+            "type": "participant",
+            "title": "Song",
+            "part": "Song",
+            "participant": "Kids & Teen Class",
+            "item_id": "sabbath-school-010"
+          },
+          {
+            "type": "content",
+            "title": "Lesson Study",
+            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
+            "item_id": "sabbath-school-007"
+          },
+          {
+            "type": "song",
+            "title": "We Gather Together",
+            "item_id": "sabbath-school-011",
+            "hymn_number": "8",
+            "lyrics_key": "8",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Amara Gandeza",
+            "item_id": "sabbath-school-012"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-013"
+          },
+          {
+            "type": "media",
+            "title": "",
+            "url": "/media/videos/Mission Theme Song by Jader Santos.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "sabbath-school-015"
+          }
+        ]
+      },
+      {
+        "id": "divine-service",
+        "name": "Divine Service",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-012"
+          },
+          {
+            "type": "participant",
+            "title": "Call To Worship",
+            "part": "Call To Worship",
+            "participant": "Joy Olasiman",
+            "item_id": "divine-service-001"
+          },
+          {
+            "type": "song",
+            "title": "Holy, Holy, Holy",
+            "item_id": "divine-service-002",
+            "hymn_number": "73",
+            "lyrics_key": "73",
+            "part": "Introit"
+          },
+          {
+            "type": "song",
+            "title": "We Love Thy Sabbath, Lord",
+            "item_id": "divine-service-003",
+            "hymn_number": "390",
+            "lyrics_key": "390",
+            "part": "Hymn Of Celebration"
+          },
+          {
+            "type": "participant",
+            "title": "Invocation",
+            "part": "Invocation",
+            "participant": "Speaker",
+            "item_id": "divine-service-004"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "divine-service-005",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Hymn of Adoration"
+          },
+          {
+            "type": "participant",
+            "title": "Scripture Reading",
+            "part": "Scripture Reading",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-006"
+          },
+          {
+            "type": "song",
+            "title": "Come, Christians, Join to Sing",
+            "item_id": "divine-service-007",
+            "hymn_number": "10",
+            "lyrics_key": "10",
+            "part": "Prayer Hymn"
+          },
+          {
+            "type": "participant",
+            "title": "Pastoral Prayer",
+            "part": "Pastoral Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-008"
+          },
+          {
+            "type": "song",
+            "title": "O Thou Who Hearest",
+            "item_id": "divine-service-009",
+            "hymn_number": "668",
+            "lyrics_key": "668",
+            "part": "Hymn of Response"
+          },
+          {
+            "type": "participant",
+            "title": "Toughts On Stewardship",
+            "part": "Toughts On Stewardship",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-010"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Music",
+            "part": "Offertory Music",
+            "participant": "KC Barbajano",
+            "item_id": "divine-service-011"
+          },
+          {
+            "type": "song",
+            "title": "Praise God, From Whom All Blessings",
+            "item_id": "divine-service-013",
+            "hymn_number": "694",
+            "lyrics_key": "694",
+            "part": "Hymn of Gratitude"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Prayer",
+            "part": "Offertory Prayer",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-014"
+          },
+          {
+            "type": "participant",
+            "title": "Children Homily",
+            "part": "Children Homily",
+            "participant": "Renee Mwamakamba",
+            "item_id": "divine-service-015"
+          },
+          {
+            "type": "participant",
+            "title": "Ministry In Song",
+            "part": "Ministry In Song",
+            "participant": "Jean Andres",
+            "item_id": "divine-service-016"
+          },
+          {
+            "type": "participant",
+            "title": "Child Dedication ",
+            "part": "Child Dedication ",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-017"
+          },
+          {
+            "type": "participant",
+            "title": "The Spoken Word",
+            "part": "The Spoken Word",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-018"
+          },
+          {
+            "type": "song",
+            "title": "All People That on Earth Do Well",
+            "item_id": "divine-service-019",
+            "hymn_number": "16",
+            "lyrics_key": "16",
+            "part": "Hymn of Consecration"
+          },
+          {
+            "type": "participant",
+            "title": "Hymn of Hope",
+            "part": "Hymn of Hope",
+            "participant": "The Mission",
+            "item_id": "divine-service-020"
+          },
+          {
+            "type": "participant",
+            "title": "Benediction",
+            "part": "Benediction",
+            "participant": "Speaker",
+            "item_id": "divine-service-021"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-022"
+          }
+        ]
+      },
+      {
+        "id": "ay",
+        "name": "AY",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-011"
+          },
+          {
+            "type": "participant",
+            "title": "Singspiration",
+            "part": "Singspiration",
+            "participant": "Floribel Doplon",
+            "item_id": "ay-002"
+          },
+          {
+            "type": "participant",
+            "title": "Welcome",
+            "part": "Welcome",
+            "participant": "Aimyrrh Boholist",
+            "item_id": "ay-001"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "ay-004",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "Arnel Llaguno",
+            "item_id": "ay-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Chiqlette Marcera",
+            "item_id": "ay-005"
+          },
+          {
+            "type": "content",
+            "title": "Bible Quiz",
+            "content": "Kahoot - Book of Genesis",
+            "item_id": "ay-006"
+          },
+          {
+            "type": "content",
+            "title": "Intermission Number",
+            "content": "",
+            "item_id": "ay-007"
+          },
+          {
+            "type": "content",
+            "title": "Song Game",
+            "content": "Find My Tune",
+            "item_id": "ay-008"
+          },
+          {
+            "type": "song",
+            "title": "Turn Your Eyes Upon Jesus",
+            "item_id": "ay-009",
+            "hymn_number": "290",
+            "lyrics_key": "290",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "ay-010"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-012"
+          },
+          {
+            "type": "media",
+            "title": "rytytyr",
+            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
+            "media_type": "image",
+            "autoplay": true,
+            "loop": false,
+            "mute": true,
+            "item_id": "ay-013"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T13:09:10.687210",
+    "saved_at": "2026-03-29T23:18:42.668776",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "midweek",
-        "name": "Midweek",
-        "items": [
-          {
-            "type": "song",
-            "title": "Shall We Gather at the River",
-            "item_id": "midweek-001",
-            "hymn_number": "432",
-            "lyrics_key": "432",
-            "part": "Song Service"
-          },
-          {
-            "type": "song",
-            "title": "When We All Get to Heaven",
-            "item_id": "midweek-002",
-            "hymn_number": "633",
-            "lyrics_key": "633",
-            "part": "Song Service 2"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remark",
-            "part": "Welcome remarks",
-            "participant": "John Smith",
-            "item_id": "midweek-003"
-          },
-          {
-            "type": "song",
-            "title": "",
-            "item_id": "midweek-004",
-            "hymn_number": "53",
-            "lyrics_key": "53",
-            "part": "All praise to thee"
-          },
-          {
-            "type": "content",
-            "title": "content ",
-            "content": "What is Lorem Ipsum?\nLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\nWhy do we use it?\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).\n\n\nWhere does it come from?\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus Bonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum dolor sit amet..\", comes from a line in section 1.10.32.\n\nThe standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from \"de Finibus Bonorum et Malorum\" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.\n\nWhere can I get some?\nThere are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.",
-            "item_id": "midweek-005"
-          }
-        ]
-      },
-      {
         "id": "sabbath-school",
         "name": "Sabbath School",
         "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-014"
+          },
           {
             "type": "participant",
             "title": "Welcome Remarks",
@@ -343,66 +1551,379 @@
           },
           {
             "type": "song",
-            "title": "",
+            "title": "We Gather Together",
             "item_id": "sabbath-school-002",
+            "hymn_number": "8",
+            "lyrics_key": "8",
             "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "XO Olasiman",
+            "item_id": "sabbath-school-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Palar  Kids",
+            "item_id": "sabbath-school-004"
+          },
+          {
+            "type": "participant",
+            "title": "Mission Story",
+            "part": "Mission Story",
+            "participant": "Sancho Agno",
+            "item_id": "sabbath-school-005"
+          },
+          {
+            "type": "participant",
+            "title": "Intermission Song",
+            "part": "Intermission Song",
+            "participant": "kid's Class",
+            "item_id": "sabbath-school-006"
+          },
+          {
+            "type": "participant",
+            "title": "Instrumental Number",
+            "part": "Instrumental Number",
+            "participant": "Yuri Corder, EJ & XO Alasiman",
+            "item_id": "sabbath-school-008"
+          },
+          {
+            "type": "participant",
+            "title": "Memory Verse",
+            "part": "Memory Verse",
+            "participant": "Kids Class",
+            "item_id": "sabbath-school-009"
+          },
+          {
+            "type": "participant",
+            "title": "Song",
+            "part": "Song",
+            "participant": "Kids & Teen Class",
+            "item_id": "sabbath-school-010"
+          },
+          {
+            "type": "content",
+            "title": "Lesson Study",
+            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
+            "item_id": "sabbath-school-007"
+          },
+          {
+            "type": "song",
+            "title": "We Gather Together",
+            "item_id": "sabbath-school-011",
+            "hymn_number": "8",
+            "lyrics_key": "8",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Amara Gandeza",
+            "item_id": "sabbath-school-012"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-013"
+          },
+          {
+            "type": "media",
+            "title": "",
+            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "sabbath-school-015"
+          }
+        ]
+      },
+      {
+        "id": "divine-service",
+        "name": "Divine Service",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-012"
+          },
+          {
+            "type": "participant",
+            "title": "Call To Worship",
+            "part": "Call To Worship",
+            "participant": "Joy Olasiman",
+            "item_id": "divine-service-001"
+          },
+          {
+            "type": "song",
+            "title": "Holy, Holy, Holy",
+            "item_id": "divine-service-002",
+            "hymn_number": "73",
+            "lyrics_key": "73",
+            "part": "Introit"
+          },
+          {
+            "type": "song",
+            "title": "We Love Thy Sabbath, Lord",
+            "item_id": "divine-service-003",
+            "hymn_number": "390",
+            "lyrics_key": "390",
+            "part": "Hymn Of Celebration"
+          },
+          {
+            "type": "participant",
+            "title": "Invocation",
+            "part": "Invocation",
+            "participant": "Speaker",
+            "item_id": "divine-service-004"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "divine-service-005",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Hymn of Adoration"
+          },
+          {
+            "type": "participant",
+            "title": "Scripture Reading",
+            "part": "Scripture Reading",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-006"
+          },
+          {
+            "type": "song",
+            "title": "Come, Christians, Join to Sing",
+            "item_id": "divine-service-007",
+            "hymn_number": "10",
+            "lyrics_key": "10",
+            "part": "Prayer Hymn"
+          },
+          {
+            "type": "participant",
+            "title": "Pastoral Prayer",
+            "part": "Pastoral Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-008"
+          },
+          {
+            "type": "song",
+            "title": "O Thou Who Hearest",
+            "item_id": "divine-service-009",
+            "hymn_number": "668",
+            "lyrics_key": "668",
+            "part": "Hymn of Response"
+          },
+          {
+            "type": "participant",
+            "title": "Toughts On Stewardship",
+            "part": "Toughts On Stewardship",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-010"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Music",
+            "part": "Offertory Music",
+            "participant": "KC Barbajano",
+            "item_id": "divine-service-011"
+          },
+          {
+            "type": "song",
+            "title": "Praise God, From Whom All Blessings",
+            "item_id": "divine-service-013",
+            "hymn_number": "694",
+            "lyrics_key": "694",
+            "part": "Hymn of Gratitude"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Prayer",
+            "part": "Offertory Prayer",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-014"
+          },
+          {
+            "type": "participant",
+            "title": "Children Homily",
+            "part": "Children Homily",
+            "participant": "Renee Mwamakamba",
+            "item_id": "divine-service-015"
+          },
+          {
+            "type": "participant",
+            "title": "Ministry In Song",
+            "part": "Ministry In Song",
+            "participant": "Jean Andres",
+            "item_id": "divine-service-016"
+          },
+          {
+            "type": "participant",
+            "title": "Child Dedication ",
+            "part": "Child Dedication ",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-017"
+          },
+          {
+            "type": "participant",
+            "title": "The Spoken Word",
+            "part": "The Spoken Word",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-018"
+          },
+          {
+            "type": "song",
+            "title": "All People That on Earth Do Well",
+            "item_id": "divine-service-019",
+            "hymn_number": "16",
+            "lyrics_key": "16",
+            "part": "Hymn of Consecration"
+          },
+          {
+            "type": "participant",
+            "title": "Hymn of Hope",
+            "part": "Hymn of Hope",
+            "participant": "The Mission",
+            "item_id": "divine-service-020"
+          },
+          {
+            "type": "participant",
+            "title": "Benediction",
+            "part": "Benediction",
+            "participant": "Speaker",
+            "item_id": "divine-service-021"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-022"
+          }
+        ]
+      },
+      {
+        "id": "ay",
+        "name": "AY",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-011"
+          },
+          {
+            "type": "participant",
+            "title": "Singspiration",
+            "part": "Singspiration",
+            "participant": "Floribel Doplon",
+            "item_id": "ay-002"
+          },
+          {
+            "type": "participant",
+            "title": "Welcome",
+            "part": "Welcome",
+            "participant": "Aimyrrh Boholist",
+            "item_id": "ay-001"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "ay-004",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "Arnel Llaguno",
+            "item_id": "ay-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Chiqlette Marcera",
+            "item_id": "ay-005"
+          },
+          {
+            "type": "content",
+            "title": "Bible Quiz",
+            "content": "Kahoot - Book of Genesis",
+            "item_id": "ay-006"
+          },
+          {
+            "type": "content",
+            "title": "Intermission Number",
+            "content": "",
+            "item_id": "ay-007"
+          },
+          {
+            "type": "content",
+            "title": "Song Game",
+            "content": "Find My Tune",
+            "item_id": "ay-008"
+          },
+          {
+            "type": "song",
+            "title": "Turn Your Eyes Upon Jesus",
+            "item_id": "ay-009",
+            "hymn_number": "290",
+            "lyrics_key": "290",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "ay-010"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-012"
+          },
+          {
+            "type": "media",
+            "title": "rytytyr",
+            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
+            "media_type": "image",
+            "autoplay": true,
+            "loop": false,
+            "mute": true,
+            "item_id": "ay-013"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T13:09:08.371067",
+    "saved_at": "2026-03-29T23:18:40.085546",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "midweek",
-        "name": "Midweek",
-        "items": [
-          {
-            "type": "song",
-            "title": "Shall We Gather at the River",
-            "item_id": "midweek-001",
-            "hymn_number": "432",
-            "lyrics_key": "432",
-            "part": "Song Service"
-          },
-          {
-            "type": "song",
-            "title": "When We All Get to Heaven",
-            "item_id": "midweek-002",
-            "hymn_number": "633",
-            "lyrics_key": "633",
-            "part": "Song Service 2"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remark",
-            "part": "Welcome remarks",
-            "participant": "John Smith",
-            "item_id": "midweek-003"
-          },
-          {
-            "type": "song",
-            "title": "",
-            "item_id": "midweek-004",
-            "hymn_number": "53",
-            "lyrics_key": "53",
-            "part": "All praise to thee"
-          },
-          {
-            "type": "content",
-            "title": "content ",
-            "content": "What is Lorem Ipsum?\nLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\nWhy do we use it?\nIt is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'lorem ipsum' will uncover many web sites still in their infancy. Various versions have evolved over the years, sometimes by accident, sometimes on purpose (injected humour and the like).\n\n\nWhere does it come from?\nContrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of \"de Finibus Bonorum et Malorum\" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, \"Lorem ipsum dolor sit amet..\", comes from a line in section 1.10.32.\n\nThe standard chunk of Lorem Ipsum used since the 1500s is reproduced below for those interested. Sections 1.10.32 and 1.10.33 from \"de Finibus Bonorum et Malorum\" by Cicero are also reproduced in their exact original form, accompanied by English versions from the 1914 translation by H. Rackham.\n\nWhere can I get some?\nThere are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.",
-            "item_id": "midweek-005"
-          }
-        ]
-      },
-      {
         "id": "sabbath-school",
         "name": "Sabbath School",
         "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-014"
+          },
           {
             "type": "participant",
             "title": "Welcome Remarks",
@@ -412,9 +1933,359 @@
           },
           {
             "type": "song",
-            "title": "",
+            "title": "We Gather Together",
             "item_id": "sabbath-school-002",
+            "hymn_number": "8",
+            "lyrics_key": "8",
             "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "XO Olasiman",
+            "item_id": "sabbath-school-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Palar  Kids",
+            "item_id": "sabbath-school-004"
+          },
+          {
+            "type": "participant",
+            "title": "Mission Story",
+            "part": "Mission Story",
+            "participant": "Sancho Agno",
+            "item_id": "sabbath-school-005"
+          },
+          {
+            "type": "participant",
+            "title": "Intermission Song",
+            "part": "Intermission Song",
+            "participant": "kid's Class",
+            "item_id": "sabbath-school-006"
+          },
+          {
+            "type": "participant",
+            "title": "Instrumental Number",
+            "part": "Instrumental Number",
+            "participant": "Yuri Corder, EJ & XO Alasiman",
+            "item_id": "sabbath-school-008"
+          },
+          {
+            "type": "participant",
+            "title": "Memory Verse",
+            "part": "Memory Verse",
+            "participant": "Kids Class",
+            "item_id": "sabbath-school-009"
+          },
+          {
+            "type": "participant",
+            "title": "Song",
+            "part": "Song",
+            "participant": "Kids & Teen Class",
+            "item_id": "sabbath-school-010"
+          },
+          {
+            "type": "content",
+            "title": "Lesson Study",
+            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
+            "item_id": "sabbath-school-007"
+          },
+          {
+            "type": "song",
+            "title": "We Gather Together",
+            "item_id": "sabbath-school-011",
+            "hymn_number": "8",
+            "lyrics_key": "8",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Amara Gandeza",
+            "item_id": "sabbath-school-012"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "sabbath-school-013"
+          },
+          {
+            "type": "media",
+            "title": "",
+            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "sabbath-school-015"
+          }
+        ]
+      },
+      {
+        "id": "divine-service",
+        "name": "Divine Service",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-012"
+          },
+          {
+            "type": "participant",
+            "title": "Call To Worship",
+            "part": "Call To Worship",
+            "participant": "Joy Olasiman",
+            "item_id": "divine-service-001"
+          },
+          {
+            "type": "song",
+            "title": "Holy, Holy, Holy",
+            "item_id": "divine-service-002",
+            "hymn_number": "73",
+            "lyrics_key": "73",
+            "part": "Introit"
+          },
+          {
+            "type": "song",
+            "title": "We Love Thy Sabbath, Lord",
+            "item_id": "divine-service-003",
+            "hymn_number": "390",
+            "lyrics_key": "390",
+            "part": "Hymn Of Celebration"
+          },
+          {
+            "type": "participant",
+            "title": "Invocation",
+            "part": "Invocation",
+            "participant": "Speaker",
+            "item_id": "divine-service-004"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "divine-service-005",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Hymn of Adoration"
+          },
+          {
+            "type": "participant",
+            "title": "Scripture Reading",
+            "part": "Scripture Reading",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-006"
+          },
+          {
+            "type": "song",
+            "title": "Come, Christians, Join to Sing",
+            "item_id": "divine-service-007",
+            "hymn_number": "10",
+            "lyrics_key": "10",
+            "part": "Prayer Hymn"
+          },
+          {
+            "type": "participant",
+            "title": "Pastoral Prayer",
+            "part": "Pastoral Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "divine-service-008"
+          },
+          {
+            "type": "song",
+            "title": "O Thou Who Hearest",
+            "item_id": "divine-service-009",
+            "hymn_number": "668",
+            "lyrics_key": "668",
+            "part": "Hymn of Response"
+          },
+          {
+            "type": "participant",
+            "title": "Toughts On Stewardship",
+            "part": "Toughts On Stewardship",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-010"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Music",
+            "part": "Offertory Music",
+            "participant": "KC Barbajano",
+            "item_id": "divine-service-011"
+          },
+          {
+            "type": "song",
+            "title": "Praise God, From Whom All Blessings",
+            "item_id": "divine-service-013",
+            "hymn_number": "694",
+            "lyrics_key": "694",
+            "part": "Hymn of Gratitude"
+          },
+          {
+            "type": "participant",
+            "title": "Offertory Prayer",
+            "part": "Offertory Prayer",
+            "participant": "Ryan Micua",
+            "item_id": "divine-service-014"
+          },
+          {
+            "type": "participant",
+            "title": "Children Homily",
+            "part": "Children Homily",
+            "participant": "Renee Mwamakamba",
+            "item_id": "divine-service-015"
+          },
+          {
+            "type": "participant",
+            "title": "Ministry In Song",
+            "part": "Ministry In Song",
+            "participant": "Jean Andres",
+            "item_id": "divine-service-016"
+          },
+          {
+            "type": "participant",
+            "title": "Child Dedication ",
+            "part": "Child Dedication ",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-017"
+          },
+          {
+            "type": "participant",
+            "title": "The Spoken Word",
+            "part": "The Spoken Word",
+            "participant": "Jacinto Adap",
+            "item_id": "divine-service-018"
+          },
+          {
+            "type": "song",
+            "title": "All People That on Earth Do Well",
+            "item_id": "divine-service-019",
+            "hymn_number": "16",
+            "lyrics_key": "16",
+            "part": "Hymn of Consecration"
+          },
+          {
+            "type": "participant",
+            "title": "Hymn of Hope",
+            "part": "Hymn of Hope",
+            "participant": "The Mission",
+            "item_id": "divine-service-020"
+          },
+          {
+            "type": "participant",
+            "title": "Benediction",
+            "part": "Benediction",
+            "participant": "Speaker",
+            "item_id": "divine-service-021"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "divine-service-022"
+          }
+        ]
+      },
+      {
+        "id": "ay",
+        "name": "AY",
+        "items": [
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-011"
+          },
+          {
+            "type": "participant",
+            "title": "Singspiration",
+            "part": "Singspiration",
+            "participant": "Floribel Doplon",
+            "item_id": "ay-002"
+          },
+          {
+            "type": "participant",
+            "title": "Welcome",
+            "part": "Welcome",
+            "participant": "Aimyrrh Boholist",
+            "item_id": "ay-001"
+          },
+          {
+            "type": "song",
+            "title": "To God Be the Glory",
+            "item_id": "ay-004",
+            "hymn_number": "341",
+            "lyrics_key": "341",
+            "part": "Opening Song"
+          },
+          {
+            "type": "participant",
+            "title": "Opening Prayer",
+            "part": "Opening Prayer",
+            "participant": "Arnel Llaguno",
+            "item_id": "ay-003"
+          },
+          {
+            "type": "participant",
+            "title": "Special Music",
+            "part": "Special Music",
+            "participant": "Chiqlette Marcera",
+            "item_id": "ay-005"
+          },
+          {
+            "type": "content",
+            "title": "Bible Quiz",
+            "content": "Kahoot - Book of Genesis",
+            "item_id": "ay-006"
+          },
+          {
+            "type": "content",
+            "title": "Intermission Number",
+            "content": "",
+            "item_id": "ay-007"
+          },
+          {
+            "type": "content",
+            "title": "Song Game",
+            "content": "Find My Tune",
+            "item_id": "ay-008"
+          },
+          {
+            "type": "song",
+            "title": "Turn Your Eyes Upon Jesus",
+            "item_id": "ay-009",
+            "hymn_number": "290",
+            "lyrics_key": "290",
+            "part": "Closing Song"
+          },
+          {
+            "type": "participant",
+            "title": "Closing Prayer",
+            "part": "Closing Prayer",
+            "participant": "Dan Dela Cruz",
+            "item_id": "ay-010"
+          },
+          {
+            "type": "content",
+            "title": "Happy Sabbath",
+            "content": "Happy Sabbath",
+            "item_id": "ay-012"
+          },
+          {
+            "type": "media",
+            "title": "rytytyr",
+            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
+            "media_type": "image",
+            "autoplay": true,
+            "loop": false,
+            "mute": true,
+            "item_id": "ay-013"
           }
         ]
       }

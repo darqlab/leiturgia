@@ -2,6 +2,9 @@
 import eventlet
 eventlet.monkey_patch()
 
+import logging
+logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
+
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_socketio import SocketIO, emit, join_room
 import json, os, copy, re
@@ -18,6 +21,7 @@ from media_manager import list_media
 from timer import TimerManager
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024   # 200 MB upload limit
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 proj  = ProjectionStateManager()
 timer = TimerManager()
@@ -666,9 +670,39 @@ def on_timer_reset(data):
 
 
 # ── Media routes ─────────────────────────────────────────────────────────────
+_IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+_VIDEO_EXTS = {'.mp4', '.webm', '.mov'}
+
 @app.route("/api/media")
 def api_media():
     return jsonify(list_media())
+
+@app.route("/api/media/upload", methods=["POST"])
+def upload_media():
+    from werkzeug.utils import secure_filename
+    if 'file' not in request.files:
+        return jsonify({"status": "error", "message": "No file provided"}), 400
+    f = request.files['file']
+    if not f.filename:
+        return jsonify({"status": "error", "message": "Empty filename"}), 400
+
+    ext = os.path.splitext(f.filename)[1].lower()
+    if ext in _IMAGE_EXTS:
+        media_type = "image"
+        subdir     = "images"
+    elif ext in _VIDEO_EXTS:
+        media_type = "video"
+        subdir     = "videos"
+    else:
+        return jsonify({"status": "error", "message": f"Unsupported file type: {ext}"}), 400
+
+    filename  = secure_filename(f.filename)
+    save_dir  = os.path.join(app.root_path, "media", subdir)
+    os.makedirs(save_dir, exist_ok=True)
+    f.save(os.path.join(save_dir, filename))
+
+    url = f"/media/{subdir}/{filename}"
+    return jsonify({"status": "ok", "url": url, "media_type": media_type})
 
 @app.route("/media/<subdir>/<path:filename>")
 def serve_media(subdir, filename):
@@ -676,6 +710,112 @@ def serve_media(subdir, filename):
         return "Not found", 404
     media_dir = os.path.join(app.root_path, "media", subdir)
     return send_from_directory(media_dir, filename)
+
+
+# ── YouTube / platform download ───────────────────────────────────────────────
+import shutil as _shutil
+_FFMPEG = _shutil.which('ffmpeg')
+
+# When ffmpeg is available: download best video+audio streams and merge.
+# When ffmpeg is absent: fall back to pre-merged progressive streams (≤720p on YouTube).
+_QUALITY_MERGE = {
+    'best':  'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+    '1080p': 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best[height<=1080]',
+    '720p':  'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best[height<=720]',
+    '480p':  'bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480]',
+    '360p':  'bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360]',
+    'audio': 'bestaudio[ext=m4a]/bestaudio',
+}
+_QUALITY_NOFFMPEG = {
+    'best':  'best[ext=mp4]/best',
+    '1080p': 'best[height<=1080][ext=mp4]/best[height<=1080]',
+    '720p':  'best[height<=720][ext=mp4]/best[height<=720]',
+    '480p':  'best[height<=480][ext=mp4]/best[height<=480]',
+    '360p':  'best[height<=360][ext=mp4]/best[height<=360]',
+    'audio': 'bestaudio[ext=m4a]/bestaudio',
+}
+
+def _get_format(quality):
+    table = _QUALITY_MERGE if _FFMPEG else _QUALITY_NOFFMPEG
+    return table.get(quality, table['best'])
+
+def _yt_progress_hook(d, item_id, sid):
+    status = d.get('status')
+    if status == 'downloading':
+        raw = d.get('_percent_str', '0%').strip()
+        try:
+            percent = float(raw.replace('%', ''))
+        except ValueError:
+            percent = 0.0
+        socketio.emit('yt:progress', {
+            'item_id': item_id,
+            'status':  'downloading',
+            'percent': percent,
+            'speed':   d.get('_speed_str', '').strip(),
+            'eta':     d.get('eta', 0),
+        }, room=sid)
+    elif status == 'finished':
+        socketio.emit('yt:progress', {
+            'item_id': item_id,
+            'status':  'processing',
+            'percent': 100.0,
+            'speed':   '',
+            'eta':     0,
+        }, room=sid)
+
+def _yt_download_task(url, quality, item_id, sid):
+    import yt_dlp
+    videos_dir = os.path.join(app.root_path, 'media', 'videos')
+    os.makedirs(videos_dir, exist_ok=True)
+    ydl_opts = {
+        'format':         _get_format(quality),
+        'outtmpl':        os.path.join(videos_dir, '%(title)s.%(ext)s'),
+        'progress_hooks': [lambda d: _yt_progress_hook(d, item_id, sid)],
+        'quiet':          True,
+        'no_warnings':    True,
+    }
+    if _FFMPEG:
+        ydl_opts['merge_output_format'] = 'mp4'
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info     = ydl.extract_info(url, download=True)
+            raw_name = os.path.basename(ydl.prepare_filename(info))
+            # If ffmpeg merged to mp4, the extension will be .mp4 regardless of raw_name
+            if _FFMPEG:
+                final = os.path.splitext(raw_name)[0] + '.mp4'
+            else:
+                # Find the actual downloaded file (extension may vary)
+                base  = os.path.splitext(raw_name)[0]
+                found = next(
+                    (f for f in os.listdir(videos_dir) if f.startswith(base)),
+                    raw_name
+                )
+                final = found
+            final_url = f'/media/videos/{final}'
+        socketio.emit('yt:done', {
+            'item_id':  item_id,
+            'url':      final_url,
+            'filename': final,
+        }, room=sid)
+    except Exception as exc:
+        socketio.emit('yt:error', {
+            'item_id': item_id,
+            'message': str(exc),
+        }, room=sid)
+
+@socketio.on('yt:download:start')
+def on_yt_download_start(data):
+    from flask_socketio import disconnect
+    url     = (data.get('url') or '').strip()
+    quality = data.get('quality', 'best')
+    item_id = data.get('item_id', '')
+    sid     = request.sid
+
+    if not url.startswith(('http://', 'https://')):
+        emit('yt:error', {'item_id': item_id, 'message': 'Invalid URL — must start with http:// or https://'})
+        return
+
+    socketio.start_background_task(_yt_download_task, url, quality, item_id, sid)
 
 
 if __name__ == "__main__":
