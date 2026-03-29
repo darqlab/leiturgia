@@ -230,7 +230,7 @@
   <div class="waiting-text">Waiting for content…</div>
 </div>
 
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js" crossorigin="anonymous"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
   const CHANNEL = '{{ channel }}';
   const socket  = io({ transports: ['websocket', 'polling'] });
