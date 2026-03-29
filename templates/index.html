@@ -2080,7 +2080,8 @@
 
   // Live projection state — must be declared before switchPanelSection runs
   // because buildSlideStrip (called from switchPanelSection) reads _activeThumbItemId
-  let _activeThumbItemId = null;
+  let _activeThumbItemId   = null;
+  let _activeThumbStanzaIdx = null;
   let _projItem      = null;
   let _projStanzas   = [];
   let _projStanzaIdx = 0;
@@ -2643,56 +2644,100 @@
   }
 
   // ── Slide strip ────────────────────────────────────────────────────────────
-  function buildSlideStrip(programId) {
-    const strip = document.getElementById('slideStrip');
+  async function buildSlideStrip(programId) {
+    const strip   = document.getElementById('slideStrip');
     const labelEl = document.getElementById('stripSectionLabel');
     if (!strip) return;
 
     const spEl = document.querySelector(`.service-program[data-program-id="${programId}"]`);
     if (spEl && labelEl) labelEl.textContent = spEl.dataset.programName || programId;
 
-    // Remove existing thumbs
     strip.querySelectorAll('.strip-thumb').forEach(t => t.remove());
-
     if (!spEl) return;
 
-    spEl.querySelectorAll('.program-item').forEach((itemEl, i) => {
-      const type        = itemEl.dataset.itemType || 'participant';
-      const title       = itemEl.querySelector('.item-title')?.value || '';
-      const part        = itemEl.querySelector('.item-part')?.value  || '';
-      const displayText = (type === 'song' ? part : title) || title || '(untitled)';
-      const num         = i + 1;
+    let slideNum = 0;
+    for (const itemEl of spEl.querySelectorAll('.program-item')) {
+      const type  = itemEl.dataset.itemType || 'participant';
+      const title = itemEl.querySelector('.item-title')?.value || '';
+      const part  = itemEl.querySelector('.item-part')?.value  || '';
 
+      if (type === 'song') {
+        const lk = itemEl.querySelector('.lyrics-key')?.value || '';
+        if (lk) {
+          try {
+            const res     = await fetch(`/api/lyrics/${encodeURIComponent(lk)}`);
+            const data    = await res.json();
+            const stanzas = (data.status === 'ok') ? data.stanzas : [];
+            if (stanzas.length) {
+              stanzas.forEach((stanza, si) => {
+                slideNum++;
+                const t     = (stanza.type || 'verse').toLowerCase();
+                const label = t === 'chorus' ? 'Ch' : t === 'refrain' ? 'Ref'
+                            : t === 'bridge' ? `Br${stanza.number}` : `V${stanza.number}`;
+                const isActive = itemEl.id === _activeThumbItemId && si === _activeThumbStanzaIdx;
+                const thumb = document.createElement('div');
+                thumb.className       = 'strip-thumb' + (isActive ? ' active' : '');
+                thumb.dataset.itemId   = itemEl.id;
+                thumb.dataset.stanzaIdx = si;
+                thumb.innerHTML = `
+                  <div class="strip-thumb-num">${slideNum} <span class="badge badge-song-s">♪</span></div>
+                  <div class="strip-thumb-title">${_lpEsc(part || title)}</div>
+                  <div class="strip-thumb-detail">${label}: ${_lpEsc((stanza.lines || [])[0] || '')}</div>`;
+                thumb.addEventListener('click', () => _jumpToStanza(itemEl, stanzas, si, title, part));
+                strip.appendChild(thumb);
+              });
+              continue;
+            }
+          } catch(e) { /* fall through to single thumb */ }
+        }
+      }
+
+      // Single thumb (non-song, or song with no lyrics)
+      slideNum++;
       let badge = '', detail = '';
       if (type === 'song') {
         badge  = `<span class="badge badge-song-s">♪</span>`;
-        const lk = itemEl.querySelector('.lyrics-key')?.value || '';
-        detail = lk ? 'lyrics ready' : 'no lyrics';
+        detail = 'no lyrics';
       } else if (type === 'content') {
         badge  = `<span class="badge badge-cont-s">C</span>`;
       } else {
         badge  = `<span class="badge badge-part-s">P</span>`;
         detail = itemEl.querySelector('.item-participant')?.value || '';
       }
-
+      const isActive = itemEl.id === _activeThumbItemId && _activeThumbStanzaIdx === null;
       const thumb = document.createElement('div');
-      thumb.className = 'strip-thumb' + (itemEl.id === _activeThumbItemId ? ' active' : '');
+      thumb.className      = 'strip-thumb' + (isActive ? ' active' : '');
       thumb.dataset.itemId = itemEl.id;
       thumb.innerHTML = `
-        <div class="strip-thumb-num">${num} ${badge}</div>
-        <div class="strip-thumb-title">${_lpEsc(displayText)}</div>
+        <div class="strip-thumb-num">${slideNum} ${badge}</div>
+        <div class="strip-thumb-title">${_lpEsc(type === 'song' ? (part || title) : title)}</div>
         ${detail ? `<div class="strip-thumb-detail">${_lpEsc(detail)}</div>` : ''}`;
       thumb.addEventListener('click', () => sendLive(itemEl));
       strip.appendChild(thumb);
-    });
+    }
   }
 
-  function _activateStripThumb(itemEl) {
-    _activeThumbItemId = itemEl?.id || null;
+  function _jumpToStanza(itemEl, stanzas, si, title, part) {
+    _projItem = itemEl; _projStanzas = stanzas; _projStanzaIdx = si;
+    document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
+    itemEl.querySelector('.btn-live')?.classList.add('active');
+    _activateStripThumb(itemEl, si);
+    document.activeElement?.blur();
+    _sendCurrentStanza(_getChannel(), title, part);
+  }
+
+  function _activateStripThumb(itemEl, stanzaIdx) {
+    _activeThumbItemId    = itemEl?.id || null;
+    _activeThumbStanzaIdx = (stanzaIdx != null) ? stanzaIdx : null;
     document.querySelectorAll('.strip-thumb').forEach(t => {
-      t.classList.toggle('active', t.dataset.itemId === _activeThumbItemId);
+      const sameItem = t.dataset.itemId === _activeThumbItemId;
+      const hasStanza = 'stanzaIdx' in t.dataset;
+      const active = sameItem && (
+        hasStanza ? Number(t.dataset.stanzaIdx) === _activeThumbStanzaIdx
+                  : _activeThumbStanzaIdx === null
+      );
+      t.classList.toggle('active', active);
     });
-    // Scroll active thumb into view
     const active = document.querySelector('.strip-thumb.active');
     if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
@@ -2704,17 +2749,16 @@
     const title   = itemEl.querySelector('.item-title')?.value || '';
     const part    = itemEl.querySelector('.item-part')?.value  || '';
 
-    // Highlight active live button + strip thumb
+    // Highlight active live button
     document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
     itemEl.querySelector('.btn-live')?.classList.add('active');
-    _activateStripThumb(itemEl);
-    // Return focus to body so arrow-key clicker works immediately after clicking Live
     document.activeElement?.blur();
 
     if (type === 'song') {
       const lyricsKey = itemEl.querySelector('.lyrics-key')?.value || '';
       if (!lyricsKey) {
         _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
+        _activateStripThumb(itemEl, null);
         const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
@@ -2726,15 +2770,18 @@
         _projStanzas   = (data.status === 'ok') ? data.stanzas : [];
         _projStanzaIdx = 0;
         _projItem      = itemEl;
+        _activateStripThumb(itemEl, _projStanzas.length ? 0 : null);
         _sendCurrentStanza(ch, title, part);
       } catch (e) {
         _projStanzas = []; _projItem = itemEl; _projStanzaIdx = 0;
+        _activateStripThumb(itemEl, null);
         const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
       }
     } else {
       _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
+      _activateStripThumb(itemEl, null);
       const participant = itemEl.querySelector('.item-participant')?.value || '';
       const body        = itemEl.querySelector('.item-content')?.value     || '';
       const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
@@ -2765,8 +2812,8 @@
     if (!_projItem) return;
     if (!_projStanzas.length) { _projNextItem(1); return; }
     _projStanzaIdx = (_projStanzaIdx < _projStanzas.length - 1) ? _projStanzaIdx + 1 : 0;
-    const ch = _getChannel();
-    _sendCurrentStanza(ch,
+    _activateStripThumb(_projItem, _projStanzaIdx);
+    _sendCurrentStanza(_getChannel(),
       _projItem.querySelector('.item-title')?.value || '',
       _projItem.querySelector('.item-part')?.value  || '');
   }
@@ -2776,8 +2823,8 @@
     if (!_projStanzas.length) { _projNextItem(-1); return; }
     if (_projStanzaIdx > 0) {
       _projStanzaIdx--;
-      const ch = _getChannel();
-      _sendCurrentStanza(ch,
+      _activateStripThumb(_projItem, _projStanzaIdx);
+      _sendCurrentStanza(_getChannel(),
         _projItem.querySelector('.item-title')?.value || '',
         _projItem.querySelector('.item-part')?.value  || '');
     }
