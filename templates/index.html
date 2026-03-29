@@ -2673,7 +2673,7 @@
           try {
             const res     = await fetch(`/api/lyrics/${encodeURIComponent(lk)}`);
             const data    = await res.json();
-            const stanzas = (data.status === 'ok') ? data.stanzas : [];
+            const stanzas = _interleaveStanzas((data.status === 'ok') ? data.stanzas : []);
             if (stanzas.length) {
               // fullStanzas mirrors _projStanzas: index 0 = title card, 1+ = real stanzas
               const fullStanzas = [{ type: '__title__' }, ...stanzas];
@@ -2767,6 +2767,17 @@
     if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
 
+  // Interleave chorus/refrain after every verse: V1 Ch V2 Ch V3 Ch ...
+  function _interleaveStanzas(stanzas) {
+    const isRefrain = s => ['chorus','refrain'].includes((s.type || 'verse').toLowerCase());
+    const verses    = stanzas.filter(s => !isRefrain(s));
+    const refrains  = stanzas.filter(s =>  isRefrain(s));
+    if (!refrains.length || !verses.length) return stanzas;
+    const result = [];
+    verses.forEach(v => { result.push(v); refrains.forEach(r => result.push(r)); });
+    return result;
+  }
+
   async function sendLive(itemEl, startFromEnd = false) {
     if (!itemEl) return;
     const ch      = _getChannel();
@@ -2792,7 +2803,7 @@
       try {
         const res  = await fetch(`/api/lyrics/${encodeURIComponent(lyricsKey)}`);
         const data = await res.json();
-        const fetched  = (data.status === 'ok') ? data.stanzas : [];
+        const fetched  = _interleaveStanzas((data.status === 'ok') ? data.stanzas : []);
         // Index 0 = title card, indices 1+ = stanzas
         _projStanzas   = fetched.length ? [{ type: '__title__' }, ...fetched] : [];
         _projStanzaIdx = (startFromEnd && _projStanzas.length) ? _projStanzas.length - 1 : 0;
