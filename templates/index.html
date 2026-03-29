@@ -1831,7 +1831,13 @@
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    collectProgram(),
-    }).then(r => { if (r.ok) toast("Saved", "success"); })
+    }).then(r => {
+        if (r.ok) {
+          toast("Saved", "success");
+          const sel = document.getElementById('panelSectionSelect');
+          if (sel) buildSlideStrip(sel.value);
+        }
+      })
       .catch(() => toast("Save failed", "error"));
   }
 
