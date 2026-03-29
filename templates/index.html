@@ -2708,6 +2708,8 @@
     document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
     itemEl.querySelector('.btn-live')?.classList.add('active');
     _activateStripThumb(itemEl);
+    // Return focus to body so arrow-key clicker works immediately after clicking Live
+    document.activeElement?.blur();
 
     if (type === 'song') {
       const lyricsKey = itemEl.querySelector('.lyrics-key')?.value || '';
@@ -2780,11 +2782,12 @@
 
   // ── Keyboard clicker ───────────────────────────────────────────────────────
   document.addEventListener('keydown', function (e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-    if (e.key === 'ArrowRight' || e.key === ' ') {
+    const tag = document.activeElement?.tagName || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || document.activeElement?.isContentEditable) return;
+    if (e.key === 'ArrowRight' || e.code === 'ArrowRight' || e.key === ' ' || e.code === 'Space') {
       e.preventDefault();
       _projNext();
-    } else if (e.key === 'ArrowLeft') {
+    } else if (e.key === 'ArrowLeft' || e.code === 'ArrowLeft') {
       e.preventDefault();
       _projPrev();
     } else if (e.key === 'b' || e.key === 'B') {
