@@ -98,7 +98,7 @@ Filenames follow the standard abbreviation patterns below:
 
 ## Development Methodology
 
-Every non-trivial change follows this three-step sequence before any code is written:
+Every non-trivial change follows this four-step sequence **before any code is written**:
 
 ### 1. Plan (`IA` or `RP`)
 - Analyse the problem or feature request
@@ -106,13 +106,21 @@ Every non-trivial change follows this three-step sequence before any code is wri
 - Document as an Issue Analysis (`_IA.md`) for bug/investigation work, or a Refactoring Plan (`_RP.md`) for redesign/new features
 - Get agreement before proceeding
 
-### 2. Implementation Plan
-- Break the approved plan into concrete, ordered steps
+### 2. Technical Design (`TDD`)
+- Write a `_TDD.md` covering: purpose & scope, solution overview, component design, data schema, API contracts, security considerations, and open decisions
+- This is **mandatory** for any feature that touches more than one file or introduces a new data type, API endpoint, or UI component
+- Save to `/home/dennis/devops/projects/leiturgia/` before implementation starts
+
+### 3. Implementation Plan
+- Break the approved TDD into concrete, ordered steps
 - List exactly which files change and what each change does
 - Use Claude Code's plan mode (`EnterPlanMode`) so the user reviews and approves before implementation starts
 
-### 3. Task Management (`TM`)
-- Track work in a `_TM.md` file (or via Claude Code's `TaskCreate`/`TaskUpdate` tools during the session)
+### 4. Task Management (`TM`)
+- Create a `_TM.md` in `/home/dennis/devops/projects/leiturgia/` to track work
 - Each task maps to a step from the implementation plan
 - Mark tasks `in_progress` before starting, `completed` when done
 - Do not skip ahead — complete and verify each task before moving to the next
+
+### Doc writing rule
+**Claude must always write the TDD and TM before writing any code.** If the user approves a plan in conversation without explicitly asking for docs, Claude still creates both documents first. The only exception is a single-file, single-function hotfix with no schema or API changes.
