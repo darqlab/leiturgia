@@ -418,18 +418,6 @@
     .main-content::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
     .container { padding: 1.5rem 2rem 120px; }
 
-    /* ── Toolbar (always-visible, sticky below header) ── */
-    .toolbar {
-      position: sticky;
-      top: 0;
-      z-index: 90;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.6rem 1.6rem;
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
 
     .status-group { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; }
 
@@ -1211,19 +1199,6 @@
 <!-- ── Main content ───────────────────────────────────────────────────────── -->
 <div class="main-content">
 
-<!-- ── Toolbar (always visible) ─────────────────────────────────────────── -->
-<div class="toolbar">
-  <button class="btn btn-outline" style="font-size:12px" onclick="openHistory()">&#128337; History</button>
-  <button class="btn btn-outline" style="font-size:12px" onclick="importSheet(this)">&#8659; Import from Sheet</button>
-  <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-left:auto;">
-    {% for sp in program.service_programs %}
-    <button class="btn btn-generate" onclick="generateSection('{{ sp.id }}', this)">
-      <div class="spinner"></div>
-      <span>Generate {{ sp.name }}</span>
-    </button>
-    {% endfor %}
-  </div>
-</div>
 
 <!-- ── History Modal ─────────────────────────────────────────────────────── -->
 <div id="historyModal" style="display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.6); overflow-y:auto;">
