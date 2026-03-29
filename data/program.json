@@ -1,21 +1,14 @@
 {
-  "church": "SSD GOB",
-  "date": "2026-03-07",
-  "pianist": "Claudine Caba\u00f1ero",
-  "song_leader": "Ana Marie Jaman",
+  "church": "",
+  "date": "",
+  "pianist": "",
+  "song_leader": "",
   "service_programs": [
     {
       "id": "sabbath-school",
       "name": "Sabbath School",
-      "time": "9:00 a.m.",
+      "time": "",
       "items": [
-        {
-          "type": "participant",
-          "title": "Mission Story",
-          "part": "The Church We Build Together",
-          "participant": "Evari Damien Baldoza",
-          "item_id": "ss-006"
-        },
         {
           "type": "participant",
           "title": "Praise Worship",
@@ -38,10 +31,10 @@
         },
         {
           "type": "participant",
-          "title": "Opening Prayer",
-          "part": "Opening Prayer",
-          "participant": "Ivan Quidet",
-          "item_id": "ss-004"
+          "title": "Mission Story",
+          "part": "The Church We Build Together",
+          "participant": "Evari Damien Baldoza",
+          "item_id": "ss-006"
         },
         {
           "type": "participant",
@@ -49,6 +42,13 @@
           "part": "Special Music",
           "participant": "Quartet",
           "item_id": "ss-005"
+        },
+        {
+          "type": "participant",
+          "title": "Opening Prayer",
+          "part": "Opening Prayer",
+          "participant": "Ivan Quidet",
+          "item_id": "ss-004"
         },
         {
           "type": "participant",
@@ -80,162 +80,35 @@
       ]
     },
     {
-      "id": "divine-service",
-      "name": "Divine Service",
-      "time": "10:30 a.m.",
+      "id": "midweek",
+      "name": "Midweek",
+      "time": "",
       "items": [
         {
-          "type": "participant",
-          "title": "Praise Songs",
-          "part": "Praise Songs",
-          "participant": "Congregation",
-          "item_id": "ds-001"
+          "type": "song",
+          "title": "Shall We Gather at the River",
+          "item_id": "midweek-001",
+          "hymn_number": "432",
+          "lyrics_key": "432",
+          "part": "Song Service"
         },
         {
           "type": "song",
-          "title": "Introit *",
-          "item_id": "ds-003",
-          "lyrics_key": "73"
-        },
-        {
-          "type": "song",
-          "title": "Hymn of Celebration",
-          "item_id": "ds-004",
-          "lyrics_key": "242"
+          "title": "When We All Get to Heaven",
+          "item_id": "midweek-002",
+          "hymn_number": "633",
+          "lyrics_key": "633",
+          "part": "Song Service 2"
         },
         {
           "type": "participant",
-          "title": "Invocation",
-          "part": "Invocation",
-          "participant": "",
-          "item_id": "ds-005"
-        },
-        {
-          "type": "song",
-          "title": "Hymn of Adoration",
-          "item_id": "ds-006",
-          "lyrics_key": "151"
-        },
-        {
-          "type": "participant",
-          "title": "Scripture Reading",
-          "part": "Scripture Reading",
-          "participant": "Jedidiah Klyde Macaraeg",
-          "item_id": "ds-007"
-        },
-        {
-          "type": "song",
-          "title": "Prayer Hymn *",
-          "item_id": "ds-008",
-          "lyrics_key": "19"
-        },
-        {
-          "type": "participant",
-          "title": "Pastoral Prayer",
-          "part": "Pastoral Prayer",
-          "participant": "Jedidiah Klyde Macaraeg",
-          "item_id": "ds-009"
-        },
-        {
-          "type": "song",
-          "title": "Hymn of Response *",
-          "item_id": "ds-010",
-          "lyrics_key": "361"
-        },
-        {
-          "type": "participant",
-          "title": "Thoughts on Stewardship",
-          "part": "Thoughts on Stewardship",
-          "participant": "Exavier Jovaughn Olasiman",
-          "item_id": "ds-011"
-        },
-        {
-          "type": "participant",
-          "title": "Offertory Music",
-          "part": "Offertory Music",
-          "participant": "Tubuan Ukerists",
-          "item_id": "ds-012"
-        },
-        {
-          "type": "song",
-          "title": "Hymn of Gratitude",
-          "item_id": "ds-013",
-          "lyrics_key": "83"
-        },
-        {
-          "type": "participant",
-          "title": "Offertory Prayer",
-          "part": "Offertory Prayer",
-          "participant": "Exavier Jovaughn Olasiman",
-          "item_id": "ds-014"
-        },
-        {
-          "type": "participant",
-          "title": "Children Homily",
-          "part": "Children Homily",
-          "participant": "Keen Spenser Gilo",
-          "item_id": "ds-015"
-        },
-        {
-          "type": "participant",
-          "title": "Ministry in Song",
-          "part": "Ministry in Song",
-          "participant": "Pauleen Angeli Baloyo",
-          "item_id": "ds-016"
-        },
-        {
-          "type": "participant",
-          "title": "The Spoken Word",
-          "part": "The Spoken Word",
-          "participant": "Nelson Paulo",
-          "item_id": "ds-017"
-        },
-        {
-          "type": "song",
-          "title": "Hymn of Consecration",
-          "item_id": "ds-018",
-          "lyrics_key": "79"
-        },
-        {
-          "type": "song",
-          "title": "Hymn of Hope",
-          "item_id": "ds-019",
-          "lyrics_key": "214"
-        },
-        {
-          "type": "participant",
-          "title": "Benediction",
-          "part": "Benediction",
-          "participant": "",
-          "item_id": "ds-020"
+          "title": "Welcome Remark",
+          "part": "Welcome remarks",
+          "participant": "John Smith",
+          "item_id": "midweek-003"
         }
       ]
     }
   ],
-  "service_team": [
-    {
-      "role": "Presider",
-      "name": "Edward Rodriguez"
-    },
-    {
-      "role": "Choristers",
-      "name": "Joy Olasiman & Exzser Joveil Olasiman"
-    },
-    {
-      "role": "Pianist",
-      "name": "Claudine Caba\u00f1ero"
-    },
-    {
-      "role": "Deacons",
-      "name": "Joven Agno & Ruel Tagolgol"
-    },
-    {
-      "role": "Program Coordinator",
-      "name": "Amor Maestre & Joy Olasiman"
-    },
-    {
-      "role": "Song Leader",
-      "name": "Ana Marie Jaman"
-    }
-  ]
+  "service_team": []
 }
