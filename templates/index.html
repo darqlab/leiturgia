@@ -2811,7 +2811,8 @@
   function _projNext() {
     if (!_projItem) return;
     if (!_projStanzas.length) { _projNextItem(1); return; }
-    _projStanzaIdx = (_projStanzaIdx < _projStanzas.length - 1) ? _projStanzaIdx + 1 : 0;
+    if (_projStanzaIdx >= _projStanzas.length - 1) return;
+    _projStanzaIdx++;
     _activateStripThumb(_projItem, _projStanzaIdx);
     _sendCurrentStanza(_getChannel(),
       _projItem.querySelector('.item-title')?.value || '',
