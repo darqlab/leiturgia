@@ -778,6 +778,298 @@
       .role-label { display: none; }
       .generate-grid { grid-template-columns: 1fr; }
     }
+
+    /* ── Live projection controls ── */
+    .live-status {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .live-status.online  { background: #4caf82; box-shadow: 0 0 6px #4caf82; }
+    .live-status.offline { background: var(--muted); }
+
+    .channel-select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      height: 34px;
+    }
+    .channel-select:focus { outline: none; border-color: var(--gold); }
+
+    .btn-live {
+      padding: 3px 9px;
+      background: transparent;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-live:hover { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+    .btn-live.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+
+    /* ── Right panel (live control) ── */
+    .right-panel {
+      width: 248px;
+      min-width: 248px;
+      flex-shrink: 0;
+      background: #070f1f;
+      border-left: 1px solid #0e1a30;
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: #1e2f52 transparent;
+      display: flex;
+      flex-direction: column;
+      padding: 12px;
+      gap: 12px;
+    }
+    .right-panel::-webkit-scrollbar { width: 4px; }
+    .right-panel::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
+
+    .rp-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    /* Mini projection screen */
+    .live-preview-screen {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 6px;
+      border: 1px solid #1e2f52;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      position: relative;
+      min-height: 0;
+    }
+
+    .lp-part {
+      font-size: 6px;
+      color: #D4A843;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      text-align: center;
+      margin-bottom: 3px;
+      width: 100%;
+    }
+    .lp-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.3;
+      width: 100%;
+      word-break: break-word;
+    }
+    .lp-stanza-label {
+      font-size: 5px;
+      color: #8C9AB5;
+      text-transform: uppercase;
+      text-align: center;
+      margin: 3px 0 2px;
+    }
+    .lp-lines {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 7.5px;
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.5;
+      width: 100%;
+    }
+    .lp-body {
+      font-size: 7.5px;
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.4;
+      margin-top: 3px;
+    }
+    .lp-participants {
+      margin-top: 3px;
+      font-size: 7px;
+      color: #E8EAF0;
+      text-align: center;
+    }
+    .lp-participant-role {
+      color: #8C9AB5;
+      margin-right: 2px;
+    }
+    .lp-blank-label {
+      font-size: 8px;
+      color: #333;
+      letter-spacing: 0.1em;
+    }
+    .lp-announce-label {
+      font-size: 6px;
+      color: #D4A843;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+    .lp-announce-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 10px;
+      color: #fff;
+      text-align: center;
+    }
+    .lp-waiting { font-size: 8px; color: #333; letter-spacing: 0.06em; }
+
+    /* Channel selector row */
+    .rp-channel-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Control buttons in right panel */
+    .btn-rp-blank {
+      width: 100%;
+      padding: 7px;
+      background: transparent;
+      border: 1px solid #1e2f52;
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .btn-rp-blank:hover { border-color: var(--error); color: var(--error); }
+
+    /* ── Slide strip (fixed footer) ── */
+    .slide-strip {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 96px;
+      background: #040b18;
+      border-top: 1px solid #0e1a30;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: #1e2f52 transparent;
+      z-index: 90;
+    }
+    .slide-strip::-webkit-scrollbar { height: 4px; }
+    .slide-strip::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
+
+    .strip-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      writing-mode: horizontal-tb;
+      flex-shrink: 0;
+      padding-right: 8px;
+      border-right: 1px solid #0e1a30;
+    }
+
+    .strip-thumb {
+      flex-shrink: 0;
+      width: 104px;
+      height: 72px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 6px 8px;
+      transition: border-color 0.15s, background 0.15s;
+      overflow: hidden;
+      position: relative;
+    }
+    .strip-thumb:hover { border-color: var(--gold-dim); background: #1a2b5c22; }
+    .strip-thumb.active { border-color: var(--gold); background: #1a2b5c44; }
+
+    .strip-thumb-num {
+      font-size: 9px;
+      color: var(--muted);
+      margin-bottom: 3px;
+    }
+    .strip-thumb-num .badge {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 8px;
+      font-weight: 700;
+      margin-left: 4px;
+    }
+    .badge-song-s   { background: #1a3a6a; color: #7ba7e0; }
+    .badge-part-s   { background: #1a3a2a; color: #7ac09a; }
+    .badge-cont-s   { background: #3a2a1a; color: #c09a7a; }
+
+    .strip-thumb-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .strip-thumb-detail {
+      font-size: 9px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    /* Push page content above fixed footer strip */
+    body { padding-bottom: 96px; }
+
+    /* ── Channel tiles (multi-channel overview) ── */
+    .channel-tiles {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .ch-tile {
+      flex: 1 1 calc(33% - 4px);
+      min-width: 60px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 5px 6px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      text-align: center;
+    }
+    .ch-tile:hover { border-color: var(--gold-dim); }
+    .ch-tile.selected { border-color: var(--gold); }
+    .ch-tile-name { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: 0.05em; }
+    .ch-tile-state { font-size: 8px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   </style>
 </head>
 <body>
@@ -936,6 +1228,7 @@
             </div>
             <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else 'badge-participant') }}">{{ 'Song' if _is_song else ('Content' if _is_content else 'Participant') }}</span>
             <span class="edit-hint">✎</span>
+            <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
             <div class="item-chevron">▼</div>
             <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
             <div class="item-number">{{ loop.index }}</div>
@@ -1009,7 +1302,130 @@
 
 </div><!-- /container -->
 </div><!-- /main-content -->
+
+<!-- ── Right panel: Live Control ──────────────────────────────────────────── -->
+<aside class="right-panel">
+
+  <!-- Channel + connection -->
+  <div>
+    <div class="rp-section-label">Channel</div>
+    <div class="rp-channel-row">
+      <span id="live-status" class="live-status offline" title="Projection: disconnected"></span>
+      <select id="channelSelect" class="channel-select" style="flex:1" onchange="updateDisplayLink()">
+        <option value="ch1">ch1</option>
+        <option value="ch2">ch2</option>
+        <option value="ch3">ch3</option>
+        <option value="ch4">ch4</option>
+        <option value="ch5">ch5</option>
+      </select>
+      <a id="openDisplayBtn" href="/ch1" target="_blank" class="btn btn-outline" style="font-size:11px;padding:5px 8px;" title="Open display in new tab">↗</a>
+    </div>
+  </div>
+
+  <!-- Theme selector -->
+  <div>
+    <div class="rp-section-label">Theme</div>
+    <select id="themeSelect" class="channel-select" style="width:100%;">
+      <option value="default">Default (Navy/Gold)</option>
+      <option value="midnight">Midnight</option>
+      <option value="dawn">Dawn</option>
+      <option value="forest">Forest</option>
+      <option value="slate">Slate</option>
+      <option value="ivory">Ivory (Light)</option>
+      <option value="ocean">Ocean</option>
+      <option value="ember">Ember</option>
+      <option value="pearl">Pearl</option>
+      <option value="royal">Royal</option>
+    </select>
+  </div>
+
+  <!-- Channel tiles overview -->
+  <div>
+    <div class="rp-section-label">Channels</div>
+    <div class="channel-tiles" id="channelTiles">
+      <div class="ch-tile selected" data-ch="ch1" onclick="selectChannel('ch1')">
+        <div class="ch-tile-name">ch1</div>
+        <div class="ch-tile-state" id="ch-state-ch1">—</div>
+      </div>
+      <div class="ch-tile" data-ch="ch2" onclick="selectChannel('ch2')">
+        <div class="ch-tile-name">ch2</div>
+        <div class="ch-tile-state" id="ch-state-ch2">—</div>
+      </div>
+      <div class="ch-tile" data-ch="ch3" onclick="selectChannel('ch3')">
+        <div class="ch-tile-name">ch3</div>
+        <div class="ch-tile-state" id="ch-state-ch3">—</div>
+      </div>
+      <div class="ch-tile" data-ch="ch4" onclick="selectChannel('ch4')">
+        <div class="ch-tile-name">ch4</div>
+        <div class="ch-tile-state" id="ch-state-ch4">—</div>
+      </div>
+      <div class="ch-tile" data-ch="ch5" onclick="selectChannel('ch5')">
+        <div class="ch-tile-name">ch5</div>
+        <div class="ch-tile-state" id="ch-state-ch5">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live preview -->
+  <div>
+    <div class="rp-section-label">Live Preview</div>
+    <div class="live-preview-screen" id="livePreviewScreen">
+      <span class="lp-waiting">Waiting…</span>
+    </div>
+  </div>
+
+  <!-- Blank button -->
+  <button class="btn-rp-blank" onclick="_projBlank()">■ Blank Screen</button>
+
+  <!-- Timer controls -->
+  <div>
+    <div class="rp-section-label">Countdown Timer</div>
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+      <input id="timerMinutes" type="number" min="0" max="99" value="5"
+        style="width:46px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--white);padding:5px 6px;font-size:13px;text-align:center;">
+      <span style="color:var(--muted);font-size:13px;">:</span>
+      <input id="timerSeconds" type="number" min="0" max="59" value="0"
+        style="width:46px;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--white);padding:5px 6px;font-size:13px;text-align:center;">
+      <input id="timerLabel" type="text" placeholder="Label…"
+        style="flex:1;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--white);padding:5px 7px;font-size:11px;">
+    </div>
+    <div style="display:flex;gap:5px;">
+      <button class="btn-rp-blank" style="flex:1;" onclick="timerShow()">Set</button>
+      <button class="btn-rp-blank" style="flex:1;color:#4caf82;border-color:#4caf82;" onclick="timerStart()">▶</button>
+      <button class="btn-rp-blank" style="flex:1;" onclick="timerPause()">⏸</button>
+      <button class="btn-rp-blank" style="flex:1;" onclick="timerReset()">↺</button>
+    </div>
+  </div>
+
+  <!-- Announcement console -->
+  <div>
+    <div class="rp-section-label">Announcement</div>
+    <textarea id="announcementText" rows="2"
+      placeholder="Type announcement…"
+      style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--white);padding:7px 9px;font-family:inherit;font-size:12px;resize:vertical;"></textarea>
+    <button class="btn-rp-blank" style="margin-top:6px;" onclick="sendAnnouncement()">▶ Send Announcement</button>
+  </div>
+
+  <!-- Media picker -->
+  <div>
+    <div class="rp-section-label" style="display:flex;justify-content:space-between;align-items:center;">
+      Media
+      <button onclick="loadMediaList()" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:0;">↺ Refresh</button>
+    </div>
+    <div id="mediaList" style="display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto;">
+      <span style="color:var(--muted);font-size:11px;">Click ↺ to load media files.</span>
+    </div>
+  </div>
+
+</aside>
+
 </div><!-- /page-layout -->
+
+<!-- ── Slide strip (footer) ──────────────────────────────────────────────── -->
+<div id="slideStrip" class="slide-strip">
+  <span class="strip-section-label" id="stripSectionLabel">Program</span>
+  <!-- Thumbnails injected by JS -->
+</div>
 
 <!-- Toast -->
 <div id="toast">
@@ -1017,6 +1433,7 @@
   <span id="toastMsg">Done</span>
 </div>
 
+<script src="/static/socket.io.js?v=2"></script>
 <script>
   // ── Add new program item from sidebar buttons ─────────────────────────────
   function addProgramItem(programId, type) {
@@ -1085,6 +1502,7 @@
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
           <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
           <span class="edit-hint">✎</span>
+          <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
           <div class="item-chevron">▼</div>
           <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
           <div class="item-number">${num}</div>
@@ -1604,6 +2022,7 @@
     const count  = document.getElementById("panelSectionSelect")?.options.length || 0;
     const delBtn = document.getElementById("btnDeleteProgram");
     if (delBtn) delBtn.disabled = count <= 1;
+    buildSlideStrip(val);
   }
 
   // ── Delete program ──────────────────────────────────────────────────────
@@ -1658,6 +2077,15 @@
       if (downBtn) downBtn.disabled = i === items.length - 1;
     });
   }
+
+  // Live projection state — must be declared before switchPanelSection runs
+  // because buildSlideStrip (called from switchPanelSection) reads _activeThumbItemId
+  let _activeThumbItemId   = null;
+  let _activeThumbStanzaIdx = null;
+  let _projItem      = null;
+  let _projStanzas   = [];
+  let _projStanzaIdx = 0;
+  const _chStateSummary = {};
 
   // Show only the initially selected program on load
   switchPanelSection(document.getElementById("panelSectionSelect").value);
@@ -2105,6 +2533,412 @@
     if (e && e.target !== document.getElementById("lyrics-modal-overlay")
             && e.target !== document.getElementById("lyrics-modal-close")) return;
     document.getElementById("lyrics-modal-overlay").classList.remove("open");
+  }
+
+  // ── Live Projection ────────────────────────────────────────────────────────
+
+  const _socket = io({ transports: ['websocket', 'polling'] });
+
+  _socket.on('connect', function () {
+    const el = document.getElementById('live-status');
+    el.className = 'live-status online';
+    el.title = 'Projection: connected';
+  });
+  _socket.on('disconnect', function () {
+    const el = document.getElementById('live-status');
+    el.className = 'live-status offline';
+    el.title = 'Projection: disconnected';
+  });
+
+  function _getChannel() {
+    return document.getElementById('channelSelect')?.value || 'ch1';
+  }
+
+  function _getTheme() {
+    return document.getElementById('themeSelect')?.value || 'default';
+  }
+
+  function updateDisplayLink() {
+    const ch  = _getChannel();
+    const btn = document.getElementById('openDisplayBtn');
+    if (btn) btn.href = '/' + ch;
+  }
+
+  // ── Channel tile selection ─────────────────────────────────────────────────
+  function selectChannel(ch) {
+    // Update dropdown
+    const sel = document.getElementById('channelSelect');
+    if (sel) sel.value = ch;
+    updateDisplayLink();
+    // Update tile highlight
+    document.querySelectorAll('.ch-tile').forEach(t => {
+      t.classList.toggle('selected', t.dataset.ch === ch);
+    });
+  }
+
+  function _updateChTile(ch, data) {
+    const el = document.getElementById(`ch-state-${ch}`);
+    if (!el) return;
+    const type = data.type || 'text';
+    if (type === 'blank') { el.textContent = 'BLANK'; return; }
+    if (type === 'announcement') { el.textContent = 'Announcement'; return; }
+    if (type === 'image')  { el.textContent = 'Image'; return; }
+    if (type === 'video')  { el.textContent = 'Video'; return; }
+    if (type === 'timer')  { el.textContent = 'Timer'; return; }
+    const d = data.data || data;
+    el.textContent = d.title || d.part || '—';
+  }
+
+  // ── Live preview (mini screen in right panel) ──────────────────────────────
+  function renderLivePreview(data) {
+    const screen = document.getElementById('livePreviewScreen');
+    if (!screen) return;
+    const type = data.type || 'text';
+    // Update the channel tile state label
+    _updateChTile(data.channel || _getChannel(), data);
+    let html = '';
+
+    if (type === 'blank') {
+      html = `<span class="lp-blank-label">BLANK</span>`;
+      screen.style.background = '#000';
+    } else if (type === 'announcement') {
+      screen.style.background = '#091428';
+      const txt = data.text || data.data?.text || '';
+      html = `<div class="lp-announce-label">Announcement</div>
+              <div class="lp-announce-text">${_lpEsc(txt)}</div>`;
+    } else if (type === 'image') {
+      const url = data.url || data.data?.url || '';
+      screen.style.background = '#000';
+      html = `<img src="${_lpEsc(url)}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
+    } else if (type === 'timer') {
+      screen.style.background = '#091428';
+      const secs = data.seconds || data.data?.seconds || 0;
+      const m = Math.floor(secs / 60), s = secs % 60;
+      html = `<div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#F0C96A;font-weight:700;">${m}:${String(s).padStart(2,'0')}</div>
+              <div style="font-size:7px;color:#8C9AB5;margin-top:3px;">${_lpEsc(data.label || data.data?.label || '')}</div>`;
+    } else {
+      // text
+      screen.style.background = '#0D1B3E';
+      const d = data.data || data;
+      if (d.part)  html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
+      if (d.title) html += `<div class="lp-title">${_lpEsc(d.title)}</div>`;
+      if (d.stanza) {
+        const t = (d.stanza.type || 'verse').toLowerCase();
+        const label = t === 'chorus' ? 'Chorus' : t === 'refrain' ? 'Refrain' : `Verse ${d.stanza.number}`;
+        html += `<div class="lp-stanza-label">${label}</div>`;
+        html += `<div class="lp-lines">${(d.stanza.lines || []).map(_lpEsc).join('<br>')}</div>`;
+      }
+      if (d.body) html += `<div class="lp-body">${_lpEsc(d.body)}</div>`;
+      if (d.participants?.length) {
+        html += `<div class="lp-participants">${d.participants.map(p =>
+          `<div>${p.role ? `<span class="lp-participant-role">${_lpEsc(p.role)}</span>` : ''}${_lpEsc(p.name || '')}</div>`
+        ).join('')}</div>`;
+      }
+    }
+
+    screen.innerHTML = html || `<span class="lp-waiting">Waiting…</span>`;
+  }
+
+  function _lpEsc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Slide strip ────────────────────────────────────────────────────────────
+  async function buildSlideStrip(programId) {
+    const strip   = document.getElementById('slideStrip');
+    const labelEl = document.getElementById('stripSectionLabel');
+    if (!strip) return;
+
+    const spEl = document.querySelector(`.service-program[data-program-id="${programId}"]`);
+    if (spEl && labelEl) labelEl.textContent = spEl.dataset.programName || programId;
+
+    strip.querySelectorAll('.strip-thumb').forEach(t => t.remove());
+    if (!spEl) return;
+
+    let slideNum = 0;
+    for (const itemEl of spEl.querySelectorAll('.program-item')) {
+      const type  = itemEl.dataset.itemType || 'participant';
+      const title = itemEl.querySelector('.item-title')?.value || '';
+      const part  = itemEl.querySelector('.item-part')?.value  || '';
+
+      if (type === 'song') {
+        const lk = itemEl.querySelector('.lyrics-key')?.value || '';
+        if (lk) {
+          try {
+            const res     = await fetch(`/api/lyrics/${encodeURIComponent(lk)}`);
+            const data    = await res.json();
+            const stanzas = (data.status === 'ok') ? data.stanzas : [];
+            if (stanzas.length) {
+              stanzas.forEach((stanza, si) => {
+                slideNum++;
+                const t     = (stanza.type || 'verse').toLowerCase();
+                const label = t === 'chorus' ? 'Ch' : t === 'refrain' ? 'Ref'
+                            : t === 'bridge' ? `Br${stanza.number}` : `V${stanza.number}`;
+                const isActive = itemEl.id === _activeThumbItemId && si === _activeThumbStanzaIdx;
+                const thumb = document.createElement('div');
+                thumb.className       = 'strip-thumb' + (isActive ? ' active' : '');
+                thumb.dataset.itemId   = itemEl.id;
+                thumb.dataset.stanzaIdx = si;
+                thumb.innerHTML = `
+                  <div class="strip-thumb-num">${slideNum} <span class="badge badge-song-s">♪</span></div>
+                  <div class="strip-thumb-title">${_lpEsc(part || title)}</div>
+                  <div class="strip-thumb-detail">${label}: ${_lpEsc((stanza.lines || [])[0] || '')}</div>`;
+                thumb.addEventListener('click', () => _jumpToStanza(itemEl, stanzas, si, title, part));
+                strip.appendChild(thumb);
+              });
+              continue;
+            }
+          } catch(e) { /* fall through to single thumb */ }
+        }
+      }
+
+      // Single thumb (non-song, or song with no lyrics)
+      slideNum++;
+      let badge = '', detail = '';
+      if (type === 'song') {
+        badge  = `<span class="badge badge-song-s">♪</span>`;
+        detail = 'no lyrics';
+      } else if (type === 'content') {
+        badge  = `<span class="badge badge-cont-s">C</span>`;
+      } else {
+        badge  = `<span class="badge badge-part-s">P</span>`;
+        detail = itemEl.querySelector('.item-participant')?.value || '';
+      }
+      const isActive = itemEl.id === _activeThumbItemId && _activeThumbStanzaIdx === null;
+      const thumb = document.createElement('div');
+      thumb.className      = 'strip-thumb' + (isActive ? ' active' : '');
+      thumb.dataset.itemId = itemEl.id;
+      thumb.innerHTML = `
+        <div class="strip-thumb-num">${slideNum} ${badge}</div>
+        <div class="strip-thumb-title">${_lpEsc(type === 'song' ? (part || title) : title)}</div>
+        ${detail ? `<div class="strip-thumb-detail">${_lpEsc(detail)}</div>` : ''}`;
+      thumb.addEventListener('click', () => sendLive(itemEl));
+      strip.appendChild(thumb);
+    }
+  }
+
+  function _jumpToStanza(itemEl, stanzas, si, title, part) {
+    _projItem = itemEl; _projStanzas = stanzas; _projStanzaIdx = si;
+    document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
+    itemEl.querySelector('.btn-live')?.classList.add('active');
+    _activateStripThumb(itemEl, si);
+    document.activeElement?.blur();
+    _sendCurrentStanza(_getChannel(), title, part);
+  }
+
+  function _activateStripThumb(itemEl, stanzaIdx) {
+    _activeThumbItemId    = itemEl?.id || null;
+    _activeThumbStanzaIdx = (stanzaIdx != null) ? stanzaIdx : null;
+    document.querySelectorAll('.strip-thumb').forEach(t => {
+      const sameItem = t.dataset.itemId === _activeThumbItemId;
+      const hasStanza = 'stanzaIdx' in t.dataset;
+      const active = sameItem && (
+        hasStanza ? Number(t.dataset.stanzaIdx) === _activeThumbStanzaIdx
+                  : _activeThumbStanzaIdx === null
+      );
+      t.classList.toggle('active', active);
+    });
+    const active = document.querySelector('.strip-thumb.active');
+    if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
+
+  async function sendLive(itemEl) {
+    if (!itemEl) return;
+    const ch      = _getChannel();
+    const type    = itemEl.dataset.itemType || 'participant';
+    const title   = itemEl.querySelector('.item-title')?.value || '';
+    const part    = itemEl.querySelector('.item-part')?.value  || '';
+
+    // Highlight active live button
+    document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
+    itemEl.querySelector('.btn-live')?.classList.add('active');
+    document.activeElement?.blur();
+
+    if (type === 'song') {
+      const lyricsKey = itemEl.querySelector('.lyrics-key')?.value || '';
+      if (!lyricsKey) {
+        _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
+        _activateStripThumb(itemEl, null);
+        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+        _socket.emit('slide:show', sd);
+        renderLivePreview(sd);
+        return;
+      }
+      try {
+        const res  = await fetch(`/api/lyrics/${encodeURIComponent(lyricsKey)}`);
+        const data = await res.json();
+        _projStanzas   = (data.status === 'ok') ? data.stanzas : [];
+        _projStanzaIdx = 0;
+        _projItem      = itemEl;
+        _activateStripThumb(itemEl, _projStanzas.length ? 0 : null);
+        _sendCurrentStanza(ch, title, part);
+      } catch (e) {
+        _projStanzas = []; _projItem = itemEl; _projStanzaIdx = 0;
+        _activateStripThumb(itemEl, null);
+        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+        _socket.emit('slide:show', sd);
+        renderLivePreview(sd);
+      }
+    } else {
+      _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
+      _activateStripThumb(itemEl, null);
+      const participant = itemEl.querySelector('.item-participant')?.value || '';
+      const body        = itemEl.querySelector('.item-content')?.value     || '';
+      const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+      if (participant) sd.participants = [{ role: part || '', name: participant }];
+      if (body)        sd.body = body;
+      _socket.emit('slide:show', sd);
+      renderLivePreview(sd);
+    }
+  }
+
+  function _sendCurrentStanza(ch, title, part) {
+    const stanza = _projStanzas[_projStanzaIdx] || null;
+    const sd     = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+    if (stanza) sd.stanza = stanza;
+    _socket.emit('slide:show', sd);
+    renderLivePreview(sd);
+  }
+
+  function _projNextItem(dir) {
+    const items = Array.from(document.querySelectorAll('.service-program:not([style*="none"]) .program-item'));
+    if (!items.length) return;
+    const idx = _projItem ? items.indexOf(_projItem) : -1;
+    const next = items[idx + dir];
+    if (next) sendLive(next);
+  }
+
+  function _projNext() {
+    if (!_projItem) return;
+    if (!_projStanzas.length) { _projNextItem(1); return; }
+    if (_projStanzaIdx >= _projStanzas.length - 1) { _projNextItem(1); return; }
+    _projStanzaIdx++;
+    _activateStripThumb(_projItem, _projStanzaIdx);
+    _sendCurrentStanza(_getChannel(),
+      _projItem.querySelector('.item-title')?.value || '',
+      _projItem.querySelector('.item-part')?.value  || '');
+  }
+
+  function _projPrev() {
+    if (!_projItem) return;
+    if (!_projStanzas.length) { _projNextItem(-1); return; }
+    if (_projStanzaIdx > 0) {
+      _projStanzaIdx--;
+      _activateStripThumb(_projItem, _projStanzaIdx);
+      _sendCurrentStanza(_getChannel(),
+        _projItem.querySelector('.item-title')?.value || '',
+        _projItem.querySelector('.item-part')?.value  || '');
+    }
+  }
+
+  function _projBlank() {
+    _socket.emit('slide:blank', { channel: _getChannel() });
+    renderLivePreview({ type: 'blank' });
+  }
+
+  // ── Keyboard clicker ───────────────────────────────────────────────────────
+  document.addEventListener('keydown', function (e) {
+    const tag = document.activeElement?.tagName || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || document.activeElement?.isContentEditable) return;
+    if (e.key === 'ArrowRight' || e.code === 'ArrowRight' || e.key === ' ' || e.code === 'Space') {
+      e.preventDefault();
+      _projNext();
+    } else if (e.key === 'ArrowLeft' || e.code === 'ArrowLeft') {
+      e.preventDefault();
+      _projPrev();
+    } else if (e.key === 'b' || e.key === 'B') {
+      _projBlank();
+    }
+  });
+
+  // ── Init slide strip on page load ──────────────────────────────────────────
+  (function () {
+    const sel = document.getElementById('panelSectionSelect');
+    if (sel) buildSlideStrip(sel.value);
+  })();
+
+  // ── Timer controls ──────────────────────────────────────────────────────────
+  function _timerSecs() {
+    const m = parseInt(document.getElementById('timerMinutes')?.value || '0', 10);
+    const s = parseInt(document.getElementById('timerSeconds')?.value || '0', 10);
+    return m * 60 + s;
+  }
+  function _timerLabel() {
+    return document.getElementById('timerLabel')?.value.trim() || '';
+  }
+
+  function timerShow() {
+    const ch   = _getChannel();
+    const data = { channel: ch, seconds: _timerSecs(), label: _timerLabel(), type: 'timer' };
+    _socket.emit('timer:show', data);
+    renderLivePreview(data);
+  }
+  function timerStart() {
+    const ch   = _getChannel();
+    const data = { channel: ch, seconds: _timerSecs(), label: _timerLabel(), running: true, type: 'timer' };
+    _socket.emit('timer:start', data);
+    renderLivePreview(data);
+  }
+  function timerPause() {
+    const ch = _getChannel();
+    _socket.emit('timer:pause', { channel: ch });
+    _updateChTile(ch, { type: 'timer' });
+  }
+  function timerReset() {
+    const ch   = _getChannel();
+    const data = { channel: ch, seconds: _timerSecs(), type: 'timer' };
+    _socket.emit('timer:reset', data);
+    renderLivePreview(data);
+  }
+
+  // ── Announcement ────────────────────────────────────────────────────────────
+  function sendAnnouncement() {
+    const text = document.getElementById('announcementText')?.value.trim();
+    if (!text) return;
+    const ch = _getChannel();
+    const data = { type: 'announcement', text, channel: ch };
+    _socket.emit('announcement', data);
+    renderLivePreview(data);
+  }
+
+  // ── Media ───────────────────────────────────────────────────────────────────
+  async function loadMediaList() {
+    const list = document.getElementById('mediaList');
+    list.innerHTML = '<span style="color:var(--muted);font-size:11px;">Loading…</span>';
+    try {
+      const res  = await fetch('/api/media');
+      const data = await res.json();
+      const images = data.images || [];
+      const videos = data.videos || [];
+      if (!images.length && !videos.length) {
+        list.innerHTML = '<span style="color:var(--muted);font-size:11px;">No media files found in media/images/ or media/videos/.</span>';
+        return;
+      }
+      list.innerHTML = '';
+      images.forEach(f => list.appendChild(_mediaThumb(f, 'image')));
+      videos.forEach(f => list.appendChild(_mediaThumb(f, 'video')));
+    } catch (e) {
+      list.innerHTML = '<span style="color:var(--error);font-size:11px;">Failed to load media.</span>';
+    }
+  }
+
+  function _mediaThumb(file, type) {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--white);font-size:11px;padding:5px 8px;cursor:pointer;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:border-color 0.15s;';
+    btn.title = file.name;
+    btn.textContent = (type === 'image' ? '🖼 ' : '▶ ') + file.name;
+    btn.addEventListener('mouseenter', () => btn.style.borderColor = 'var(--gold)');
+    btn.addEventListener('mouseleave', () => btn.style.borderColor = 'var(--border)');
+    btn.addEventListener('click', () => sendMedia(file.url, type));
+    return btn;
+  }
+
+  function sendMedia(url, type) {
+    const ch   = _getChannel();
+    const event = type === 'image' ? 'media:image' : 'media:video';
+    const data  = { type, url, channel: ch };
+    _socket.emit(event, data);
+    renderLivePreview(data);
   }
 </script>
 

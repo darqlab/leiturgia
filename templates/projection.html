@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leiturgia — {{ channel }}</title>
+  <link id="themeLink" rel="stylesheet" href="/static/themes/default.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--proj-bg);
+      color: var(--proj-white);
+      font-family: var(--font-body);
+      overflow: hidden;
+    }
+
+    /* ── Fullscreen slide container ── */
+    #slide {
+      width: 100vw; height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 6vw;
+      transition: opacity 0.25s ease;
+      position: relative;
+    }
+
+    /* ── Blank ── */
+    #slide.type-blank {
+      background: #000;
+    }
+
+    /* ── Text ── */
+    #slide.type-text {
+      background: var(--proj-bg);
+    }
+
+    .slide-part {
+      font-family: var(--font-body);
+      font-size: clamp(0.75rem, 1.5vw, 1.1rem);
+      color: var(--proj-gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+      text-align: center;
+    }
+
+    .slide-title {
+      font-family: var(--font-heading);
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 700;
+      color: var(--proj-gold-lt);
+      text-align: center;
+      line-height: 1.15;
+      margin-bottom: 1.8rem;
+    }
+
+    .slide-stanza-label {
+      font-size: clamp(0.6rem, 1.2vw, 0.85rem);
+      color: var(--proj-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.8rem;
+      text-align: center;
+    }
+
+    .slide-lines {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.1em;
+      width: 100%;
+    }
+
+    .slide-line {
+      font-family: var(--font-heading);
+      font-size: 1em;
+      color: var(--proj-off-white);
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    /* Body text (non-song items) */
+    .slide-body {
+      font-size: clamp(1.2rem, 2.5vw, 2rem);
+      color: var(--proj-off-white);
+      text-align: center;
+      margin-top: 0.8rem;
+      line-height: 1.5;
+    }
+
+    .slide-participants {
+      margin-top: 1.5rem;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 0.4rem;
+    }
+
+    .slide-participant {
+      font-size: clamp(1rem, 2vw, 1.5rem);
+      color: var(--proj-off-white);
+      text-align: center;
+    }
+
+    .slide-participant .role {
+      color: var(--proj-muted);
+      font-size: 0.8em;
+      margin-right: 0.4em;
+    }
+
+    /* ── Announcement ── */
+    #slide.type-announcement {
+      background: var(--proj-dark);
+    }
+
+    .announcement-label {
+      font-size: clamp(0.7rem, 1.3vw, 0.95rem);
+      color: var(--proj-gold);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .announcement-text {
+      font-family: var(--font-heading);
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      color: var(--proj-white);
+      text-align: center;
+      line-height: 1.4;
+      max-width: 80vw;
+    }
+
+    /* ── Timer ── */
+    #slide.type-timer {
+      background: var(--proj-dark);
+    }
+
+    .timer-digits {
+      font-family: var(--font-heading);
+      font-size: clamp(5rem, 18vw, 14rem);
+      font-weight: 700;
+      color: var(--proj-gold-lt);
+      letter-spacing: 0.05em;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .timer-digits.urgent {
+      color: #e05252;
+    }
+
+    .timer-label {
+      font-size: clamp(1rem, 2.5vw, 1.8rem);
+      color: var(--proj-muted);
+      text-align: center;
+      margin-top: 1.2rem;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Media ── */
+    #slide.type-image, #slide.type-video {
+      padding: 0;
+      background: #000;
+    }
+
+    #slide.type-image img {
+      width: 100%; height: 100%;
+      object-fit: contain;
+    }
+
+    #slide.type-video video {
+      width: 100%; height: 100%;
+      object-fit: contain;
+    }
+
+    /* ── Waiting state ── */
+    #waiting {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0.6rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+
+    #waiting.visible {
+      opacity: 1;
+    }
+
+    .waiting-dot {
+      width: 8px; height: 8px;
+      background: var(--proj-muted);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .waiting-text {
+      font-size: 0.85rem;
+      color: var(--proj-muted);
+      letter-spacing: 0.08em;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50%       { opacity: 1;   transform: scale(1);   }
+    }
+
+    /* ── Channel badge (top-right corner) ── */
+    #channel-badge {
+      position: fixed;
+      top: 12px; right: 16px;
+      font-size: 0.65rem;
+      color: var(--proj-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="channel-badge">{{ channel }}</div>
+
+<div id="slide" class="type-blank">
+  <!-- Content injected by JS -->
+</div>
+
+<div id="waiting" class="visible">
+  <div class="waiting-dot"></div>
+  <div class="waiting-text">Waiting for content…</div>
+</div>
+
+<script src="/static/socket.io.js"></script>
+<script>
+  const CHANNEL = '{{ channel }}';
+  const socket  = io({ transports: ['websocket', 'polling'] });
+
+  // ── Timer state ────────────────────────────────────────────────────────────
+  let _timerInterval = null;
+  let _timerSeconds  = 0;
+  let _timerLabel    = '';
+
+  // ── Socket events ──────────────────────────────────────────────────────────
+  socket.on('connect', function () {
+    socket.emit('join', { channel: CHANNEL });
+    socket.emit('state:restore', { channel: CHANNEL });
+  });
+
+  socket.on('slide:show',   function (data) { renderState(data); });
+  socket.on('slide:blank',  function (data) { renderState(data); });
+  socket.on('slide:edit',   function (data) { renderState(data); });
+  socket.on('announcement', function (data) { renderState(data); });
+
+  socket.on('media:image',  function (data) { renderState(data); });
+  socket.on('media:video',  function (data) { renderState(data); });
+
+  socket.on('timer:show',   function (data) { renderTimer(data); });
+  socket.on('timer:start',  function (data) { startTimer(data); });
+  socket.on('timer:pause',  function ()     { pauseTimer(); });
+  socket.on('timer:reset',  function (data) { resetTimer(data); });
+
+  // ── Render dispatcher ──────────────────────────────────────────────────────
+  // ── Theme switching ──────────────────────────────────────────────────────
+  let _currentTheme = 'default';
+
+  function applyTheme(themeId) {
+    if (!themeId || themeId === _currentTheme) return;
+    const link = document.getElementById('themeLink');
+    if (link) {
+      link.href = `/static/themes/${themeId}.css`;
+      _currentTheme = themeId;
+    }
+  }
+
+  function renderState(state) {
+    const type = state.type || 'blank';
+    applyTheme(state.theme_id || (state.data && state.data.theme_id));
+    stopTimer();
+
+    switch (type) {
+      case 'text':         renderText(state.data || state);  break;
+      case 'blank':        renderBlank();                     break;
+      case 'announcement': renderAnnouncement(state.data || state); break;
+      case 'image':        renderImage(state.data || state);  break;
+      case 'video':        renderVideo(state.data || state);  break;
+      case 'timer':        renderTimer(state.data || state);  break;
+      default:             renderBlank();
+    }
+  }
+
+  function setSlideType(type) {
+    const slide = document.getElementById('slide');
+    slide.className = 'type-' + type;
+    document.getElementById('waiting').classList.remove('visible');
+  }
+
+  // ── Text ───────────────────────────────────────────────────────────────────
+  function renderText(data) {
+    setSlideType('text');
+    const slide = document.getElementById('slide');
+    let html = '';
+
+    if (data.stanza) {
+      // Song slide: lyrics only — no title, no part label, no stanza label
+      html += `<div class="slide-lines">`;
+      (data.stanza.lines || []).forEach(l => {
+        html += `<div class="slide-line">${esc(l)}</div>`;
+      });
+      html += `</div>`;
+      slide.innerHTML = html;
+      fitLyricsToSlide();
+      return;
+    } else {
+      // Non-song slide: show part + title
+      if (data.part) {
+        html += `<div class="slide-part">${esc(data.part)}</div>`;
+      }
+      html += `<div class="slide-title">${esc(data.title || '')}</div>`;
+    }
+
+    if (data.body) {
+      html += `<div class="slide-body">${esc(data.body)}</div>`;
+    }
+
+    if (data.participants && data.participants.length) {
+      html += `<div class="slide-participants">`;
+      data.participants.forEach(p => {
+        html += `<div class="slide-participant">`;
+        if (p.role) html += `<span class="role">${esc(p.role)}</span>`;
+        html += `${esc(p.name || '')}`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+
+    slide.innerHTML = html;
+  }
+
+  // ── Blank ──────────────────────────────────────────────────────────────────
+  function renderBlank() {
+    setSlideType('blank');
+    document.getElementById('slide').innerHTML = '';
+  }
+
+  // ── Announcement ───────────────────────────────────────────────────────────
+  function renderAnnouncement(data) {
+    setSlideType('announcement');
+    const text = data.text || data.message || '';
+    document.getElementById('slide').innerHTML =
+      `<div class="announcement-label">Announcement</div>
+       <div class="announcement-text">${esc(text)}</div>`;
+  }
+
+  // ── Image ──────────────────────────────────────────────────────────────────
+  function renderImage(data) {
+    setSlideType('image');
+    document.getElementById('slide').innerHTML =
+      `<img src="${esc(data.url || data.src || '')}" alt="">`;
+  }
+
+  // ── Video ──────────────────────────────────────────────────────────────────
+  function renderVideo(data) {
+    setSlideType('video');
+    document.getElementById('slide').innerHTML =
+      `<video autoplay loop muted src="${esc(data.url || data.src || '')}"></video>`;
+  }
+
+  // ── Timer ──────────────────────────────────────────────────────────────────
+  function renderTimer(data) {
+    setSlideType('timer');
+    _timerSeconds = data.seconds || 0;
+    _timerLabel   = data.label   || '';
+    _updateTimerDisplay();
+    if (data.running) startTimer(data);
+  }
+
+  function startTimer(data) {
+    if (data && data.seconds !== undefined) _timerSeconds = data.seconds;
+    if (data && data.label   !== undefined) _timerLabel   = data.label;
+    setSlideType('timer');
+    stopTimer();
+    _timerInterval = setInterval(function () {
+      if (_timerSeconds > 0) {
+        _timerSeconds--;
+        _updateTimerDisplay();
+      } else {
+        stopTimer();
+      }
+    }, 1000);
+  }
+
+  function pauseTimer() {
+    stopTimer();
+  }
+
+  function resetTimer(data) {
+    stopTimer();
+    _timerSeconds = (data && data.seconds) || 0;
+    _timerLabel   = (data && data.label)   || _timerLabel;
+    _updateTimerDisplay();
+  }
+
+  function stopTimer() {
+    if (_timerInterval) { clearInterval(_timerInterval); _timerInterval = null; }
+  }
+
+  function _updateTimerDisplay() {
+    const m = Math.floor(_timerSeconds / 60);
+    const s = _timerSeconds % 60;
+    const str = m + ':' + String(s).padStart(2, '0');
+    const urgent = _timerSeconds <= 60 && _timerSeconds > 0;
+    const slide = document.getElementById('slide');
+    slide.innerHTML =
+      `<div class="timer-digits${urgent ? ' urgent' : ''}">${str}</div>
+       <div class="timer-label">${esc(_timerLabel)}</div>`;
+  }
+
+  // ── Utility ────────────────────────────────────────────────────────────────
+  function esc(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // ── Fit lyrics to fill the slide ───────────────────────────────────────────
+  function fitLyricsToSlide() {
+    const slide = document.getElementById('slide');
+    const lines = slide.querySelector('.slide-lines');
+    if (!lines) return;
+    const st     = getComputedStyle(slide);
+    const availH = slide.clientHeight - parseFloat(st.paddingTop)  - parseFloat(st.paddingBottom);
+    const availW = slide.clientWidth  - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
+    let lo = 12, hi = 400;
+    while (hi - lo > 2) {
+      const mid = (lo + hi) / 2;
+      lines.style.fontSize = mid + 'px';
+      if (lines.scrollHeight <= availH && lines.scrollWidth <= availW) lo = mid;
+      else hi = mid;
+    }
+    lines.style.fontSize = Math.floor(lo) + 'px';
+  }
+
+  window.addEventListener('resize', function () {
+    if (document.querySelector('#slide .slide-lines')) fitLyricsToSlide();
+  });
+</script>
+</body>
+</html>

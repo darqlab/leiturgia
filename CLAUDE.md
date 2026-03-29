@@ -70,7 +70,7 @@ Slide dimensions: 10" × 5.625" (16:9). All coordinates use inches. The `add_ite
 
 ## Documentation
 
-All project documentation lives in `/home/dennis/Documents/leiturgia_docs/`.
+All project documentation lives in `/home/dennis/devops/projects/leiturgia/`.
 
 ### Filename Naming Convention
 

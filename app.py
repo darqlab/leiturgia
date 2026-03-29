@@ -1,4 +1,9 @@
+# eventlet monkey-patch MUST be the very first import
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, render_template, request, jsonify, send_file
+from flask_socketio import SocketIO, emit, join_room
 import json, os, copy, re
 from datetime import datetime
 from dotenv import load_dotenv
@@ -8,8 +13,14 @@ from generator_odp import generate_odp
 from scraper import fetch_hymn_lyrics, fetch_lyrics_by_title
 from claude_helpers import clean_stanzas
 from hymnal import search_titles, get_by_title, get_by_number
+from projection import ProjectionStateManager
+from media_manager import list_media
+from timer import TimerManager
 
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+proj  = ProjectionStateManager()
+timer = TimerManager()
 DATA_FILE    = "data/program.json"
 HISTORY_FILE = "data/history.json"
 HISTORY_MAX  = 6
@@ -530,8 +541,147 @@ def reset():
     return jsonify({"status": "reset"})
 
 
+# ── Projection routes ────────────────────────────────────────────────────────
+@app.route("/ch<int:n>")
+def projection_channel(n):
+    channel = f"ch{n}"
+    return render_template("projection.html", channel=channel)
+
+
+# ── Static theme files ───────────────────────────────────────────────────────
+from flask import send_from_directory
+
+_THEMES = [
+    {"id": "default",  "name": "Default (Navy/Gold)"},
+    {"id": "midnight", "name": "Midnight"},
+    {"id": "dawn",     "name": "Dawn"},
+    {"id": "forest",   "name": "Forest"},
+    {"id": "slate",    "name": "Slate"},
+    {"id": "ivory",    "name": "Ivory (Light)"},
+    {"id": "ocean",    "name": "Ocean"},
+    {"id": "ember",    "name": "Ember"},
+    {"id": "pearl",    "name": "Pearl"},
+    {"id": "royal",    "name": "Royal"},
+]
+
+@app.route("/static/themes/<path:filename>")
+def serve_theme(filename):
+    themes_dir = os.path.join(app.root_path, "templates", "themes")
+    return send_from_directory(themes_dir, filename)
+
+@app.route("/api/themes")
+def api_themes():
+    return jsonify(_THEMES)
+
+
+# ── SocketIO event handlers ──────────────────────────────────────────────────
+@socketio.on('join')
+def on_join(data):
+    channel = data.get('channel', 'ch1')
+    join_room(channel)
+
+@socketio.on('state:restore')
+def on_state_restore(data):
+    channel = data.get('channel', 'ch1')
+    state   = proj.get_state(channel)
+    # Don't restore blank — display stays in "Waiting for content…" mode
+    if state.get('type') != 'blank':
+        emit('slide:show', state)
+
+@socketio.on('slide:show')
+def on_slide_show(data):
+    channel = data.get('channel', 'ch1')
+    state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
+    proj.set_state(channel, state)
+    emit('slide:show', data, to=channel)
+
+@socketio.on('slide:blank')
+def on_slide_blank(data):
+    channel = data.get('channel', 'ch1')
+    state   = {'type': 'blank', 'data': {}, 'theme_id': 'default'}
+    proj.set_state(channel, state)
+    emit('slide:blank', state, to=channel)
+
+@socketio.on('slide:edit')
+def on_slide_edit(data):
+    channel = data.get('channel', 'ch1')
+    state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
+    proj.set_state(channel, state)
+    emit('slide:edit', data, to=channel)
+
+@socketio.on('media:image')
+def on_media_image(data):
+    channel = data.get('channel', 'ch1')
+    state   = {'type': 'image', 'data': data, 'theme_id': 'default'}
+    proj.set_state(channel, state)
+    emit('media:image', data, to=channel)
+
+@socketio.on('media:video')
+def on_media_video(data):
+    channel = data.get('channel', 'ch1')
+    state   = {'type': 'video', 'data': data, 'theme_id': 'default'}
+    proj.set_state(channel, state)
+    emit('media:video', data, to=channel)
+
+@socketio.on('announcement')
+def on_announcement(data):
+    channel = data.get('channel', 'ch1')
+    state   = {'type': 'announcement', 'data': data, 'theme_id': 'default'}
+    proj.set_state(channel, state)
+    emit('announcement', data, to=channel)
+
+@socketio.on('timer:show')
+def on_timer_show(data):
+    channel = data.get('channel', 'ch1')
+    state_d = timer.show(channel, int(data.get('seconds', 0)), data.get('label', ''))
+    state_d.update({'channel': channel, 'type': 'timer'})
+    proj.set_state(channel, {'type': 'timer', 'data': state_d, 'theme_id': 'default'})
+    emit('timer:show', state_d, to=channel)
+
+@socketio.on('timer:start')
+def on_timer_start(data):
+    channel = data.get('channel', 'ch1')
+    secs    = data.get('seconds')
+    label   = data.get('label')
+    state_d = timer.start(channel, int(secs) if secs is not None else None, label)
+    state_d.update({'channel': channel, 'type': 'timer'})
+    proj.set_state(channel, {'type': 'timer', 'data': state_d, 'theme_id': 'default'})
+    emit('timer:start', state_d, to=channel)
+
+@socketio.on('timer:pause')
+def on_timer_pause(data):
+    channel = data.get('channel', 'ch1')
+    state_d = timer.pause(channel)
+    state_d.update({'channel': channel})
+    emit('timer:pause', state_d, to=channel)
+
+@socketio.on('timer:reset')
+def on_timer_reset(data):
+    channel = data.get('channel', 'ch1')
+    secs    = data.get('seconds')
+    state_d = timer.reset(channel, int(secs) if secs is not None else None)
+    state_d.update({'channel': channel, 'type': 'timer'})
+    proj.set_state(channel, {'type': 'timer', 'data': state_d, 'theme_id': 'default'})
+    emit('timer:reset', state_d, to=channel)
+
+
+# ── Media routes ─────────────────────────────────────────────────────────────
+@app.route("/api/media")
+def api_media():
+    return jsonify(list_media())
+
+@app.route("/media/<subdir>/<path:filename>")
+def serve_media(subdir, filename):
+    if subdir not in ("images", "videos"):
+        return "Not found", 404
+    media_dir = os.path.join(app.root_path, "media", subdir)
+    return send_from_directory(media_dir, filename)
+
+
 if __name__ == "__main__":
-    os.makedirs("data",     exist_ok=True)
-    os.makedirs(LYRICS_DIR, exist_ok=True)
-    os.makedirs("output",   exist_ok=True)
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    os.makedirs("data",        exist_ok=True)
+    os.makedirs(LYRICS_DIR,    exist_ok=True)
+    os.makedirs("output",      exist_ok=True)
+    os.makedirs("media/images", exist_ok=True)
+    os.makedirs("media/videos", exist_ok=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
