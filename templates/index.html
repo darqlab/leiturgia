@@ -1311,6 +1311,26 @@
   <!-- Blank button -->
   <button class="btn-rp-blank" onclick="_projBlank()">■ Blank Screen</button>
 
+  <!-- Announcement console -->
+  <div>
+    <div class="rp-section-label">Announcement</div>
+    <textarea id="announcementText" rows="2"
+      placeholder="Type announcement…"
+      style="width:100%;background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--white);padding:7px 9px;font-family:inherit;font-size:12px;resize:vertical;"></textarea>
+    <button class="btn-rp-blank" style="margin-top:6px;" onclick="sendAnnouncement()">▶ Send Announcement</button>
+  </div>
+
+  <!-- Media picker -->
+  <div>
+    <div class="rp-section-label" style="display:flex;justify-content:space-between;align-items:center;">
+      Media
+      <button onclick="loadMediaList()" style="background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;padding:0;">↺ Refresh</button>
+    </div>
+    <div id="mediaList" style="display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto;">
+      <span style="color:var(--muted);font-size:11px;">Click ↺ to load media files.</span>
+    </div>
+  </div>
+
 </aside>
 
 </div><!-- /page-layout -->
@@ -2658,6 +2678,56 @@
     const sel = document.getElementById('panelSectionSelect');
     if (sel) buildSlideStrip(sel.value);
   })();
+
+  // ── Announcement ────────────────────────────────────────────────────────────
+  function sendAnnouncement() {
+    const text = document.getElementById('announcementText')?.value.trim();
+    if (!text) return;
+    const ch = _getChannel();
+    const data = { type: 'announcement', text, channel: ch };
+    _socket.emit('announcement', data);
+    renderLivePreview(data);
+  }
+
+  // ── Media ───────────────────────────────────────────────────────────────────
+  async function loadMediaList() {
+    const list = document.getElementById('mediaList');
+    list.innerHTML = '<span style="color:var(--muted);font-size:11px;">Loading…</span>';
+    try {
+      const res  = await fetch('/api/media');
+      const data = await res.json();
+      const images = data.images || [];
+      const videos = data.videos || [];
+      if (!images.length && !videos.length) {
+        list.innerHTML = '<span style="color:var(--muted);font-size:11px;">No media files found in media/images/ or media/videos/.</span>';
+        return;
+      }
+      list.innerHTML = '';
+      images.forEach(f => list.appendChild(_mediaThumb(f, 'image')));
+      videos.forEach(f => list.appendChild(_mediaThumb(f, 'video')));
+    } catch (e) {
+      list.innerHTML = '<span style="color:var(--error);font-size:11px;">Failed to load media.</span>';
+    }
+  }
+
+  function _mediaThumb(file, type) {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;background:var(--card);border:1px solid var(--border);border-radius:5px;color:var(--white);font-size:11px;padding:5px 8px;cursor:pointer;text-align:left;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;transition:border-color 0.15s;';
+    btn.title = file.name;
+    btn.textContent = (type === 'image' ? '🖼 ' : '▶ ') + file.name;
+    btn.addEventListener('mouseenter', () => btn.style.borderColor = 'var(--gold)');
+    btn.addEventListener('mouseleave', () => btn.style.borderColor = 'var(--border)');
+    btn.addEventListener('click', () => sendMedia(file.url, type));
+    return btn;
+  }
+
+  function sendMedia(url, type) {
+    const ch   = _getChannel();
+    const event = type === 'image' ? 'media:image' : 'media:video';
+    const data  = { type, url, channel: ch };
+    _socket.emit(event, data);
+    renderLivePreview(data);
+  }
 </script>
 
 <!-- ── Lyrics preview modal ─────────────────────────────────────────────── -->

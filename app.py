@@ -14,6 +14,7 @@ from scraper import fetch_hymn_lyrics, fetch_lyrics_by_title
 from claude_helpers import clean_stanzas
 from hymnal import search_titles, get_by_title, get_by_number
 from projection import ProjectionStateManager
+from media_manager import list_media
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
@@ -586,6 +587,40 @@ def on_slide_edit(data):
     state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
     proj.set_state(channel, state)
     emit('slide:edit', data, to=channel)
+
+@socketio.on('media:image')
+def on_media_image(data):
+    channel = data.get('channel', 'ch1')
+    state   = {'type': 'image', 'data': data, 'theme_id': 'default'}
+    proj.set_state(channel, state)
+    emit('media:image', data, to=channel)
+
+@socketio.on('media:video')
+def on_media_video(data):
+    channel = data.get('channel', 'ch1')
+    state   = {'type': 'video', 'data': data, 'theme_id': 'default'}
+    proj.set_state(channel, state)
+    emit('media:video', data, to=channel)
+
+@socketio.on('announcement')
+def on_announcement(data):
+    channel = data.get('channel', 'ch1')
+    state   = {'type': 'announcement', 'data': data, 'theme_id': 'default'}
+    proj.set_state(channel, state)
+    emit('announcement', data, to=channel)
+
+
+# ── Media routes ─────────────────────────────────────────────────────────────
+@app.route("/api/media")
+def api_media():
+    return jsonify(list_media())
+
+@app.route("/media/<subdir>/<path:filename>")
+def serve_media(subdir, filename):
+    if subdir not in ("images", "videos"):
+        return "Not found", 404
+    media_dir = os.path.join(app.root_path, "media", subdir)
+    return send_from_directory(media_dir, filename)
 
 
 if __name__ == "__main__":
