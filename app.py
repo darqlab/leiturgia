@@ -627,6 +627,11 @@ def on_media_video(data):
     proj.set_state(channel, state)
     emit('media:video', data, to=channel)
 
+@socketio.on('media:status')
+def on_media_status(data):
+    channel = data.get('channel', 'ch1')
+    emit('media:status', data, to=channel)
+
 @socketio.on('announcement')
 def on_announcement(data):
     channel = data.get('channel', 'ch1')

@@ -227,34 +227,11 @@
       pointer-events: none;
     }
 
-    /* ── Audio unlock overlay ── */
-    #audio-unlock {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      gap: 1rem;
-      background: rgba(0,0,0,0.75);
-      z-index: 999;
-      cursor: pointer;
-    }
-    #audio-unlock.hidden { display: none; }
-    #audio-unlock .unlock-icon { font-size: 3rem; }
-    #audio-unlock .unlock-text {
-      font-size: 1rem;
-      color: var(--proj-muted);
-      letter-spacing: 0.1em;
-    }
   </style>
 </head>
 <body>
 
 <div id="channel-badge">{{ channel }}</div>
-
-<!-- Shown once on first load; click unlocks browser audio policy -->
-<div id="audio-unlock" onclick="unlockAudio()">
-  <div class="unlock-icon">🔊</div>
-  <div class="unlock-text">Click anywhere to enable audio</div>
-</div>
 
 <div id="slide" class="type-blank">
   <!-- Content injected by JS -->
@@ -396,30 +373,27 @@
   // ── Video ──────────────────────────────────────────────────────────────────
   function renderVideo(data) {
     setSlideType('video');
-    const src      = esc(data.url || data.src || '');
-    const loop     = data.loop     ? 'loop'     : '';
-    const autoplay = data.autoplay !== false ? 'autoplay' : '';
-    const muted    = data.mute     !== false ? 'muted'    : '';
-    document.getElementById('slide').innerHTML =
-      `<video ${autoplay} ${loop} ${muted} playsinline src="${src}"></video>`;
-    const vid = document.getElementById('slide').querySelector('video');
-    if (vid) {
-      vid.play().catch(() => {
-        // Autoplay blocked — unmute and let browser show native play prompt
-        vid.muted = true;
-        vid.play().catch(() => {});
-      });
-    }
-  }
+    const slide = document.getElementById('slide');
+    slide.innerHTML = '';
 
-  // ── Audio unlock (one-time user gesture to satisfy browser autoplay policy) ─
-  let _audioUnlocked = false;
-  function unlockAudio() {
-    _audioUnlocked = true;
-    document.getElementById('audio-unlock').classList.add('hidden');
-    // Resume any currently playing video with correct mute state
-    const vid = document.querySelector('#slide video');
-    if (vid) vid.play().catch(() => {});
+    const vid = document.createElement('video');
+    vid.src         = data.url || data.src || '';
+    vid.loop        = data.loop || false;
+    vid.muted       = true;   // always start muted — unmuted after play() resolves
+    vid.playsInline = true;
+    vid.preload     = 'auto';
+    vid.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+    slide.appendChild(vid);
+
+    vid.play()
+      .then(() => {
+        vid.muted = false;
+        socket.emit('media:status', { channel: CHANNEL, audio: 'ok' });
+      })
+      .catch(() => {
+        // Stay muted — video still plays silently (acceptable on Smart TVs)
+        socket.emit('media:status', { channel: CHANNEL, audio: 'muted' });
+      });
   }
 
   // ── Timer ──────────────────────────────────────────────────────────────────

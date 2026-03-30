@@ -416,7 +416,7 @@
     }
     .main-content::-webkit-scrollbar { width: 4px; }
     .main-content::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
-    .container { padding: 1.5rem 2rem 120px; }
+    .container { padding: 1.5rem 2rem 160px; }
 
 
     .status-group { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; }
@@ -1156,7 +1156,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 96px;
+      height: 130px;
       background: #040b18;
       border-top: 1px solid #0e1a30;
       display: flex;
@@ -1187,8 +1187,8 @@
 
     .strip-thumb {
       flex-shrink: 0;
-      width: 104px;
-      height: 72px;
+      width: 160px;
+      height: 110px;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 5px;
@@ -1240,7 +1240,7 @@
     }
 
     /* Push page content above fixed footer strip */
-    body { padding-bottom: 96px; }
+    body { padding-bottom: 130px; }
 
     /* ── Channel tiles (multi-channel overview) ── */
     .channel-tiles {
@@ -1263,6 +1263,7 @@
     .ch-tile.selected { border-color: var(--gold); }
     .ch-tile-name { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: 0.05em; }
     .ch-tile-state { font-size: 8px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ch-audio-badge { font-size: 10px; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -2304,10 +2305,16 @@
 
   function switchPanelSection(val) {
     _activeProgram = val;
+    localStorage.setItem('leiturgia_active_program', val);
     // Highlight active nav item
     document.querySelectorAll('.program-nav-item').forEach(el => {
       el.classList.toggle('active', el.dataset.programId === val);
     });
+    const activeNav = document.querySelector('.program-nav-item.active');
+    if (activeNav) {
+      const panel = document.querySelector('.slide-panel');
+      if (panel) panel.scrollTo({ top: activeNav.offsetTop - (panel.clientHeight / 2) + (activeNav.offsetHeight / 2), behavior: 'smooth' });
+    }
     // Show only the selected program in main content
     document.querySelectorAll('.service-program').forEach(sp => {
       sp.style.display = sp.dataset.programId === val ? '' : 'none';
@@ -2321,8 +2328,16 @@
     fetch(`/api/programs/${programId}`, { method: "DELETE" })
       .then(r => r.json())
       .then(data => {
-        if (data.ok) window.location.reload();
-        else toast(data.error || "Delete failed", "error");
+        if (data.ok) {
+          // Remove nav item and service-program from DOM
+          document.querySelector(`.program-nav-item[data-program-id="${programId}"]`)?.remove();
+          document.querySelector(`.service-program[data-program-id="${programId}"]`)?.remove();
+          // Select the first remaining program
+          const firstNav = document.querySelector('.program-nav-item');
+          if (firstNav) switchPanelSection(firstNav.dataset.programId);
+        } else {
+          toast(data.error || "Delete failed", "error");
+        }
       })
       .catch(() => toast("Delete failed", "error"));
   }
@@ -2523,19 +2538,23 @@
   }
 
   // Live projection state — must be declared before switchPanelSection runs
-  // because buildSlideStrip (called from switchPanelSection) reads _activeThumbItemId
+  // because buildSlideStrip (called from switchPanelSection) reads these
   let _activeThumbItemId   = null;
   let _activeThumbStanzaIdx = null;
   let _projItem      = null;
   let _projStanzas   = [];
   let _projStanzaIdx = 0;
+  let _stripBuildId  = 0;
   const _chStateSummary = {};
   let _activeProgram = null;
 
-  // Initialise active program from first nav item
+  // Initialise active program — restore from localStorage or fall back to first
   (function () {
-    const firstNav = document.querySelector('.program-nav-item');
-    if (firstNav) switchPanelSection(firstNav.dataset.programId);
+    const saved  = localStorage.getItem('leiturgia_active_program');
+    const target = saved && document.querySelector(`.program-nav-item[data-program-id="${saved}"]`)
+                   ? saved
+                   : document.querySelector('.program-nav-item')?.dataset.programId;
+    if (target) switchPanelSection(target);
   })();
 
   // ── Main-content drag-and-drop reorder ───────────────────────────────────
@@ -2766,6 +2785,7 @@
       const data = await res.json();
 
       if (data.status === "ok") {
+        document.querySelectorAll('#slideStrip .strip-thumb').forEach(t => t.remove());
         window.location.href = "/?select=" + encodeURIComponent(data.id);
       } else {
         errEl.textContent = data.message || "An error occurred.";
@@ -2863,8 +2883,6 @@
     const sel = new URLSearchParams(location.search).get("select");
     if (sel) {
       switchPanelSection(sel);
-      const spEl = document.querySelector(`.service-program[data-program-id="${sel}"]`);
-      if (spEl) spEl.scrollIntoView({ behavior: 'smooth' });
       // Clean URL without reloading
       history.replaceState(null, "", location.pathname);
     }
@@ -3064,6 +3082,29 @@
     toast('Download failed: ' + (data.message || 'Unknown error'), 'error');
   });
 
+  _socket.on('media:status', function (data) {
+    _updateAudioBadge(data.channel, data.audio);
+  });
+
+  function _updateAudioBadge(ch, audioState) {
+    const tile = document.querySelector(`.ch-tile[data-ch="${ch}"]`);
+    if (!tile) return;
+    let badge = tile.querySelector('.ch-audio-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'ch-audio-badge';
+      tile.appendChild(badge);
+    }
+    badge.textContent = audioState === 'ok' ? '🔊' : '🔇';
+  }
+
+  function _clearAudioBadge(ch) {
+    const tile = document.querySelector(`.ch-tile[data-ch="${ch}"]`);
+    if (!tile) return;
+    const badge = tile.querySelector('.ch-audio-badge');
+    if (badge) badge.textContent = '';
+  }
+
   function _getChannel() {
     return document.getElementById('channelSelect')?.value || 'ch1';
   }
@@ -3159,6 +3200,7 @@
 
   // ── Slide strip ────────────────────────────────────────────────────────────
   async function buildSlideStrip(programId) {
+    const buildId = ++_stripBuildId;  // invalidates any prior in-flight build
     const strip   = document.getElementById('slideStrip');
     const labelEl = document.getElementById('stripSectionLabel');
     if (!strip) return;
@@ -3180,6 +3222,7 @@
         if (lk) {
           try {
             const res     = await fetch(`/api/lyrics/${encodeURIComponent(lk)}`);
+            if (buildId !== _stripBuildId) return;  // stale — a newer build has started
             const data    = await res.json();
             const stanzas = _interleaveStanzas((data.status === 'ok') ? data.stanzas : []);
             if (stanzas.length) {
@@ -3284,6 +3327,15 @@
     });
     const active = document.querySelector('.strip-thumb.active');
     if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    if (itemEl) {
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent) {
+        const itemTop    = itemEl.offsetTop;
+        const itemHeight = itemEl.offsetHeight;
+        const panelHeight = mainContent.clientHeight;
+        mainContent.scrollTo({ top: itemTop - (panelHeight / 2) + (itemHeight / 2), behavior: 'smooth' });
+      }
+    }
   }
 
   // Interleave chorus/refrain after every verse: V1 Ch V2 Ch V3 Ch ...
@@ -3405,7 +3457,9 @@
   }
 
   function _projBlank() {
-    _socket.emit('slide:blank', { channel: _getChannel() });
+    const ch = _getChannel();
+    _socket.emit('slide:blank', { channel: ch });
+    _clearAudioBadge(ch);
     renderLivePreview({ type: 'blank' });
   }
 
