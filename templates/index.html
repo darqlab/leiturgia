@@ -1263,6 +1263,7 @@
     .ch-tile.selected { border-color: var(--gold); }
     .ch-tile-name { font-size: 10px; font-weight: 700; color: var(--gold); letter-spacing: 0.05em; }
     .ch-tile-state { font-size: 8px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ch-audio-badge { font-size: 10px; margin-top: 2px; }
   </style>
 </head>
 <body>
@@ -3064,6 +3065,29 @@
     toast('Download failed: ' + (data.message || 'Unknown error'), 'error');
   });
 
+  _socket.on('media:status', function (data) {
+    _updateAudioBadge(data.channel, data.audio);
+  });
+
+  function _updateAudioBadge(ch, audioState) {
+    const tile = document.querySelector(`.ch-tile[data-ch="${ch}"]`);
+    if (!tile) return;
+    let badge = tile.querySelector('.ch-audio-badge');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'ch-audio-badge';
+      tile.appendChild(badge);
+    }
+    badge.textContent = audioState === 'ok' ? '🔊' : '🔇';
+  }
+
+  function _clearAudioBadge(ch) {
+    const tile = document.querySelector(`.ch-tile[data-ch="${ch}"]`);
+    if (!tile) return;
+    const badge = tile.querySelector('.ch-audio-badge');
+    if (badge) badge.textContent = '';
+  }
+
   function _getChannel() {
     return document.getElementById('channelSelect')?.value || 'ch1';
   }
@@ -3405,7 +3429,9 @@
   }
 
   function _projBlank() {
-    _socket.emit('slide:blank', { channel: _getChannel() });
+    const ch = _getChannel();
+    _socket.emit('slide:blank', { channel: ch });
+    _clearAudioBadge(ch);
     renderLivePreview({ type: 'blank' });
   }
 
