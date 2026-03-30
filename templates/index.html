@@ -416,7 +416,7 @@
     }
     .main-content::-webkit-scrollbar { width: 4px; }
     .main-content::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
-    .container { padding: 1.5rem 2rem 120px; }
+    .container { padding: 1.5rem 2rem 160px; }
 
 
     .status-group { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; }
@@ -2327,8 +2327,16 @@
     fetch(`/api/programs/${programId}`, { method: "DELETE" })
       .then(r => r.json())
       .then(data => {
-        if (data.ok) window.location.reload();
-        else toast(data.error || "Delete failed", "error");
+        if (data.ok) {
+          // Remove nav item and service-program from DOM
+          document.querySelector(`.program-nav-item[data-program-id="${programId}"]`)?.remove();
+          document.querySelector(`.service-program[data-program-id="${programId}"]`)?.remove();
+          // Select the first remaining program
+          const firstNav = document.querySelector('.program-nav-item');
+          if (firstNav) switchPanelSection(firstNav.dataset.programId);
+        } else {
+          toast(data.error || "Delete failed", "error");
+        }
       })
       .catch(() => toast("Delete failed", "error"));
   }
