@@ -1292,12 +1292,13 @@
   {% for sp in program.service_programs %}
   <div class="program-nav-item{% if loop.first %} active{% endif %}"
        data-program-id="{{ sp.id }}"
+       data-program-name="{{ sp.name | e }}"
        draggable="true"
        onclick="switchPanelSection('{{ sp.id }}')">
     <span class="program-nav-drag" title="Drag to reorder">⠿</span>
     <span class="program-nav-name">{{ sp.name }}</span>
     <button class="btn-delete-prog-inline"
-            onclick="event.stopPropagation(); deleteProgram('{{ sp.id }}', {{ sp.name | tojson }})"
+            onclick="event.stopPropagation(); var n=this.closest('.program-nav-item'); deleteProgram(n.dataset.programId, n.dataset.programName)"
             {% if program.service_programs|length <= 1 %}disabled{% endif %}
             title="Delete program">✕</button>
   </div>
