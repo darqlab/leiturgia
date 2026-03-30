@@ -1156,7 +1156,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: 96px;
+      height: 130px;
       background: #040b18;
       border-top: 1px solid #0e1a30;
       display: flex;
@@ -1187,8 +1187,8 @@
 
     .strip-thumb {
       flex-shrink: 0;
-      width: 104px;
-      height: 72px;
+      width: 160px;
+      height: 110px;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 5px;
@@ -1240,7 +1240,7 @@
     }
 
     /* Push page content above fixed footer strip */
-    body { padding-bottom: 96px; }
+    body { padding-bottom: 130px; }
 
     /* ── Channel tiles (multi-channel overview) ── */
     .channel-tiles {
@@ -2309,6 +2309,11 @@
     document.querySelectorAll('.program-nav-item').forEach(el => {
       el.classList.toggle('active', el.dataset.programId === val);
     });
+    const activeNav = document.querySelector('.program-nav-item.active');
+    if (activeNav) {
+      const panel = document.querySelector('.slide-panel');
+      if (panel) panel.scrollTo({ top: activeNav.offsetTop - (panel.clientHeight / 2) + (activeNav.offsetHeight / 2), behavior: 'smooth' });
+    }
     // Show only the selected program in main content
     document.querySelectorAll('.service-program').forEach(sp => {
       sp.style.display = sp.dataset.programId === val ? '' : 'none';
@@ -2767,6 +2772,7 @@
       const data = await res.json();
 
       if (data.status === "ok") {
+        document.querySelectorAll('#slideStrip .strip-thumb').forEach(t => t.remove());
         window.location.href = "/?select=" + encodeURIComponent(data.id);
       } else {
         errEl.textContent = data.message || "An error occurred.";
@@ -2864,8 +2870,6 @@
     const sel = new URLSearchParams(location.search).get("select");
     if (sel) {
       switchPanelSection(sel);
-      const spEl = document.querySelector(`.service-program[data-program-id="${sel}"]`);
-      if (spEl) spEl.scrollIntoView({ behavior: 'smooth' });
       // Clean URL without reloading
       history.replaceState(null, "", location.pathname);
     }
@@ -3182,7 +3186,10 @@
   }
 
   // ── Slide strip ────────────────────────────────────────────────────────────
+  let _stripBuildId = 0;
+
   async function buildSlideStrip(programId) {
+    const buildId = ++_stripBuildId;  // invalidates any prior in-flight build
     const strip   = document.getElementById('slideStrip');
     const labelEl = document.getElementById('stripSectionLabel');
     if (!strip) return;
@@ -3204,6 +3211,7 @@
         if (lk) {
           try {
             const res     = await fetch(`/api/lyrics/${encodeURIComponent(lk)}`);
+            if (buildId !== _stripBuildId) return;  // stale — a newer build has started
             const data    = await res.json();
             const stanzas = _interleaveStanzas((data.status === 'ok') ? data.stanzas : []);
             if (stanzas.length) {
@@ -3308,6 +3316,15 @@
     });
     const active = document.querySelector('.strip-thumb.active');
     if (active) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    if (itemEl) {
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent) {
+        const itemTop    = itemEl.offsetTop;
+        const itemHeight = itemEl.offsetHeight;
+        const panelHeight = mainContent.clientHeight;
+        mainContent.scrollTo({ top: itemTop - (panelHeight / 2) + (itemHeight / 2), behavior: 'smooth' });
+      }
+    }
   }
 
   // Interleave chorus/refrain after every verse: V1 Ch V2 Ch V3 Ch ...
