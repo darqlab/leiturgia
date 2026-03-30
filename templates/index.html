@@ -2305,6 +2305,7 @@
 
   function switchPanelSection(val) {
     _activeProgram = val;
+    localStorage.setItem('leiturgia_active_program', val);
     // Highlight active nav item
     document.querySelectorAll('.program-nav-item').forEach(el => {
       el.classList.toggle('active', el.dataset.programId === val);
@@ -2537,19 +2538,23 @@
   }
 
   // Live projection state — must be declared before switchPanelSection runs
-  // because buildSlideStrip (called from switchPanelSection) reads _activeThumbItemId
+  // because buildSlideStrip (called from switchPanelSection) reads these
   let _activeThumbItemId   = null;
   let _activeThumbStanzaIdx = null;
   let _projItem      = null;
   let _projStanzas   = [];
   let _projStanzaIdx = 0;
+  let _stripBuildId  = 0;
   const _chStateSummary = {};
   let _activeProgram = null;
 
-  // Initialise active program from first nav item
+  // Initialise active program — restore from localStorage or fall back to first
   (function () {
-    const firstNav = document.querySelector('.program-nav-item');
-    if (firstNav) switchPanelSection(firstNav.dataset.programId);
+    const saved  = localStorage.getItem('leiturgia_active_program');
+    const target = saved && document.querySelector(`.program-nav-item[data-program-id="${saved}"]`)
+                   ? saved
+                   : document.querySelector('.program-nav-item')?.dataset.programId;
+    if (target) switchPanelSection(target);
   })();
 
   // ── Main-content drag-and-drop reorder ───────────────────────────────────
@@ -3194,8 +3199,6 @@
   }
 
   // ── Slide strip ────────────────────────────────────────────────────────────
-  let _stripBuildId = 0;
-
   async function buildSlideStrip(programId) {
     const buildId = ++_stripBuildId;  // invalidates any prior in-flight build
     const strip   = document.getElementById('slideStrip');
