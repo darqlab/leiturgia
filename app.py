@@ -632,6 +632,11 @@ def on_media_status(data):
     channel = data.get('channel', 'ch1')
     emit('media:status', data, to=channel)
 
+@socketio.on('media:blocked')
+def on_media_blocked(data):
+    channel = data.get('channel', 'ch1')
+    emit('media:blocked', data, to=channel)
+
 @socketio.on('announcement')
 def on_announcement(data):
     channel = data.get('channel', 'ch1')
