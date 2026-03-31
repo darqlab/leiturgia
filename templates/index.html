@@ -220,7 +220,6 @@
       color: var(--white);
     }
     .radio-option input[type="radio"] { accent-color: var(--gold); cursor: pointer; }
-    #addSheetRow { display: none; flex-direction: column; gap: 5px; margin-top: 4px; }
 
     .outline-cat-header {
       padding: 10px 12px 6px;
@@ -610,55 +609,42 @@
     .badge-content { background: #1a2a1a; color: #7ab87a; border: 1px solid #1e3a1e; }
     .badge-media   { background: #2a1a3a; color: #c07ae8; border: 1px solid #3a1e52; }
 
-    .media-picker-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      max-height: 140px;
-      overflow-y: auto;
-      padding: 6px;
-      background: var(--card);
+    .media-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .media-search-input {
+      width: 100%; padding: 5px 8px; font-size: 12px;
+      background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+      border-radius: 5px; color: var(--text); margin-bottom: 4px;
+      box-sizing: border-box;
+    }
+    .media-search-input::placeholder { color: var(--muted); }
+    .media-file-list {
+      display: flex; flex-direction: column; gap: 3px;
+      max-height: 200px; overflow-y: auto;
+      background: rgba(0,0,0,0.15); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px;
+    }
+    .media-file-row {
+      display: grid; grid-template-columns: 20px 1fr auto auto auto auto;
+      align-items: center; gap: 8px; padding: 5px 8px;
+      border-radius: 4px; font-size: 12px; color: var(--text);
+    }
+    .media-file-row:hover { background: rgba(255,255,255,0.04); }
+    .media-file-row.selected { background: rgba(212,168,67,0.12); }
+    .media-file-icon { font-size: 13px; text-align: center; }
+    .media-file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .media-file-dur, .media-file-size { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .btn-media-use {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: var(--gold-dim); color: var(--bg); cursor: pointer; border: none;
+    }
+    .btn-media-use:hover { background: var(--gold); }
+    .btn-media-remove {
+      font-size: 11px; padding: 2px 6px; border-radius: 4px;
+      background: transparent; color: var(--muted); cursor: pointer;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      margin-top: 4px;
     }
-    .media-picker-thumb {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      padding: 5px;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      cursor: pointer;
-      width: 72px;
-      transition: border-color 0.12s;
-      background: var(--bg);
-    }
-    .media-picker-thumb:hover { border-color: var(--gold-dim); }
-    .media-picker-thumb.selected { border-color: var(--gold); background: #162240; }
-    .media-picker-thumb img {
-      width: 60px; height: 40px;
-      object-fit: cover;
-      border-radius: 3px;
-    }
-    .media-picker-thumb .media-icon {
-      width: 60px; height: 40px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      background: #0a1628;
-      border-radius: 3px;
-    }
-    .media-picker-thumb span {
-      font-size: 9px;
-      color: var(--muted);
-      text-align: center;
-      word-break: break-all;
-      max-width: 64px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    .btn-media-remove:hover { background: rgba(180,50,50,0.2); color: #e07070; border-color: #7a3030; }
+    .media-file-list-empty { padding: 12px; text-align: center; font-size: 12px; color: var(--muted); }
     .item-body { padding: 14px; border-top: 1px solid var(--border); display: none; }
     .item-body.open { display: block; }
 
@@ -718,6 +704,23 @@
       color: var(--muted);
       margin-top: 3px;
     }
+    .platform-url-warning {
+      display: none; align-items: center; gap: 6px;
+      padding: 4px 8px; margin-top: 4px;
+      background: rgba(180,130,0,0.15);
+      border: 1px solid rgba(180,130,0,0.4);
+      border-radius: 5px; font-size: 11px;
+    }
+    .platform-url-warning.visible { display: flex; }
+    .platform-warn-icon { font-size: 13px; }
+    .platform-warn-text { flex: 1; color: #c8a227; }
+    .btn-use-downloaded {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: var(--gold-dim); color: var(--bg);
+      cursor: pointer; border: none; display: none;
+    }
+    .btn-use-downloaded.visible { display: inline-block; }
+    .btn-use-downloaded:hover { background: var(--gold); }
 
     /* ── Participants ── */
     .participants { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
@@ -1337,18 +1340,6 @@
         <input type="text" id="addProgramName" placeholder="e.g. Adventist Youth">
       </div>
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <label class="radio-option">
-          <input type="radio" name="addMode" value="empty" checked onchange="toggleAddMode()">
-          Create empty
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="addMode" value="sheet" onchange="toggleAddMode()">
-          Import from Google Sheet
-        </label>
-        <div id="addSheetRow">
-          <label>Sheet URL or ID</label>
-          <input type="text" id="addSheetId" placeholder="https://docs.google.com/spreadsheets/d/…">
-        </div>
       </div>
       <div id="addProgramError" style="display:none; color:var(--error); font-size:13px;"></div>
     </div>
@@ -1409,8 +1400,14 @@
               </div>
             </div>
             <div class="field" style="margin-top:8px">
-              <label>Pick file <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px" onclick="loadMediaPickerFor(this.closest('.program-item'))">↺ Refresh</button></label>
-              <div class="media-picker-grid">Loading…</div>
+              <div class="media-list-header">
+                <label>Media Files</label>
+                <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
+                        onclick="loadMediaListFor(this.closest('.program-item'))">↺ Refresh</button>
+              </div>
+              <input type="text" class="media-search-input" placeholder="Search files…"
+                     oninput="filterMediaList(this.closest('.program-item'))">
+              <div class="media-file-list"></div>
             </div>
             <div class="field" style="margin-top:8px">
               <label>Upload new file</label>
@@ -1422,6 +1419,7 @@
               <label>Or paste URL</label>
               <input type="text" class="item-media-url" value="{{ item.get('url','') }}"
                      placeholder="https://… or /media/images/file.jpg"
+                     onfocus="this.select()"
                      oninput="onMediaUrlInput(this.closest('.program-item'))">
               <div class="yt-download-controls">
                 <select class="yt-quality-select">
@@ -1437,6 +1435,12 @@
               <div class="yt-progress-wrap">
                 <div class="yt-progress-bar"><div class="yt-progress-fill"></div></div>
                 <div class="yt-progress-info">Starting…</div>
+              </div>
+              <div class="platform-url-warning">
+                <span class="platform-warn-icon">⚠</span>
+                <span class="platform-warn-text">Streaming from platform URL</span>
+                <button class="btn-use-downloaded"
+                        onclick="_useDownloadedVersion(this.closest('.program-item'))">Use downloaded ↓</button>
               </div>
             </div>
             <div class="media-selected-info" style="margin-top:6px;font-size:11px;color:var(--gold)">
@@ -1705,8 +1709,14 @@
           <div class="field"><label>Title</label><input type="text" class="item-title" value="" placeholder="e.g. Welcome Slide"></div>
         </div>
         <div class="field" style="margin-top:8px">
-          <label>Pick file <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px" onclick="loadMediaPickerFor(this.closest('.program-item'))">↺ Refresh</button></label>
-          <div class="media-picker-grid">Loading…</div>
+          <div class='media-list-header'>
+            <label>Media Files</label>
+            <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
+                    onclick='loadMediaListFor(this.closest(".program-item"))'>↺ Refresh</button>
+          </div>
+          <input type='text' class='media-search-input' placeholder='Search files…'
+                 oninput='filterMediaList(this.closest(".program-item"))'>
+          <div class='media-file-list'></div>
         </div>
         <div class="field" style="margin-top:8px">
           <label>Upload new file</label>
@@ -1717,6 +1727,7 @@
         <div class="field" style="margin-top:8px">
           <label>Or paste URL</label>
           <input type="text" class="item-media-url" value="" placeholder="https://… or /media/images/file.jpg"
+                 onfocus="this.select()"
                  oninput="onMediaUrlInput(this.closest('.program-item'))">
           <div class="yt-download-controls">
             <select class="yt-quality-select">
@@ -1732,6 +1743,12 @@
           <div class="yt-progress-wrap">
             <div class="yt-progress-bar"><div class="yt-progress-fill"></div></div>
             <div class="yt-progress-info">Starting…</div>
+          </div>
+          <div class='platform-url-warning'>
+            <span class='platform-warn-icon'>⚠</span>
+            <span class='platform-warn-text'>Streaming from platform URL</span>
+            <button class='btn-use-downloaded'
+                    onclick='_useDownloadedVersion(this.closest(".program-item"))'>Use downloaded ↓</button>
           </div>
         </div>
         <div class="media-selected-info" style="margin-top:6px;font-size:11px;color:var(--gold)"></div>
@@ -2211,7 +2228,13 @@
     el.querySelector(".item-chevron")?.classList.add("open");
     el.classList.add("item-editing");
     loadLyricsDisplay(el);
-    if (el.dataset.itemType === 'media') loadMediaPickerFor(el);
+    if (el.dataset.itemType === 'media') {
+      loadMediaListFor(el);
+      _checkPlatformUrl(el);      // show download controls if URL is a platform URL
+      _updatePlatformWarning(el); // show warning badge + cache lookup
+      const _openUrl = el.querySelector('.item-media-url')?.value.trim();
+      if (_openUrl) _fetchUrlTitle(el, _openUrl); // check embeddability for pre-saved URLs
+    }
 
     // Highlight in sidebar
     document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
@@ -2344,36 +2367,73 @@
 
   // ── Media item helpers ───────────────────────────────────────────────────
 
-  // Task 3.2 — load file picker grid from /api/media
-  async function loadMediaPickerFor(itemEl) {
-    const grid = itemEl.querySelector('.media-picker-grid');
-    if (!grid) return;
-    grid.textContent = 'Loading…';
+  // ── Media file list ──────────────────────────────────────────────────────
+  async function loadMediaListFor(itemEl) {
+    const list = itemEl.querySelector('.media-file-list');
+    if (!list) return;
+    list.innerHTML = '<div class="media-file-list-empty">Loading…</div>';
+    const search = itemEl.querySelector('.media-search-input');
+    if (search) search.value = '';
     try {
       const res  = await fetch('/api/media');
       const data = await res.json();
       const files = [...(data.images || []).map(f => ({...f, media_type: 'image'})),
                      ...(data.videos || []).map(f => ({...f, media_type: 'video'}))];
-      if (!files.length) { grid.textContent = 'No media files found.'; return; }
-      grid.innerHTML = '';
-      const currentUrl = itemEl.querySelector('.item-media-url')?.value || '';
-      files.forEach(f => {
-        const thumb = document.createElement('div');
-        thumb.className = 'media-picker-thumb' + (f.url === currentUrl ? ' selected' : '');
-        if (f.media_type === 'image') {
-          thumb.innerHTML = `<img src="${f.url}" alt="${f.name}"><span>${f.name}</span>`;
-        } else {
-          thumb.innerHTML = `<div class="media-icon">▶</div><span>${f.name}</span>`;
-        }
-        thumb.addEventListener('click', () => {
-          grid.querySelectorAll('.media-picker-thumb').forEach(t => t.classList.remove('selected'));
-          thumb.classList.add('selected');
-          _setMediaItem(itemEl, f.url, f.media_type);
-        });
-        grid.appendChild(thumb);
-      });
+      list._allFiles = files;
+      _renderMediaList(itemEl, files);
     } catch (e) {
-      grid.textContent = 'Failed to load media.';
+      list.innerHTML = '<div class="media-file-list-empty">Failed to load files.</div>';
+    }
+  }
+
+  function filterMediaList(itemEl) {
+    const list  = itemEl.querySelector('.media-file-list');
+    const query = (itemEl.querySelector('.media-search-input')?.value || '').toLowerCase();
+    const files = list._allFiles || [];
+    _renderMediaList(itemEl, query ? files.filter(f => f.name.toLowerCase().includes(query)) : files);
+  }
+
+  function _renderMediaList(itemEl, files) {
+    const list       = itemEl.querySelector('.media-file-list');
+    const currentUrl = itemEl.querySelector('.item-media-url')?.value || '';
+    if (!files.length) {
+      list.innerHTML = '<div class="media-file-list-empty">No files match.</div>';
+      return;
+    }
+    list.innerHTML = files.map(f => {
+      const icon    = f.media_type === 'video' ? '🎬' : '🖼';
+      const dur     = f.duration_label
+                      ? `<span class="media-file-dur">${f.duration_label}</span>`
+                      : '<span></span>';
+      const sel     = f.url === currentUrl ? ' selected' : '';
+      const dirType = f.media_type === 'video' ? 'videos' : 'images';
+      return `<div class="media-file-row${sel}">
+        <span class="media-file-icon">${icon}</span>
+        <span class="media-file-name" title="${f.name}">${f.name}</span>
+        ${dur}
+        <span class="media-file-size">${f.size_label}</span>
+        <button class="btn-media-use"
+                onclick="_setMediaItem(this.closest('.program-item'),'${f.url}','${f.media_type}');loadMediaListFor(this.closest('.program-item'))">Use</button>
+        <button class="btn-media-remove"
+                onclick="deleteMediaFile('${dirType}','${f.name}',this.closest('.program-item'))">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  async function deleteMediaFile(mediaType, filename, itemEl) {
+    if (!confirm(`Remove "${filename}" from disk? This cannot be undone.`)) return;
+    try {
+      const res  = await fetch(`/api/media/${mediaType}/${encodeURIComponent(filename)}`,
+                               { method: 'DELETE' });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        toast(`Removed ${filename}`, 'success');
+        loadMediaListFor(itemEl);
+      } else {
+        toast('Remove failed: ' + data.message, 'error');
+      }
+    } catch (e) {
+      toast('Network error', 'error');
     }
   }
 
@@ -2387,7 +2447,7 @@
       const data = await res.json();
       if (data.status === 'ok') {
         _setMediaItem(itemEl, data.url, data.media_type);
-        loadMediaPickerFor(itemEl);   // refresh grid to show new file
+        loadMediaListFor(itemEl);   // refresh list to show new file
       } else {
         toast(data.message || 'Upload failed', 'error');
       }
@@ -2411,18 +2471,140 @@
       const wrap = itemEl.querySelector('.yt-progress-wrap');
       if (wrap) wrap.classList.remove('visible');
     }
+    _updatePlatformWarning(itemEl);
+  }
+
+  async function _updatePlatformWarning(itemEl) {
+    const url     = itemEl.querySelector('.item-media-url')?.value.trim() || '';
+    const warning = itemEl.querySelector('.platform-url-warning');
+    if (!warning) return;
+    if (!PLATFORM_URL_RE.test(url)) { warning.classList.remove('visible'); return; }
+
+    let platformName = 'platform';
+    if (/youtube\.com|youtu\.be/i.test(url))       platformName = 'YouTube';
+    else if (/vimeo\.com/i.test(url))               platformName = 'Vimeo';
+    else if (/facebook\.com|fb\.watch/i.test(url))  platformName = 'Facebook';
+
+    warning.querySelector('.platform-warn-text').textContent =
+      `⚠ Streaming from ${platformName} — no local file`;
+    warning.classList.add('visible');
+
+    const useBtn = warning.querySelector('.btn-use-downloaded');
+    useBtn.classList.remove('visible');
+    useBtn.dataset.localUrl = '';
+
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    if (ytMatch) {
+      try {
+        const cache = await fetch('/api/yt-cache').then(r => r.json());
+        const entry = cache[ytMatch[1]];
+        if (entry) {
+          useBtn.dataset.localUrl = entry.local_url;
+          useBtn.classList.add('visible');
+          warning.querySelector('.platform-warn-text').textContent =
+            `⚠ Streaming from YouTube — downloaded version available`;
+        }
+      } catch (e) { /* ignore */ }
+    }
+  }
+
+  function _useDownloadedVersion(itemEl) {
+    const useBtn = itemEl.querySelector('.btn-use-downloaded');
+    if (!useBtn?.dataset.localUrl) return;
+    _setMediaItem(itemEl, useBtn.dataset.localUrl, 'video');
+    _checkPlatformUrl(itemEl);
+    _updatePlatformWarning(itemEl);
   }
 
   // URL paste handler
   function onMediaUrlInput(itemEl) {
     const url = itemEl.querySelector('.item-media-url')?.value.trim() || '';
     _checkPlatformUrl(itemEl);
+
+    // Auto-detect title (debounced)
+    clearTimeout(itemEl._titleFetchTimer);
+    if (url) itemEl._titleFetchTimer = setTimeout(() => _fetchUrlTitle(itemEl, url), 600);
+
     if (!url || PLATFORM_URL_RE.test(url)) return;  // platform URLs need Download button, not auto-set
     const ext = url.split('?')[0].split('.').pop().toLowerCase();
     const imgExts = ['jpg','jpeg','png','gif','webp'];
     const vidExts = ['mp4','webm','mov'];
     const media_type = imgExts.includes(ext) ? 'image' : vidExts.includes(ext) ? 'video' : 'image';
     _setMediaItem(itemEl, url, media_type);
+  }
+
+  // Check YouTube embeddability via JSONP <script> tag — bypasses ORB entirely.
+  // Resolves {embeddable: true, title} on success, {embeddable: false} on 401, {embeddable: null} on timeout.
+  function _ytEmbedCheck(videoId) {
+    return new Promise(resolve => {
+      const cb   = '_ytOembed_' + videoId.replace(/-/g, '_');
+      let settled = false;
+      const cleanup = () => { delete window[cb]; document.getElementById(cb)?.remove(); };
+      const done    = val => { if (settled) return; settled = true; cleanup(); resolve(val); };
+
+      window[cb] = data => done({ embeddable: true, title: data.title });
+
+      const s  = document.createElement('script');
+      s.id     = cb;
+      s.onerror = () => done({ embeddable: false });
+      s.src    = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=jsonp&callback=${cb}`;
+      setTimeout(() => done({ embeddable: null }), 7000);
+      document.head.appendChild(s);
+    });
+  }
+
+  function _showEmbedBlockedWarning(itemEl, reason) {
+    const warning  = itemEl.querySelector('.platform-url-warning');
+    const warnText = itemEl.querySelector('.platform-warn-text');
+    const useBtn   = itemEl.querySelector('.btn-use-downloaded');
+    if (!warning || !warnText) return;
+    warnText.textContent = `⛔ ${reason} — download to play locally`;
+    warning.classList.add('visible');
+    if (useBtn) useBtn.classList.remove('visible');
+  }
+
+  async function _fetchUrlTitle(itemEl, url) {
+    const titleEl = itemEl.querySelector('.item-title');
+
+    // YouTube: JSONP embed check (ORB-safe) + server proxy for title
+    if (/youtube\.com|youtu\.be/i.test(url)) {
+      const ytIdMatch = url.match(/(?:[?&]v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+      const videoId   = ytIdMatch?.[1];
+      if (!videoId) return;
+
+      // Run title fetch and embed check in parallel
+      const [, embedResult] = await Promise.all([
+        fetch(`/api/yt-title?url=${encodeURIComponent(url)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data?.title && titleEl && !titleEl.value.trim()) {
+              titleEl.value = data.title;
+              scheduleAutoSave();
+            }
+          }).catch(() => {}),
+        _ytEmbedCheck(videoId),
+      ]);
+
+      if (embedResult.embeddable === false) {
+        _showEmbedBlockedWarning(itemEl, 'Embedding disabled by owner');
+      } else if (embedResult.embeddable === true && titleEl && !titleEl.value.trim() && embedResult.title) {
+        // JSONP also returns title — use it if server proxy didn't fill it
+        titleEl.value = embedResult.title;
+        scheduleAutoSave();
+      }
+      return;
+    }
+
+    // Non-YouTube: only fill title if empty
+    if (!titleEl || titleEl.value.trim()) return;
+
+    // Local path or direct file URL: extract filename, strip extension
+    const filename = decodeURIComponent(url.split('/').pop().split('?')[0]);
+    const name = filename.replace(/\.[^.]+$/, '').trim();
+    if (name && !titleEl.value.trim()) {
+      titleEl.value = name;
+      scheduleAutoSave();
+    }
   }
 
   // Internal: apply a selected file to the item editor
@@ -2737,21 +2919,13 @@
   // ── Add Program modal ─────────────────────────────────────────────────────
   function openAddProgram() {
     document.getElementById("addProgramName").value = "";
-    document.getElementById("addSheetId").value = "";
     document.getElementById("addProgramError").style.display = "none";
-    document.querySelector('input[name="addMode"][value="empty"]').checked = true;
-    document.getElementById("addSheetRow").style.display = "none";
     document.getElementById("addProgramModal").style.display = "block";
     setTimeout(() => document.getElementById("addProgramName").focus(), 50);
   }
 
   function closeAddProgram() {
     document.getElementById("addProgramModal").style.display = "none";
-  }
-
-  function toggleAddMode() {
-    const isSheet = document.querySelector('input[name="addMode"]:checked').value === "sheet";
-    document.getElementById("addSheetRow").style.display = isSheet ? "flex" : "none";
   }
 
   async function submitAddProgram() {
@@ -2764,13 +2938,6 @@
     errEl.style.display = "none";
     if (!name) { errEl.textContent = "Program name is required."; errEl.style.display = ""; return; }
 
-    const mode = document.querySelector('input[name="addMode"]:checked').value;
-    let sheetId = "";
-    if (mode === "sheet") {
-      sheetId = document.getElementById("addSheetId").value.trim();
-      if (!sheetId) { errEl.textContent = "Sheet URL or ID is required."; errEl.style.display = ""; return; }
-    }
-
     btn.disabled = true;
     spinner.style.display = "";
     label.textContent = "Adding…";
@@ -2779,9 +2946,7 @@
       // Auto-save current form state first
       await fetch("/api/program", { method: "POST", headers: {"Content-Type":"application/json"}, body: collectProgram() });
 
-      const endpoint = mode === "sheet" ? "/api/program/add-from-sheet" : "/api/program/add";
-      const payload  = mode === "sheet" ? { name, sheet_id: sheetId } : { name };
-      const res  = await fetch(endpoint, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+      const res  = await fetch("/api/program/add", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ name }) });
       const data = await res.json();
 
       if (data.status === "ok") {
@@ -3065,8 +3230,9 @@
     if (btn)  { btn.disabled = false; btn.textContent = '↓ Download'; }
     if (wrap) wrap.classList.remove('visible');
     if (ctrl) ctrl.classList.remove('visible');
-    // Refresh picker so the new file appears
-    loadMediaPickerFor(itemEl);
+    // Refresh list so the new file appears
+    loadMediaListFor(itemEl);
+    _updatePlatformWarning(itemEl);
     toast('Download complete: ' + data.filename);
   });
 
@@ -3084,6 +3250,26 @@
 
   _socket.on('media:status', function (data) {
     _updateAudioBadge(data.channel, data.audio);
+  });
+
+  _socket.on('media:blocked', function (data) {
+    const msg = data.message || 'Video blocked';
+    // Find the item currently using this video and prompt download
+    const ytUrl = `https://www.youtube.com/watch?v=${data.video_id}`;
+    const itemEl = [...document.querySelectorAll('.item-media-url')]
+      .find(el => el.value.includes(data.video_id))
+      ?.closest('.program-item');
+
+    if (itemEl) {
+      // Show inline warning on the item
+      const warning = itemEl.querySelector('.platform-url-warning');
+      const warnText = itemEl.querySelector('.platform-warn-text');
+      if (warning && warnText) {
+        warnText.textContent = `⛔ ${msg} — download to play locally`;
+        warning.classList.add('visible');
+      }
+    }
+    toast(`⛔ YouTube blocked: ${msg}. Use the Download button to play locally.`, 'error');
   });
 
   function _updateAudioBadge(ch, audioState) {

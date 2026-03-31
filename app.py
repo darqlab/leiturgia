@@ -7,7 +7,7 @@ logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
 
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_socketio import SocketIO, emit, join_room
-import json, os, copy, re
+import json, os, copy, re, requests
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
@@ -632,6 +632,11 @@ def on_media_status(data):
     channel = data.get('channel', 'ch1')
     emit('media:status', data, to=channel)
 
+@socketio.on('media:blocked')
+def on_media_blocked(data):
+    channel = data.get('channel', 'ch1')
+    emit('media:blocked', data, to=channel)
+
 @socketio.on('announcement')
 def on_announcement(data):
     channel = data.get('channel', 'ch1')
@@ -681,6 +686,46 @@ _VIDEO_EXTS = {'.mp4', '.webm', '.mov'}
 @app.route("/api/media")
 def api_media():
     return jsonify(list_media())
+
+@app.route("/api/media/<media_type>/<filename>", methods=["DELETE"])
+def delete_media_file(media_type, filename):
+    if media_type not in ("images", "videos"):
+        return jsonify({"status": "error", "message": "Invalid media type"}), 400
+    safe = os.path.basename(filename)
+    if not safe or safe != filename:
+        return jsonify({"status": "error", "message": "Invalid filename"}), 400
+    path = os.path.join(app.root_path, "media", media_type, safe)
+    if not os.path.exists(path):
+        return jsonify({"status": "error", "message": "File not found"}), 404
+    try:
+        os.remove(path)
+        return jsonify({"status": "ok"})
+    except OSError as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/yt-title")
+def api_yt_title():
+    url = request.args.get("url", "").strip()
+    if not url:
+        return jsonify({"title": None})
+    try:
+        r = requests.get(
+            "https://www.youtube.com/oembed",
+            params={"url": url, "format": "json"},
+            timeout=5,
+        )
+        if r.ok:
+            return jsonify({"title": r.json().get("title")})
+    except Exception:
+        pass
+    return jsonify({"title": None})
+
+@app.route("/api/yt-cache")
+def api_yt_cache():
+    if not os.path.exists(_YT_CACHE_PATH):
+        return jsonify({})
+    with open(_YT_CACHE_PATH) as f:
+        return jsonify(json.load(f))
 
 @app.route("/api/media/upload", methods=["POST"])
 def upload_media():
@@ -744,19 +789,33 @@ def _get_format(quality):
     table = _QUALITY_MERGE if _FFMPEG else _QUALITY_NOFFMPEG
     return table.get(quality, table['best'])
 
+_ANSI_RE      = re.compile(r'\x1b\[[0-9;]*m')
+_YT_CACHE_PATH = os.path.join('data', 'yt_cache.json')
+_YT_ID_RE      = re.compile(r'(?:youtube\.com/(?:watch\?v=|shorts/)|youtu\.be/)([A-Za-z0-9_-]{11})')
+
+def _strip_ansi(s: str) -> str:
+    return _ANSI_RE.sub('', s).strip()
+
 def _yt_progress_hook(d, item_id, sid):
     status = d.get('status')
     if status == 'downloading':
-        raw = d.get('_percent_str', '0%').strip()
-        try:
-            percent = float(raw.replace('%', ''))
-        except ValueError:
-            percent = 0.0
+        # yt-dlp embeds ANSI colour codes — strip before parsing
+        downloaded = d.get('downloaded_bytes') or 0
+        total      = d.get('total_bytes') or d.get('total_bytes_estimate') or 0
+        if total:
+            percent = min(100.0, downloaded / total * 100)
+        else:
+            raw = _strip_ansi(d.get('_percent_str', '0%'))
+            try:
+                percent = float(raw.replace('%', ''))
+            except ValueError:
+                percent = 0.0
+        speed_raw = _strip_ansi(d.get('_speed_str', ''))
         socketio.emit('yt:progress', {
             'item_id': item_id,
             'status':  'downloading',
             'percent': percent,
-            'speed':   d.get('_speed_str', '').strip(),
+            'speed':   speed_raw,
             'eta':     d.get('eta', 0),
         }, room=sid)
     elif status == 'finished':
@@ -767,6 +826,20 @@ def _yt_progress_hook(d, item_id, sid):
             'speed':   '',
             'eta':     0,
         }, room=sid)
+
+def _yt_cache_write(source_url, filename, local_url):
+    m = _YT_ID_RE.search(source_url)
+    key = m.group(1) if m else source_url
+    try:
+        cache = {}
+        if os.path.exists(_YT_CACHE_PATH):
+            with open(_YT_CACHE_PATH) as f:
+                cache = json.load(f)
+        cache[key] = {'filename': filename, 'local_url': local_url, 'source_url': source_url}
+        with open(_YT_CACHE_PATH, 'w') as f:
+            json.dump(cache, f, indent=2)
+    except Exception:
+        pass
 
 def _yt_download_task(url, quality, item_id, sid):
     import yt_dlp
@@ -797,6 +870,7 @@ def _yt_download_task(url, quality, item_id, sid):
                 )
                 final = found
             final_url = f'/media/videos/{final}'
+        _yt_cache_write(url, final, final_url)
         socketio.emit('yt:done', {
             'item_id':  item_id,
             'url':      final_url,
