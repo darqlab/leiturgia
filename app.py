@@ -682,6 +682,22 @@ _VIDEO_EXTS = {'.mp4', '.webm', '.mov'}
 def api_media():
     return jsonify(list_media())
 
+@app.route("/api/media/<media_type>/<filename>", methods=["DELETE"])
+def delete_media_file(media_type, filename):
+    if media_type not in ("images", "videos"):
+        return jsonify({"status": "error", "message": "Invalid media type"}), 400
+    safe = os.path.basename(filename)
+    if not safe or safe != filename:
+        return jsonify({"status": "error", "message": "Invalid filename"}), 400
+    path = os.path.join(app.root_path, "media", media_type, safe)
+    if not os.path.exists(path):
+        return jsonify({"status": "error", "message": "File not found"}), 404
+    try:
+        os.remove(path)
+        return jsonify({"status": "ok"})
+    except OSError as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 @app.route("/api/media/upload", methods=["POST"])
 def upload_media():
     from werkzeug.utils import secure_filename

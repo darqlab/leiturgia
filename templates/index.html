@@ -610,55 +610,42 @@
     .badge-content { background: #1a2a1a; color: #7ab87a; border: 1px solid #1e3a1e; }
     .badge-media   { background: #2a1a3a; color: #c07ae8; border: 1px solid #3a1e52; }
 
-    .media-picker-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      max-height: 140px;
-      overflow-y: auto;
-      padding: 6px;
-      background: var(--card);
+    .media-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .media-search-input {
+      width: 100%; padding: 5px 8px; font-size: 12px;
+      background: rgba(0,0,0,0.2); border: 1px solid var(--border);
+      border-radius: 5px; color: var(--text); margin-bottom: 4px;
+      box-sizing: border-box;
+    }
+    .media-search-input::placeholder { color: var(--muted); }
+    .media-file-list {
+      display: flex; flex-direction: column; gap: 3px;
+      max-height: 200px; overflow-y: auto;
+      background: rgba(0,0,0,0.15); border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px;
+    }
+    .media-file-row {
+      display: grid; grid-template-columns: 20px 1fr auto auto auto auto;
+      align-items: center; gap: 8px; padding: 5px 8px;
+      border-radius: 4px; font-size: 12px; color: var(--text);
+    }
+    .media-file-row:hover { background: rgba(255,255,255,0.04); }
+    .media-file-row.selected { background: rgba(212,168,67,0.12); }
+    .media-file-icon { font-size: 13px; text-align: center; }
+    .media-file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .media-file-dur, .media-file-size { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .btn-media-use {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: var(--gold-dim); color: var(--bg); cursor: pointer; border: none;
+    }
+    .btn-media-use:hover { background: var(--gold); }
+    .btn-media-remove {
+      font-size: 11px; padding: 2px 6px; border-radius: 4px;
+      background: transparent; color: var(--muted); cursor: pointer;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      margin-top: 4px;
     }
-    .media-picker-thumb {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      padding: 5px;
-      border: 1px solid var(--border);
-      border-radius: 5px;
-      cursor: pointer;
-      width: 72px;
-      transition: border-color 0.12s;
-      background: var(--bg);
-    }
-    .media-picker-thumb:hover { border-color: var(--gold-dim); }
-    .media-picker-thumb.selected { border-color: var(--gold); background: #162240; }
-    .media-picker-thumb img {
-      width: 60px; height: 40px;
-      object-fit: cover;
-      border-radius: 3px;
-    }
-    .media-picker-thumb .media-icon {
-      width: 60px; height: 40px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      background: #0a1628;
-      border-radius: 3px;
-    }
-    .media-picker-thumb span {
-      font-size: 9px;
-      color: var(--muted);
-      text-align: center;
-      word-break: break-all;
-      max-width: 64px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    .btn-media-remove:hover { background: rgba(180,50,50,0.2); color: #e07070; border-color: #7a3030; }
+    .media-file-list-empty { padding: 12px; text-align: center; font-size: 12px; color: var(--muted); }
     .item-body { padding: 14px; border-top: 1px solid var(--border); display: none; }
     .item-body.open { display: block; }
 
@@ -1409,8 +1396,14 @@
               </div>
             </div>
             <div class="field" style="margin-top:8px">
-              <label>Pick file <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px" onclick="loadMediaPickerFor(this.closest('.program-item'))">↺ Refresh</button></label>
-              <div class="media-picker-grid">Loading…</div>
+              <div class="media-list-header">
+                <label>Media Files</label>
+                <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
+                        onclick="loadMediaListFor(this.closest('.program-item'))">↺ Refresh</button>
+              </div>
+              <input type="text" class="media-search-input" placeholder="Search files…"
+                     oninput="filterMediaList(this.closest('.program-item'))">
+              <div class="media-file-list"></div>
             </div>
             <div class="field" style="margin-top:8px">
               <label>Upload new file</label>
@@ -1705,8 +1698,14 @@
           <div class="field"><label>Title</label><input type="text" class="item-title" value="" placeholder="e.g. Welcome Slide"></div>
         </div>
         <div class="field" style="margin-top:8px">
-          <label>Pick file <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px" onclick="loadMediaPickerFor(this.closest('.program-item'))">↺ Refresh</button></label>
-          <div class="media-picker-grid">Loading…</div>
+          <div class='media-list-header'>
+            <label>Media Files</label>
+            <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
+                    onclick='loadMediaListFor(this.closest(".program-item"))'>↺ Refresh</button>
+          </div>
+          <input type='text' class='media-search-input' placeholder='Search files…'
+                 oninput='filterMediaList(this.closest(".program-item"))'>
+          <div class='media-file-list'></div>
         </div>
         <div class="field" style="margin-top:8px">
           <label>Upload new file</label>
@@ -2211,7 +2210,7 @@
     el.querySelector(".item-chevron")?.classList.add("open");
     el.classList.add("item-editing");
     loadLyricsDisplay(el);
-    if (el.dataset.itemType === 'media') loadMediaPickerFor(el);
+    if (el.dataset.itemType === 'media') loadMediaListFor(el);
 
     // Highlight in sidebar
     document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
@@ -2344,36 +2343,73 @@
 
   // ── Media item helpers ───────────────────────────────────────────────────
 
-  // Task 3.2 — load file picker grid from /api/media
-  async function loadMediaPickerFor(itemEl) {
-    const grid = itemEl.querySelector('.media-picker-grid');
-    if (!grid) return;
-    grid.textContent = 'Loading…';
+  // ── Media file list ──────────────────────────────────────────────────────
+  async function loadMediaListFor(itemEl) {
+    const list = itemEl.querySelector('.media-file-list');
+    if (!list) return;
+    list.innerHTML = '<div class="media-file-list-empty">Loading…</div>';
+    const search = itemEl.querySelector('.media-search-input');
+    if (search) search.value = '';
     try {
       const res  = await fetch('/api/media');
       const data = await res.json();
       const files = [...(data.images || []).map(f => ({...f, media_type: 'image'})),
                      ...(data.videos || []).map(f => ({...f, media_type: 'video'}))];
-      if (!files.length) { grid.textContent = 'No media files found.'; return; }
-      grid.innerHTML = '';
-      const currentUrl = itemEl.querySelector('.item-media-url')?.value || '';
-      files.forEach(f => {
-        const thumb = document.createElement('div');
-        thumb.className = 'media-picker-thumb' + (f.url === currentUrl ? ' selected' : '');
-        if (f.media_type === 'image') {
-          thumb.innerHTML = `<img src="${f.url}" alt="${f.name}"><span>${f.name}</span>`;
-        } else {
-          thumb.innerHTML = `<div class="media-icon">▶</div><span>${f.name}</span>`;
-        }
-        thumb.addEventListener('click', () => {
-          grid.querySelectorAll('.media-picker-thumb').forEach(t => t.classList.remove('selected'));
-          thumb.classList.add('selected');
-          _setMediaItem(itemEl, f.url, f.media_type);
-        });
-        grid.appendChild(thumb);
-      });
+      list._allFiles = files;
+      _renderMediaList(itemEl, files);
     } catch (e) {
-      grid.textContent = 'Failed to load media.';
+      list.innerHTML = '<div class="media-file-list-empty">Failed to load files.</div>';
+    }
+  }
+
+  function filterMediaList(itemEl) {
+    const list  = itemEl.querySelector('.media-file-list');
+    const query = (itemEl.querySelector('.media-search-input')?.value || '').toLowerCase();
+    const files = list._allFiles || [];
+    _renderMediaList(itemEl, query ? files.filter(f => f.name.toLowerCase().includes(query)) : files);
+  }
+
+  function _renderMediaList(itemEl, files) {
+    const list       = itemEl.querySelector('.media-file-list');
+    const currentUrl = itemEl.querySelector('.item-media-url')?.value || '';
+    if (!files.length) {
+      list.innerHTML = '<div class="media-file-list-empty">No files match.</div>';
+      return;
+    }
+    list.innerHTML = files.map(f => {
+      const icon    = f.media_type === 'video' ? '🎬' : '🖼';
+      const dur     = f.duration_label
+                      ? `<span class="media-file-dur">${f.duration_label}</span>`
+                      : '<span></span>';
+      const sel     = f.url === currentUrl ? ' selected' : '';
+      const dirType = f.media_type === 'video' ? 'videos' : 'images';
+      return `<div class="media-file-row${sel}">
+        <span class="media-file-icon">${icon}</span>
+        <span class="media-file-name" title="${f.name}">${f.name}</span>
+        ${dur}
+        <span class="media-file-size">${f.size_label}</span>
+        <button class="btn-media-use"
+                onclick="_setMediaItem(this.closest('.program-item'),'${f.url}','${f.media_type}');loadMediaListFor(this.closest('.program-item'))">Use</button>
+        <button class="btn-media-remove"
+                onclick="deleteMediaFile('${dirType}','${f.name}',this.closest('.program-item'))">✕</button>
+      </div>`;
+    }).join('');
+  }
+
+  async function deleteMediaFile(mediaType, filename, itemEl) {
+    if (!confirm(`Remove "${filename}" from disk? This cannot be undone.`)) return;
+    try {
+      const res  = await fetch(`/api/media/${mediaType}/${encodeURIComponent(filename)}`,
+                               { method: 'DELETE' });
+      const data = await res.json();
+      if (data.status === 'ok') {
+        toast(`Removed ${filename}`, 'success');
+        loadMediaListFor(itemEl);
+      } else {
+        toast('Remove failed: ' + data.message, 'error');
+      }
+    } catch (e) {
+      toast('Network error', 'error');
     }
   }
 
@@ -2387,7 +2423,7 @@
       const data = await res.json();
       if (data.status === 'ok') {
         _setMediaItem(itemEl, data.url, data.media_type);
-        loadMediaPickerFor(itemEl);   // refresh grid to show new file
+        loadMediaListFor(itemEl);   // refresh list to show new file
       } else {
         toast(data.message || 'Upload failed', 'error');
       }
@@ -3065,8 +3101,8 @@
     if (btn)  { btn.disabled = false; btn.textContent = '↓ Download'; }
     if (wrap) wrap.classList.remove('visible');
     if (ctrl) ctrl.classList.remove('visible');
-    // Refresh picker so the new file appears
-    loadMediaPickerFor(itemEl);
+    // Refresh list so the new file appears
+    loadMediaListFor(itemEl);
     toast('Download complete: ' + data.filename);
   });
 
