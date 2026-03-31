@@ -2529,10 +2529,10 @@
     const titleEl = itemEl.querySelector('.item-title');
     if (!titleEl || titleEl.value.trim()) return;  // don't overwrite existing title
 
-    // YouTube: use oEmbed (free, no API key)
+    // YouTube: proxy through server to avoid CORB
     if (/youtube\.com|youtu\.be/i.test(url)) {
       try {
-        const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+        const res = await fetch(`/api/yt-title?url=${encodeURIComponent(url)}`);
         if (res.ok) {
           const data = await res.json();
           if (data.title && !titleEl.value.trim()) {
@@ -2540,7 +2540,7 @@
             scheduleAutoSave();
           }
         }
-      } catch (e) { /* ignore — network or CORS */ }
+      } catch (e) { /* ignore */ }
       return;
     }
 

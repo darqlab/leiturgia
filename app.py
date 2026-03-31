@@ -7,7 +7,7 @@ logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
 
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_socketio import SocketIO, emit, join_room
-import json, os, copy, re
+import json, os, copy, re, requests
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
@@ -702,6 +702,23 @@ def delete_media_file(media_type, filename):
         return jsonify({"status": "ok"})
     except OSError as e:
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/yt-title")
+def api_yt_title():
+    url = request.args.get("url", "").strip()
+    if not url:
+        return jsonify({"title": None})
+    try:
+        r = requests.get(
+            "https://www.youtube.com/oembed",
+            params={"url": url, "format": "json"},
+            timeout=5,
+        )
+        if r.ok:
+            return jsonify({"title": r.json().get("title")})
+    except Exception:
+        pass
+    return jsonify({"title": None})
 
 @app.route("/api/yt-cache")
 def api_yt_cache():
