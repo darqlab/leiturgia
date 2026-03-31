@@ -182,6 +182,11 @@
       object-fit: contain;
     }
 
+    #slide.type-video iframe {
+      width: 100%; height: 100%;
+      border: none;
+    }
+
     /* ── Waiting state ── */
     #waiting {
       position: absolute; inset: 0;
@@ -371,29 +376,47 @@
   }
 
   // ── Video ──────────────────────────────────────────────────────────────────
+  const _YT_RE = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
+
   function renderVideo(data) {
     setSlideType('video');
     const slide = document.getElementById('slide');
     slide.innerHTML = '';
 
-    const vid = document.createElement('video');
-    vid.src         = data.url || data.src || '';
-    vid.loop        = data.loop || false;
-    vid.muted       = true;   // always start muted — unmuted after play() resolves
-    vid.playsInline = true;
-    vid.preload     = 'auto';
-    vid.style.cssText = 'width:100%;height:100%;object-fit:contain;';
-    slide.appendChild(vid);
+    const url     = data.url || data.src || '';
+    const ytMatch = url.match(_YT_RE);
 
-    vid.play()
-      .then(() => {
-        vid.muted = false;
-        socket.emit('media:status', { channel: CHANNEL, audio: 'ok' });
-      })
-      .catch(() => {
-        // Stay muted — video still plays silently (acceptable on Smart TVs)
-        socket.emit('media:status', { channel: CHANNEL, audio: 'muted' });
-      });
+    if (ytMatch) {
+      const vid   = ytMatch[1];
+      const mute  = (data.mute !== false) ? 1 : 0;
+      const auto  = (data.autoplay !== false) ? 1 : 0;
+      const loop  = data.loop ? `&loop=1&playlist=${vid}` : '';
+      const src   = `https://www.youtube.com/embed/${vid}?autoplay=${auto}&mute=${mute}&controls=0&modestbranding=1&rel=0${loop}`;
+      const frame = document.createElement('iframe');
+      frame.src             = src;
+      frame.allow           = 'autoplay; encrypted-media';
+      frame.allowFullscreen = true;
+      slide.appendChild(frame);
+    } else {
+      const vid = document.createElement('video');
+      vid.src         = url;
+      vid.loop        = data.loop || false;
+      vid.muted       = true;   // always start muted — unmuted after play() resolves
+      vid.playsInline = true;
+      vid.preload     = 'auto';
+      vid.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+      slide.appendChild(vid);
+
+      vid.play()
+        .then(() => {
+          vid.muted = false;
+          socket.emit('media:status', { channel: CHANNEL, audio: 'ok' });
+        })
+        .catch(() => {
+          // Stay muted — video still plays silently (acceptable on Smart TVs)
+          socket.emit('media:status', { channel: CHANNEL, audio: 'muted' });
+        });
+    }
   }
 
   // ── Timer ──────────────────────────────────────────────────────────────────

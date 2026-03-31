@@ -704,6 +704,23 @@
       color: var(--muted);
       margin-top: 3px;
     }
+    .platform-url-warning {
+      display: none; align-items: center; gap: 6px;
+      padding: 4px 8px; margin-top: 4px;
+      background: rgba(180,130,0,0.15);
+      border: 1px solid rgba(180,130,0,0.4);
+      border-radius: 5px; font-size: 11px;
+    }
+    .platform-url-warning.visible { display: flex; }
+    .platform-warn-icon { font-size: 13px; }
+    .platform-warn-text { flex: 1; color: #c8a227; }
+    .btn-use-downloaded {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: var(--gold-dim); color: var(--bg);
+      cursor: pointer; border: none; display: none;
+    }
+    .btn-use-downloaded.visible { display: inline-block; }
+    .btn-use-downloaded:hover { background: var(--gold); }
 
     /* ── Participants ── */
     .participants { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
@@ -1418,6 +1435,12 @@
                 <div class="yt-progress-bar"><div class="yt-progress-fill"></div></div>
                 <div class="yt-progress-info">Starting…</div>
               </div>
+              <div class="platform-url-warning">
+                <span class="platform-warn-icon">⚠</span>
+                <span class="platform-warn-text">Streaming from platform URL</span>
+                <button class="btn-use-downloaded"
+                        onclick="_useDownloadedVersion(this.closest('.program-item'))">Use downloaded ↓</button>
+              </div>
             </div>
             <div class="media-selected-info" style="margin-top:6px;font-size:11px;color:var(--gold)">
               {% if item.get('url') %}{{ item.get('media_type','').capitalize() }}: {{ item['url'].split('/')[-1] }}{% endif %}
@@ -1718,6 +1741,12 @@
           <div class="yt-progress-wrap">
             <div class="yt-progress-bar"><div class="yt-progress-fill"></div></div>
             <div class="yt-progress-info">Starting…</div>
+          </div>
+          <div class='platform-url-warning'>
+            <span class='platform-warn-icon'>⚠</span>
+            <span class='platform-warn-text'>Streaming from platform URL</span>
+            <button class='btn-use-downloaded'
+                    onclick='_useDownloadedVersion(this.closest(".program-item"))'>Use downloaded ↓</button>
           </div>
         </div>
         <div class="media-selected-info" style="margin-top:6px;font-size:11px;color:var(--gold)"></div>
@@ -2434,6 +2463,49 @@
       const wrap = itemEl.querySelector('.yt-progress-wrap');
       if (wrap) wrap.classList.remove('visible');
     }
+    _updatePlatformWarning(itemEl);
+  }
+
+  async function _updatePlatformWarning(itemEl) {
+    const url     = itemEl.querySelector('.item-media-url')?.value.trim() || '';
+    const warning = itemEl.querySelector('.platform-url-warning');
+    if (!warning) return;
+    if (!PLATFORM_URL_RE.test(url)) { warning.classList.remove('visible'); return; }
+
+    let platformName = 'platform';
+    if (/youtube\.com|youtu\.be/i.test(url))       platformName = 'YouTube';
+    else if (/vimeo\.com/i.test(url))               platformName = 'Vimeo';
+    else if (/facebook\.com|fb\.watch/i.test(url))  platformName = 'Facebook';
+
+    warning.querySelector('.platform-warn-text').textContent =
+      `⚠ Streaming from ${platformName} — no local file`;
+    warning.classList.add('visible');
+
+    const useBtn = warning.querySelector('.btn-use-downloaded');
+    useBtn.classList.remove('visible');
+    useBtn.dataset.localUrl = '';
+
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    if (ytMatch) {
+      try {
+        const cache = await fetch('/api/yt-cache').then(r => r.json());
+        const entry = cache[ytMatch[1]];
+        if (entry) {
+          useBtn.dataset.localUrl = entry.local_url;
+          useBtn.classList.add('visible');
+          warning.querySelector('.platform-warn-text').textContent =
+            `⚠ Streaming from YouTube — downloaded version available`;
+        }
+      } catch (e) { /* ignore */ }
+    }
+  }
+
+  function _useDownloadedVersion(itemEl) {
+    const useBtn = itemEl.querySelector('.btn-use-downloaded');
+    if (!useBtn?.dataset.localUrl) return;
+    _setMediaItem(itemEl, useBtn.dataset.localUrl, 'video');
+    _checkPlatformUrl(itemEl);
+    _updatePlatformWarning(itemEl);
   }
 
   // URL paste handler
@@ -3073,6 +3145,7 @@
     if (ctrl) ctrl.classList.remove('visible');
     // Refresh list so the new file appears
     loadMediaListFor(itemEl);
+    _updatePlatformWarning(itemEl);
     toast('Download complete: ' + data.filename);
   });
 

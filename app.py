@@ -698,6 +698,13 @@ def delete_media_file(media_type, filename):
     except OSError as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+@app.route("/api/yt-cache")
+def api_yt_cache():
+    if not os.path.exists(_YT_CACHE_PATH):
+        return jsonify({})
+    with open(_YT_CACHE_PATH) as f:
+        return jsonify(json.load(f))
+
 @app.route("/api/media/upload", methods=["POST"])
 def upload_media():
     from werkzeug.utils import secure_filename
@@ -760,7 +767,9 @@ def _get_format(quality):
     table = _QUALITY_MERGE if _FFMPEG else _QUALITY_NOFFMPEG
     return table.get(quality, table['best'])
 
-_ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
+_ANSI_RE      = re.compile(r'\x1b\[[0-9;]*m')
+_YT_CACHE_PATH = os.path.join('data', 'yt_cache.json')
+_YT_ID_RE      = re.compile(r'(?:youtube\.com/(?:watch\?v=|shorts/)|youtu\.be/)([A-Za-z0-9_-]{11})')
 
 def _strip_ansi(s: str) -> str:
     return _ANSI_RE.sub('', s).strip()
@@ -796,6 +805,20 @@ def _yt_progress_hook(d, item_id, sid):
             'eta':     0,
         }, room=sid)
 
+def _yt_cache_write(source_url, filename, local_url):
+    m = _YT_ID_RE.search(source_url)
+    key = m.group(1) if m else source_url
+    try:
+        cache = {}
+        if os.path.exists(_YT_CACHE_PATH):
+            with open(_YT_CACHE_PATH) as f:
+                cache = json.load(f)
+        cache[key] = {'filename': filename, 'local_url': local_url, 'source_url': source_url}
+        with open(_YT_CACHE_PATH, 'w') as f:
+            json.dump(cache, f, indent=2)
+    except Exception:
+        pass
+
 def _yt_download_task(url, quality, item_id, sid):
     import yt_dlp
     videos_dir = os.path.join(app.root_path, 'media', 'videos')
@@ -825,6 +848,7 @@ def _yt_download_task(url, quality, item_id, sid):
                 )
                 final = found
             final_url = f'/media/videos/{final}'
+        _yt_cache_write(url, final, final_url)
         socketio.emit('yt:done', {
             'item_id':  item_id,
             'url':      final_url,
