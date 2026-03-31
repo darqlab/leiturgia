@@ -707,7 +707,7 @@ def delete_media_file(media_type, filename):
 def api_yt_title():
     url = request.args.get("url", "").strip()
     if not url:
-        return jsonify({"title": None, "embeddable": None})
+        return jsonify({"title": None})
     try:
         r = requests.get(
             "https://www.youtube.com/oembed",
@@ -715,14 +715,10 @@ def api_yt_title():
             timeout=5,
         )
         if r.ok:
-            return jsonify({"title": r.json().get("title"), "embeddable": True})
-        if r.status_code in (401, 403):
-            return jsonify({"title": None, "embeddable": False, "reason": "embedding_disabled"})
-        if r.status_code == 404:
-            return jsonify({"title": None, "embeddable": False, "reason": "not_found"})
+            return jsonify({"title": r.json().get("title")})
     except Exception:
         pass
-    return jsonify({"title": None, "embeddable": None})
+    return jsonify({"title": None})
 
 @app.route("/api/yt-cache")
 def api_yt_cache():

@@ -2533,35 +2533,65 @@
     _setMediaItem(itemEl, url, media_type);
   }
 
+  // Check YouTube embeddability via JSONP <script> tag — bypasses ORB entirely.
+  // Resolves {embeddable: true, title} on success, {embeddable: false} on 401, {embeddable: null} on timeout.
+  function _ytEmbedCheck(videoId) {
+    return new Promise(resolve => {
+      const cb   = '_ytOembed_' + videoId.replace(/-/g, '_');
+      let settled = false;
+      const cleanup = () => { delete window[cb]; document.getElementById(cb)?.remove(); };
+      const done    = val => { if (settled) return; settled = true; cleanup(); resolve(val); };
+
+      window[cb] = data => done({ embeddable: true, title: data.title });
+
+      const s  = document.createElement('script');
+      s.id     = cb;
+      s.onerror = () => done({ embeddable: false });
+      s.src    = `https://www.youtube.com/oembed?url=${encodeURIComponent('https://www.youtube.com/watch?v=' + videoId)}&format=jsonp&callback=${cb}`;
+      setTimeout(() => done({ embeddable: null }), 7000);
+      document.head.appendChild(s);
+    });
+  }
+
+  function _showEmbedBlockedWarning(itemEl, reason) {
+    const warning  = itemEl.querySelector('.platform-url-warning');
+    const warnText = itemEl.querySelector('.platform-warn-text');
+    const useBtn   = itemEl.querySelector('.btn-use-downloaded');
+    if (!warning || !warnText) return;
+    warnText.textContent = `⛔ ${reason} — download to play locally`;
+    warning.classList.add('visible');
+    if (useBtn) useBtn.classList.remove('visible');
+  }
+
   async function _fetchUrlTitle(itemEl, url) {
     const titleEl = itemEl.querySelector('.item-title');
 
-    // YouTube: proxy through server to avoid CORB; also checks embeddability
+    // YouTube: JSONP embed check (ORB-safe) + server proxy for title
     if (/youtube\.com|youtu\.be/i.test(url)) {
-      try {
-        const res  = await fetch(`/api/yt-title?url=${encodeURIComponent(url)}`);
-        if (res.ok) {
-          const data = await res.json();
-          // Fill title only if empty
-          if (data.title && titleEl && !titleEl.value.trim()) {
-            titleEl.value = data.title;
-            scheduleAutoSave();
-          }
-          // Always check embeddability regardless of title state
-          if (data.embeddable === false) {
-            const warning  = itemEl.querySelector('.platform-url-warning');
-            const warnText = itemEl.querySelector('.platform-warn-text');
-            const useBtn   = itemEl.querySelector('.btn-use-downloaded');
-            if (warning && warnText) {
-              const reasons = { embedding_disabled: 'Embedding disabled by owner', not_found: 'Video not found or private' };
-              const reason  = reasons[data.reason] || 'Cannot be embedded';
-              warnText.textContent = `⛔ ${reason} — download to play locally`;
-              warning.classList.add('visible');
-              if (useBtn) useBtn.classList.remove('visible');
+      const ytIdMatch = url.match(/(?:[?&]v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+      const videoId   = ytIdMatch?.[1];
+      if (!videoId) return;
+
+      // Run title fetch and embed check in parallel
+      const [, embedResult] = await Promise.all([
+        fetch(`/api/yt-title?url=${encodeURIComponent(url)}`)
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data?.title && titleEl && !titleEl.value.trim()) {
+              titleEl.value = data.title;
+              scheduleAutoSave();
             }
-          }
-        }
-      } catch (e) { /* ignore */ }
+          }).catch(() => {}),
+        _ytEmbedCheck(videoId),
+      ]);
+
+      if (embedResult.embeddable === false) {
+        _showEmbedBlockedWarning(itemEl, 'Embedding disabled by owner');
+      } else if (embedResult.embeddable === true && titleEl && !titleEl.value.trim() && embedResult.title) {
+        // JSONP also returns title — use it if server proxy didn't fill it
+        titleEl.value = embedResult.title;
+        scheduleAutoSave();
+      }
       return;
     }
 
