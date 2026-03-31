@@ -3165,6 +3165,26 @@
     _updateAudioBadge(data.channel, data.audio);
   });
 
+  _socket.on('media:blocked', function (data) {
+    const msg = data.message || 'Video blocked';
+    // Find the item currently using this video and prompt download
+    const ytUrl = `https://www.youtube.com/watch?v=${data.video_id}`;
+    const itemEl = [...document.querySelectorAll('.item-media-url')]
+      .find(el => el.value.includes(data.video_id))
+      ?.closest('.program-item');
+
+    if (itemEl) {
+      // Show inline warning on the item
+      const warning = itemEl.querySelector('.platform-url-warning');
+      const warnText = itemEl.querySelector('.platform-warn-text');
+      if (warning && warnText) {
+        warnText.textContent = `⛔ ${msg} — download to play locally`;
+        warning.classList.add('visible');
+      }
+    }
+    toast(`⛔ YouTube blocked: ${msg}. Use the Download button to play locally.`, 'error');
+  });
+
   function _updateAudioBadge(ch, audioState) {
     const tile = document.querySelector(`.ch-tile[data-ch="${ch}"]`);
     if (!tile) return;

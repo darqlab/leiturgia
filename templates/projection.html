@@ -187,6 +187,17 @@
       border: none;
     }
 
+    /* ── YouTube blocked overlay ── */
+    .yt-blocked-overlay {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      width: 100%; height: 100%; gap: 1rem;
+      background: #080808;
+    }
+    .yt-blocked-icon { font-size: 3rem; }
+    .yt-blocked-msg  { font-size: 1.3rem; color: #e07070; text-align: center; padding: 0 2rem; }
+    .yt-blocked-hint { font-size: 0.85rem; color: #777; }
+
     /* ── Waiting state ── */
     #waiting {
       position: absolute; inset: 0;
@@ -375,9 +386,30 @@
       `<img src="${esc(data.url || data.src || '')}" alt="">`;
   }
 
-  // ── Video ──────────────────────────────────────────────────────────────────
-  const _YT_RE = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
+  // ── YouTube IFrame API loader ──────────────────────────────────────────────
+  const _YT_RE         = /(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/;
+  const _YT_ERR_MSG    = { 2: 'Invalid video ID', 100: 'Video not found or private',
+                            101: 'Embedding disabled by owner', 150: 'Embedding disabled by owner' };
+  let   _ytAPIReady    = false;
+  const _ytAPIQueue    = [];
 
+  window.onYouTubeIframeAPIReady = function () {
+    _ytAPIReady = true;
+    _ytAPIQueue.forEach(fn => fn());
+    _ytAPIQueue.length = 0;
+  };
+
+  function _loadYTAPI(cb) {
+    if (_ytAPIReady) { cb(); return; }
+    _ytAPIQueue.push(cb);
+    if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const s = document.createElement('script');
+      s.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(s);
+    }
+  }
+
+  // ── Video ──────────────────────────────────────────────────────────────────
   function renderVideo(data) {
     setSlideType('video');
     const slide = document.getElementById('slide');
@@ -387,16 +419,43 @@
     const ytMatch = url.match(_YT_RE);
 
     if (ytMatch) {
-      const vid   = ytMatch[1];
-      const mute  = (data.mute !== false) ? 1 : 0;
-      const auto  = (data.autoplay !== false) ? 1 : 0;
-      const loop  = data.loop ? `&loop=1&playlist=${vid}` : '';
-      const src   = `https://www.youtube.com/embed/${vid}?autoplay=${auto}&mute=${mute}&controls=0&modestbranding=1&rel=0${loop}`;
-      const frame = document.createElement('iframe');
-      frame.src             = src;
-      frame.allow           = 'autoplay; encrypted-media';
-      frame.allowFullscreen = true;
-      slide.appendChild(frame);
+      const videoId = ytMatch[1];
+      const mute    = (data.mute !== false) ? 1 : 0;
+      const auto    = (data.autoplay !== false) ? 1 : 0;
+
+      const container = document.createElement('div');
+      slide.appendChild(container);
+
+      _loadYTAPI(function () {
+        new YT.Player(container, {
+          width: '100%', height: '100%',
+          videoId: videoId,
+          playerVars: {
+            autoplay:       auto,
+            mute:           mute,
+            loop:           data.loop ? 1 : 0,
+            playlist:       data.loop ? videoId : undefined,
+            controls:       0,
+            modestbranding: 1,
+            rel:            0,
+          },
+          events: {
+            onReady: function (e) {
+              socket.emit('media:status', { channel: CHANNEL, audio: mute ? 'muted' : 'ok' });
+            },
+            onError: function (e) {
+              const msg = _YT_ERR_MSG[e.data] || `Playback error (code ${e.data})`;
+              slide.innerHTML =
+                `<div class="yt-blocked-overlay">
+                   <span class="yt-blocked-icon">⛔</span>
+                   <span class="yt-blocked-msg">${msg}</span>
+                   <span class="yt-blocked-hint">Download the video to play it locally</span>
+                 </div>`;
+              socket.emit('media:blocked', { channel: CHANNEL, video_id: videoId, code: e.data, message: msg });
+            },
+          },
+        });
+      });
     } else {
       const vid = document.createElement('video');
       vid.src         = url;
