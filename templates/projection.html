@@ -419,9 +419,9 @@
     const ytMatch = url.match(_YT_RE);
 
     if (ytMatch) {
-      const videoId = ytMatch[1];
-      const mute    = (data.mute !== false) ? 1 : 0;
-      const auto    = (data.autoplay !== false) ? 1 : 0;
+      const videoId  = ytMatch[1];
+      const wantAudio = (data.mute === true) ? false : true;  // unmute after play unless explicitly muted
+      const auto      = (data.autoplay !== false) ? 1 : 0;
 
       const container = document.createElement('div');
       slide.appendChild(container);
@@ -432,7 +432,7 @@
           videoId: videoId,
           playerVars: {
             autoplay:       auto,
-            mute:           mute,
+            mute:           1,   // always start muted so browser allows autoplay
             loop:           data.loop ? 1 : 0,
             playlist:       data.loop ? videoId : undefined,
             controls:       0,
@@ -441,7 +441,15 @@
           },
           events: {
             onReady: function (e) {
-              socket.emit('media:status', { channel: CHANNEL, audio: mute ? 'muted' : 'ok' });
+              if (auto) e.target.playVideo();
+            },
+            onStateChange: function (e) {
+              // Once playing, unmute if the item doesn't have mute checked
+              if (e.data === YT.PlayerState.PLAYING && wantAudio) {
+                e.target.unMute();
+                e.target.setVolume(100);
+                socket.emit('media:status', { channel: CHANNEL, audio: 'ok' });
+              }
             },
             onError: function (e) {
               const msg = _YT_ERR_MSG[e.data] || `Playback error (code ${e.data})`;
