@@ -1419,6 +1419,7 @@
               <label>Or paste URL</label>
               <input type="text" class="item-media-url" value="{{ item.get('url','') }}"
                      placeholder="https://… or /media/images/file.jpg"
+                     onfocus="this.select()"
                      oninput="onMediaUrlInput(this.closest('.program-item'))">
               <div class="yt-download-controls">
                 <select class="yt-quality-select">
@@ -1726,6 +1727,7 @@
         <div class="field" style="margin-top:8px">
           <label>Or paste URL</label>
           <input type="text" class="item-media-url" value="" placeholder="https://… or /media/images/file.jpg"
+                 onfocus="this.select()"
                  oninput="onMediaUrlInput(this.closest('.program-item'))">
           <div class="yt-download-controls">
             <select class="yt-quality-select">
