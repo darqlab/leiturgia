@@ -2232,6 +2232,8 @@
       loadMediaListFor(el);
       _checkPlatformUrl(el);      // show download controls if URL is a platform URL
       _updatePlatformWarning(el); // show warning badge + cache lookup
+      const _openUrl = el.querySelector('.item-media-url')?.value.trim();
+      if (_openUrl) _fetchUrlTitle(el, _openUrl); // check embeddability for pre-saved URLs
     }
 
     // Highlight in sidebar
@@ -2533,7 +2535,6 @@
 
   async function _fetchUrlTitle(itemEl, url) {
     const titleEl = itemEl.querySelector('.item-title');
-    if (!titleEl || titleEl.value.trim()) return;  // don't overwrite existing title
 
     // YouTube: proxy through server to avoid CORB; also checks embeddability
     if (/youtube\.com|youtu\.be/i.test(url)) {
@@ -2541,11 +2542,12 @@
         const res  = await fetch(`/api/yt-title?url=${encodeURIComponent(url)}`);
         if (res.ok) {
           const data = await res.json();
-          if (data.title && !titleEl.value.trim()) {
+          // Fill title only if empty
+          if (data.title && titleEl && !titleEl.value.trim()) {
             titleEl.value = data.title;
             scheduleAutoSave();
           }
-          // Immediately warn if embedding is blocked
+          // Always check embeddability regardless of title state
           if (data.embeddable === false) {
             const warning  = itemEl.querySelector('.platform-url-warning');
             const warnText = itemEl.querySelector('.platform-warn-text');
@@ -2562,6 +2564,9 @@
       } catch (e) { /* ignore */ }
       return;
     }
+
+    // Non-YouTube: only fill title if empty
+    if (!titleEl || titleEl.value.trim()) return;
 
     // Local path or direct file URL: extract filename, strip extension
     const filename = decodeURIComponent(url.split('/').pop().split('?')[0]);
