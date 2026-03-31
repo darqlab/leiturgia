@@ -760,19 +760,31 @@ def _get_format(quality):
     table = _QUALITY_MERGE if _FFMPEG else _QUALITY_NOFFMPEG
     return table.get(quality, table['best'])
 
+_ANSI_RE = re.compile(r'\x1b\[[0-9;]*m')
+
+def _strip_ansi(s: str) -> str:
+    return _ANSI_RE.sub('', s).strip()
+
 def _yt_progress_hook(d, item_id, sid):
     status = d.get('status')
     if status == 'downloading':
-        raw = d.get('_percent_str', '0%').strip()
-        try:
-            percent = float(raw.replace('%', ''))
-        except ValueError:
-            percent = 0.0
+        # yt-dlp embeds ANSI colour codes — strip before parsing
+        downloaded = d.get('downloaded_bytes') or 0
+        total      = d.get('total_bytes') or d.get('total_bytes_estimate') or 0
+        if total:
+            percent = min(100.0, downloaded / total * 100)
+        else:
+            raw = _strip_ansi(d.get('_percent_str', '0%'))
+            try:
+                percent = float(raw.replace('%', ''))
+            except ValueError:
+                percent = 0.0
+        speed_raw = _strip_ansi(d.get('_speed_str', ''))
         socketio.emit('yt:progress', {
             'item_id': item_id,
             'status':  'downloading',
             'percent': percent,
-            'speed':   d.get('_speed_str', '').strip(),
+            'speed':   speed_raw,
             'eta':     d.get('eta', 0),
         }, room=sid)
     elif status == 'finished':

@@ -220,7 +220,6 @@
       color: var(--white);
     }
     .radio-option input[type="radio"] { accent-color: var(--gold); cursor: pointer; }
-    #addSheetRow { display: none; flex-direction: column; gap: 5px; margin-top: 4px; }
 
     .outline-cat-header {
       padding: 10px 12px 6px;
@@ -1324,18 +1323,6 @@
         <input type="text" id="addProgramName" placeholder="e.g. Adventist Youth">
       </div>
       <div style="display:flex; flex-direction:column; gap:8px;">
-        <label class="radio-option">
-          <input type="radio" name="addMode" value="empty" checked onchange="toggleAddMode()">
-          Create empty
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="addMode" value="sheet" onchange="toggleAddMode()">
-          Import from Google Sheet
-        </label>
-        <div id="addSheetRow">
-          <label>Sheet URL or ID</label>
-          <input type="text" id="addSheetId" placeholder="https://docs.google.com/spreadsheets/d/…">
-        </div>
       </div>
       <div id="addProgramError" style="display:none; color:var(--error); font-size:13px;"></div>
     </div>
@@ -2773,21 +2760,13 @@
   // ── Add Program modal ─────────────────────────────────────────────────────
   function openAddProgram() {
     document.getElementById("addProgramName").value = "";
-    document.getElementById("addSheetId").value = "";
     document.getElementById("addProgramError").style.display = "none";
-    document.querySelector('input[name="addMode"][value="empty"]').checked = true;
-    document.getElementById("addSheetRow").style.display = "none";
     document.getElementById("addProgramModal").style.display = "block";
     setTimeout(() => document.getElementById("addProgramName").focus(), 50);
   }
 
   function closeAddProgram() {
     document.getElementById("addProgramModal").style.display = "none";
-  }
-
-  function toggleAddMode() {
-    const isSheet = document.querySelector('input[name="addMode"]:checked').value === "sheet";
-    document.getElementById("addSheetRow").style.display = isSheet ? "flex" : "none";
   }
 
   async function submitAddProgram() {
@@ -2800,13 +2779,6 @@
     errEl.style.display = "none";
     if (!name) { errEl.textContent = "Program name is required."; errEl.style.display = ""; return; }
 
-    const mode = document.querySelector('input[name="addMode"]:checked').value;
-    let sheetId = "";
-    if (mode === "sheet") {
-      sheetId = document.getElementById("addSheetId").value.trim();
-      if (!sheetId) { errEl.textContent = "Sheet URL or ID is required."; errEl.style.display = ""; return; }
-    }
-
     btn.disabled = true;
     spinner.style.display = "";
     label.textContent = "Adding…";
@@ -2815,9 +2787,7 @@
       // Auto-save current form state first
       await fetch("/api/program", { method: "POST", headers: {"Content-Type":"application/json"}, body: collectProgram() });
 
-      const endpoint = mode === "sheet" ? "/api/program/add-from-sheet" : "/api/program/add";
-      const payload  = mode === "sheet" ? { name, sheet_id: sheetId } : { name };
-      const res  = await fetch(endpoint, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+      const res  = await fetch("/api/program/add", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ name }) });
       const data = await res.json();
 
       if (data.status === "ok") {

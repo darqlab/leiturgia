@@ -70,7 +70,9 @@ Slide dimensions: 10" × 5.625" (16:9). All coordinates use inches. The `add_ite
 
 ## Documentation
 
-All project documentation lives in `/home/dennis/devops/projects/leiturgia/`.
+- **Project-level docs** (README, system TDD, architecture, API reference, etc.): `/home/dennis/devops/projects/leiturgia/`
+  - See [`README.md`](file:///home/dennis/devops/projects/leiturgia/README.md) for the full index.
+- **Feature-specific dev docs** (TDD, TM, RP, IA per feature): `/home/dennis/devops/projects/leiturgia/dev/`
 
 ### Filename Naming Convention
 
@@ -109,7 +111,7 @@ Every non-trivial change follows this four-step sequence **before any code is wr
 ### 2. Technical Design (`TDD`)
 - Write a `_TDD.md` covering: purpose & scope, solution overview, component design, data schema, API contracts, security considerations, and open decisions
 - This is **mandatory** for any feature that touches more than one file or introduces a new data type, API endpoint, or UI component
-- Save to `/home/dennis/devops/projects/leiturgia/` before implementation starts
+- Save to `/home/dennis/devops/projects/leiturgia/dev/` before implementation starts
 
 ### 3. Implementation Plan
 - Break the approved TDD into concrete, ordered steps
@@ -117,7 +119,7 @@ Every non-trivial change follows this four-step sequence **before any code is wr
 - Use Claude Code's plan mode (`EnterPlanMode`) so the user reviews and approves before implementation starts
 
 ### 4. Task Management (`TM`)
-- Create a `_TM.md` in `/home/dennis/devops/projects/leiturgia/` to track work
+- Create a `_TM.md` in `/home/dennis/devops/projects/leiturgia/dev/` to track work
 - Each task maps to a step from the implementation plan
 - Mark tasks `in_progress` before starting, `completed` when done
 - Do not skip ahead — complete and verify each task before moving to the next
