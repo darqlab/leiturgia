@@ -2226,7 +2226,11 @@
     el.querySelector(".item-chevron")?.classList.add("open");
     el.classList.add("item-editing");
     loadLyricsDisplay(el);
-    if (el.dataset.itemType === 'media') loadMediaListFor(el);
+    if (el.dataset.itemType === 'media') {
+      loadMediaListFor(el);
+      _checkPlatformUrl(el);      // show download controls if URL is a platform URL
+      _updatePlatformWarning(el); // show warning badge + cache lookup
+    }
 
     // Highlight in sidebar
     document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
