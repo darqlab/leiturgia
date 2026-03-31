@@ -220,7 +220,7 @@
       color: var(--white);
     }
     .radio-option input[type="radio"] { accent-color: var(--gold); cursor: pointer; }
-    #addSheetRow { display: none; flex-direction: column; gap: 5px; margin-top: 4px; }
+
 
     .outline-cat-header {
       padding: 10px 12px 6px;
@@ -791,62 +791,6 @@
       gap: 8px; align-items: center;
     }
 
-    /* ── Generate panel ── */
-    .generate-panel {
-      background: linear-gradient(135deg, #162240 0%, #0f1e3a 100%);
-      border: 1px solid var(--gold-dim);
-      border-radius: 10px;
-      padding: 2rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .generate-panel > h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 24px; font-weight: 600;
-      margin-bottom: 6px;
-      text-align: center;
-    }
-
-    .generate-panel > p {
-      color: var(--muted); font-size: 13px;
-      margin-bottom: 1.5rem;
-      text-align: center;
-    }
-
-    .generate-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .generate-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1.2rem;
-      display: flex; flex-direction: column; gap: 10px;
-    }
-
-    .generate-card h3 {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 18px; font-weight: 600;
-      color: var(--gold-lt);
-    }
-
-    .generated-time { font-size: 11px; color: var(--muted); }
-
-    .generate-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
-    .btn-generate {
-      background: var(--gold);
-      color: var(--bg);
-      font-size: 14px;
-      padding: 10px 22px;
-      border-radius: 7px;
-      font-weight: 600;
-    }
-    .btn-generate:hover { background: var(--gold-lt); transform: translateY(-1px); }
-
     /* ── Spinner ── */
     .spinner {
       width: 14px; height: 14px;
@@ -970,7 +914,6 @@
       .form-row, .form-row.triple, .form-row.quad { grid-template-columns: 1fr; }
       .participant, .class-row, .team-row { grid-template-columns: 1fr; }
       .role-label { display: none; }
-      .generate-grid { grid-template-columns: 1fr; }
     }
 
     /* ── Live projection controls ── */
@@ -1335,20 +1278,6 @@
       <div class="field">
         <label>Program Name</label>
         <input type="text" id="addProgramName" placeholder="e.g. Adventist Youth">
-      </div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <label class="radio-option">
-          <input type="radio" name="addMode" value="empty" checked onchange="toggleAddMode()">
-          Create empty
-        </label>
-        <label class="radio-option">
-          <input type="radio" name="addMode" value="sheet" onchange="toggleAddMode()">
-          Import from Google Sheet
-        </label>
-        <div id="addSheetRow">
-          <label>Sheet URL or ID</label>
-          <input type="text" id="addSheetId" placeholder="https://docs.google.com/spreadsheets/d/…">
-        </div>
       </div>
       <div id="addProgramError" style="display:none; color:var(--error); font-size:13px;"></div>
     </div>
@@ -2633,35 +2562,6 @@
 
   function showAll() { closeActiveItem(); }
 
-  // ── Generate ──────────────────────────────────────────────────────────────
-  async function generateSection(section, btn) {
-    await saveProgram();
-
-    const spinner = btn.querySelector(".spinner");
-    const label   = btn.querySelector("span");
-
-    btn.disabled = true;
-    spinner.style.display = "block";
-    label.textContent = "Generating…";
-
-    try {
-      const res  = await fetch(`/api/generate/${section}`, { method: "POST" });
-      const data = await res.json();
-      if (data.status === "success") {
-        toast(`✦ Generated at ${data.generated_at}`, "success");
-        setTimeout(() => location.reload(), 1500);
-      } else {
-        toast("Error: " + data.message, "error");
-      }
-    } catch (e) {
-      toast("Network error", "error");
-    } finally {
-      btn.disabled = false;
-      spinner.style.display = "none";
-      label.textContent = btn.textContent.trim() || "Generate";
-    }
-  }
-
   // ── Fetch hymn lyrics ─────────────────────────────────────────────────────
   async function fetchHymn(btn) {
     const row    = btn.closest(".item-body");
@@ -2699,28 +2599,6 @@
     location.reload();
   }
 
-  // ── Import from Google Sheet ───────────────────────────────────────────────
-  async function importSheet(btn) {
-    btn.disabled = true;
-    btn.textContent = 'Importing\u2026';
-    try {
-      const res  = await fetch('/api/import-sheet', { method: 'POST' });
-      const data = await res.json();
-      if (data.status === 'ok') {
-        btn.textContent = `\u2713 Imported (${data.updated} fields)`;
-        setTimeout(() => location.reload(), 800);
-      } else {
-        btn.textContent = '\u8659 Import from Sheet';
-        alert('Import failed: ' + data.message);
-      }
-    } catch (e) {
-      btn.textContent = '\u8659 Import from Sheet';
-      alert('Network error: ' + e.message);
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
   // ── Toast ─────────────────────────────────────────────────────────────────
   function toast(msg, type = "success") {
     const el = document.getElementById("toast");
@@ -2737,21 +2615,13 @@
   // ── Add Program modal ─────────────────────────────────────────────────────
   function openAddProgram() {
     document.getElementById("addProgramName").value = "";
-    document.getElementById("addSheetId").value = "";
     document.getElementById("addProgramError").style.display = "none";
-    document.querySelector('input[name="addMode"][value="empty"]').checked = true;
-    document.getElementById("addSheetRow").style.display = "none";
     document.getElementById("addProgramModal").style.display = "block";
     setTimeout(() => document.getElementById("addProgramName").focus(), 50);
   }
 
   function closeAddProgram() {
     document.getElementById("addProgramModal").style.display = "none";
-  }
-
-  function toggleAddMode() {
-    const isSheet = document.querySelector('input[name="addMode"]:checked').value === "sheet";
-    document.getElementById("addSheetRow").style.display = isSheet ? "flex" : "none";
   }
 
   async function submitAddProgram() {
@@ -2764,13 +2634,6 @@
     errEl.style.display = "none";
     if (!name) { errEl.textContent = "Program name is required."; errEl.style.display = ""; return; }
 
-    const mode = document.querySelector('input[name="addMode"]:checked').value;
-    let sheetId = "";
-    if (mode === "sheet") {
-      sheetId = document.getElementById("addSheetId").value.trim();
-      if (!sheetId) { errEl.textContent = "Sheet URL or ID is required."; errEl.style.display = ""; return; }
-    }
-
     btn.disabled = true;
     spinner.style.display = "";
     label.textContent = "Adding…";
@@ -2779,9 +2642,7 @@
       // Auto-save current form state first
       await fetch("/api/program", { method: "POST", headers: {"Content-Type":"application/json"}, body: collectProgram() });
 
-      const endpoint = mode === "sheet" ? "/api/program/add-from-sheet" : "/api/program/add";
-      const payload  = mode === "sheet" ? { name, sheet_id: sheetId } : { name };
-      const res  = await fetch(endpoint, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(payload) });
+      const res  = await fetch("/api/program/add", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ name }) });
       const data = await res.json();
 
       if (data.status === "ok") {

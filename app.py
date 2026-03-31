@@ -11,8 +11,6 @@ import json, os, copy, re
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
-from generator import generate_pptx
-from generator_odp import generate_odp
 from scraper import fetch_hymn_lyrics, fetch_lyrics_by_title
 from claude_helpers import clean_stanzas
 from hymnal import search_titles, get_by_title, get_by_number
@@ -75,14 +73,6 @@ def _load_lyrics(path, hint_number=None, hint_title=None):
             json.dump(data, f, indent=2)
 
     return data
-
-
-def _output_pptx(program_id: str) -> str:
-    return f"output/{program_id}.pptx"
-
-
-def _output_odp(program_id: str) -> str:
-    return f"output/{program_id}.odp"
 
 
 # ── Default program template ─────────────────────────────────────────────────
@@ -292,22 +282,7 @@ def _prepare_lyrics(items):
 @app.route("/")
 def index():
     program = load_program()
-    programs_meta = {}
-    for sp in program.get("service_programs", []):
-        pid  = sp["id"]
-        pptx = _output_pptx(pid)
-        odp  = _output_odp(pid)
-        generated_at = None
-        if os.path.exists(pptx):
-            generated_at = datetime.fromtimestamp(
-                os.path.getmtime(pptx)).strftime("%A, %d %B %Y at %H:%M")
-        programs_meta[pid] = {
-            "name":         sp["name"],
-            "generated_at": generated_at,
-            "has_pptx":     os.path.exists(pptx),
-            "has_odp":      os.path.exists(odp),
-        }
-    return render_template("index.html", program=program, programs_meta=programs_meta)
+    return render_template("index.html", program=program)
 
 
 @app.route("/api/program", methods=["GET"])
@@ -322,21 +297,6 @@ def save_program_route():
     save_history(data)
     return jsonify({"status": "saved"})
 
-
-@app.route("/api/generate/<section>", methods=["POST"])
-def generate_section_route(section):
-    try:
-        program = load_program()
-        sp = next((p for p in program.get("service_programs", []) if p["id"] == section), None)
-        if not sp:
-            return jsonify({"status": "error", "message": f"Program '{section}' not found"}), 404
-        _prepare_lyrics(sp["items"])
-        generate_pptx(program, sp, _output_pptx(section))
-        generate_odp(program, sp, _output_odp(section))
-        ts = datetime.now().strftime("%A, %d %B %Y at %H:%M")
-        return jsonify({"status": "success", "generated_at": ts})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route("/api/history")
@@ -428,64 +388,6 @@ def hymnal_search():
     return jsonify(search_titles(q, limit=8))
 
 
-@app.route("/download/<section>")
-def download_pptx(section):
-    path = _output_pptx(section)
-    if os.path.exists(path):
-        name = section.replace("-", " ").title().replace(" ", "") + ".pptx"
-        return send_file(path, as_attachment=True, download_name=name)
-    return "No file generated yet.", 404
-
-
-@app.route("/download/<section>/odp")
-def download_odp(section):
-    path = _output_odp(section)
-    if os.path.exists(path):
-        name = section.replace("-", " ").title().replace(" ", "") + ".odp"
-        return send_file(path, as_attachment=True, download_name=name)
-    return "No ODP file generated yet.", 404
-
-
-@app.route("/api/import-sheet", methods=["POST"])
-def import_sheet():
-    sheet_id = os.environ.get("GOOGLE_SHEET_ID", "").strip()
-    if not sheet_id:
-        return jsonify({"status": "error", "message": "GOOGLE_SHEET_ID not set in .env"}), 400
-    try:
-        from sheets import fetch_and_parse
-        program = load_program()
-        if not program.get("date"):
-            return jsonify({"status": "error", "message": "Set the program date before importing"}), 400
-
-        updates = fetch_and_parse(sheet_id, program["date"])
-
-        count = 0
-        for key, value in updates.items():
-            if key == "__song_leader__":
-                program["song_leader"] = value
-                count += 1
-            elif key == "__pianist__":
-                program["pianist"] = value
-                count += 1
-            elif isinstance(key, tuple):
-                sp_id, item_id = key
-                for sp in program.get("service_programs", []):
-                    if sp["id"] != sp_id:
-                        continue
-                    for item in sp.get("items", []):
-                        if item["item_id"] == item_id and item.get("type") == "participant":
-                            item["participant"] = value
-                            count += 1
-
-        save_program(program)
-        save_history(program)
-        return jsonify({"status": "ok", "updated": count})
-    except ValueError as e:
-        return jsonify({"status": "error", "message": str(e)}), 404
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
 @app.route("/api/program/add", methods=["POST"])
 def add_program():
     data = request.get_json()
@@ -500,32 +402,6 @@ def add_program():
     save_history(program)
     return jsonify({"status": "ok", "id": pid})
 
-
-@app.route("/api/program/add-from-sheet", methods=["POST"])
-def add_program_from_sheet():
-    data     = request.get_json()
-    name     = (data.get("name") or "").strip()
-    sheet_id = (data.get("sheet_id") or "").strip()
-    if not name:
-        return jsonify({"status": "error", "message": "Name is required"}), 400
-    if not sheet_id:
-        return jsonify({"status": "error", "message": "Sheet ID or URL is required"}), 400
-    # Extract sheet ID from a full Google Sheets URL if needed
-    m = re.search(r"/d/([a-zA-Z0-9_-]+)", sheet_id)
-    if m:
-        sheet_id = m.group(1)
-    program = load_program()
-    existing_ids = [sp["id"] for sp in program.get("service_programs", [])]
-    pid = _slugify(name, existing_ids)
-    try:
-        from sheets import parse_program_sheet
-        items = parse_program_sheet(sheet_id, pid)
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-    program["service_programs"].append({"id": pid, "name": name, "time": "", "items": items})
-    save_program(program)
-    save_history(program)
-    return jsonify({"status": "ok", "id": pid, "item_count": len(items)})
 
 
 @app.route("/api/programs/<program_id>", methods=["DELETE"])
