@@ -2512,12 +2512,45 @@
   function onMediaUrlInput(itemEl) {
     const url = itemEl.querySelector('.item-media-url')?.value.trim() || '';
     _checkPlatformUrl(itemEl);
+
+    // Auto-detect title (debounced)
+    clearTimeout(itemEl._titleFetchTimer);
+    if (url) itemEl._titleFetchTimer = setTimeout(() => _fetchUrlTitle(itemEl, url), 600);
+
     if (!url || PLATFORM_URL_RE.test(url)) return;  // platform URLs need Download button, not auto-set
     const ext = url.split('?')[0].split('.').pop().toLowerCase();
     const imgExts = ['jpg','jpeg','png','gif','webp'];
     const vidExts = ['mp4','webm','mov'];
     const media_type = imgExts.includes(ext) ? 'image' : vidExts.includes(ext) ? 'video' : 'image';
     _setMediaItem(itemEl, url, media_type);
+  }
+
+  async function _fetchUrlTitle(itemEl, url) {
+    const titleEl = itemEl.querySelector('.item-title');
+    if (!titleEl || titleEl.value.trim()) return;  // don't overwrite existing title
+
+    // YouTube: use oEmbed (free, no API key)
+    if (/youtube\.com|youtu\.be/i.test(url)) {
+      try {
+        const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.title && !titleEl.value.trim()) {
+            titleEl.value = data.title;
+            scheduleAutoSave();
+          }
+        }
+      } catch (e) { /* ignore — network or CORS */ }
+      return;
+    }
+
+    // Local path or direct file URL: extract filename, strip extension
+    const filename = decodeURIComponent(url.split('/').pop().split('?')[0]);
+    const name = filename.replace(/\.[^.]+$/, '').trim();
+    if (name && !titleEl.value.trim()) {
+      titleEl.value = name;
+      scheduleAutoSave();
+    }
   }
 
   // Internal: apply a selected file to the item editor
