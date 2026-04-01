@@ -1,2291 +1,335 @@
 [
   {
-    "saved_at": "2026-03-29T23:23:00.142785",
+    "saved_at": "2026-03-30T16:31:40.924038",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "sabbath-school",
-        "name": "Sabbath School",
+        "id": "mid-week",
+        "name": "Mid-Week",
         "items": [
           {
             "type": "content",
             "title": "Happy Sabbath",
             "content": "Happy Sabbath",
-            "item_id": "sabbath-school-014"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remarks",
-            "part": "Welcome Remarks",
-            "participant": "Michaella Grace Palar",
-            "item_id": "sabbath-school-001"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-002",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "XO Olasiman",
-            "item_id": "sabbath-school-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Palar  Kids",
-            "item_id": "sabbath-school-004"
-          },
-          {
-            "type": "participant",
-            "title": "Mission Story",
-            "part": "Mission Story",
-            "participant": "Sancho Agno",
-            "item_id": "sabbath-school-005"
-          },
-          {
-            "type": "participant",
-            "title": "Intermission Song",
-            "part": "Intermission Song",
-            "participant": "kid's Class",
-            "item_id": "sabbath-school-006"
-          },
-          {
-            "type": "participant",
-            "title": "Instrumental Number",
-            "part": "Instrumental Number",
-            "participant": "Yuri Corder, EJ & XO Alasiman",
-            "item_id": "sabbath-school-008"
-          },
-          {
-            "type": "participant",
-            "title": "Memory Verse",
-            "part": "Memory Verse",
-            "participant": "Kids Class",
-            "item_id": "sabbath-school-009"
-          },
-          {
-            "type": "participant",
-            "title": "Song",
-            "part": "Song",
-            "participant": "Kids & Teen Class",
-            "item_id": "sabbath-school-010"
-          },
-          {
-            "type": "content",
-            "title": "Lesson Study",
-            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
-            "item_id": "sabbath-school-007"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-011",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Amara Gandeza",
-            "item_id": "sabbath-school-012"
-          },
-          {
-            "type": "media",
-            "title": "",
-            "url": "/media/videos/Mission Theme Song by Jader Santos.mp4",
-            "media_type": "video",
-            "autoplay": true,
-            "loop": false,
-            "mute": false,
-            "item_id": "sabbath-school-015"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "sabbath-school-013"
-          }
-        ]
-      },
-      {
-        "id": "divine-service",
-        "name": "Divine Service",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-012"
-          },
-          {
-            "type": "participant",
-            "title": "Call To Worship",
-            "part": "Call To Worship",
-            "participant": "Joy Olasiman",
-            "item_id": "divine-service-001"
-          },
-          {
-            "type": "song",
-            "title": "Holy, Holy, Holy",
-            "item_id": "divine-service-002",
-            "hymn_number": "73",
-            "lyrics_key": "73",
-            "part": "Introit"
-          },
-          {
-            "type": "song",
-            "title": "We Love Thy Sabbath, Lord",
-            "item_id": "divine-service-003",
-            "hymn_number": "390",
-            "lyrics_key": "390",
-            "part": "Hymn Of Celebration"
-          },
-          {
-            "type": "participant",
-            "title": "Invocation",
-            "part": "Invocation",
-            "participant": "Speaker",
-            "item_id": "divine-service-004"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "divine-service-005",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Hymn of Adoration"
-          },
-          {
-            "type": "participant",
-            "title": "Scripture Reading",
-            "part": "Scripture Reading",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-006"
-          },
-          {
-            "type": "song",
-            "title": "Come, Christians, Join to Sing",
-            "item_id": "divine-service-007",
-            "hymn_number": "10",
-            "lyrics_key": "10",
-            "part": "Prayer Hymn"
-          },
-          {
-            "type": "participant",
-            "title": "Pastoral Prayer",
-            "part": "Pastoral Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-008"
-          },
-          {
-            "type": "song",
-            "title": "O Thou Who Hearest",
-            "item_id": "divine-service-009",
-            "hymn_number": "668",
-            "lyrics_key": "668",
-            "part": "Hymn of Response"
-          },
-          {
-            "type": "participant",
-            "title": "Toughts On Stewardship",
-            "part": "Toughts On Stewardship",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-010"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Music",
-            "part": "Offertory Music",
-            "participant": "KC Barbajano",
-            "item_id": "divine-service-011"
-          },
-          {
-            "type": "song",
-            "title": "Praise God, From Whom All Blessings",
-            "item_id": "divine-service-013",
-            "hymn_number": "694",
-            "lyrics_key": "694",
-            "part": "Hymn of Gratitude"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Prayer",
-            "part": "Offertory Prayer",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-014"
-          },
-          {
-            "type": "participant",
-            "title": "Children Homily",
-            "part": "Children Homily",
-            "participant": "Renee Mwamakamba",
-            "item_id": "divine-service-015"
-          },
-          {
-            "type": "participant",
-            "title": "Ministry In Song",
-            "part": "Ministry In Song",
-            "participant": "Jean Andres",
-            "item_id": "divine-service-016"
-          },
-          {
-            "type": "participant",
-            "title": "Child Dedication ",
-            "part": "Child Dedication ",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-017"
-          },
-          {
-            "type": "participant",
-            "title": "The Spoken Word",
-            "part": "The Spoken Word",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-018"
-          },
-          {
-            "type": "song",
-            "title": "All People That on Earth Do Well",
-            "item_id": "divine-service-019",
-            "hymn_number": "16",
-            "lyrics_key": "16",
-            "part": "Hymn of Consecration"
-          },
-          {
-            "type": "participant",
-            "title": "Hymn of Hope",
-            "part": "Hymn of Hope",
-            "participant": "The Mission",
-            "item_id": "divine-service-020"
-          },
-          {
-            "type": "participant",
-            "title": "Benediction",
-            "part": "Benediction",
-            "participant": "Speaker",
-            "item_id": "divine-service-021"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-022"
-          }
-        ]
-      },
-      {
-        "id": "ay",
-        "name": "AY",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-011"
-          },
-          {
-            "type": "participant",
-            "title": "Singspiration",
-            "part": "Singspiration",
-            "participant": "Floribel Doplon",
-            "item_id": "ay-002"
+            "item_id": "mid-week-002"
           },
           {
             "type": "participant",
             "title": "Welcome",
             "part": "Welcome",
-            "participant": "Aimyrrh Boholist",
-            "item_id": "ay-001"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "ay-004",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "Arnel Llaguno",
-            "item_id": "ay-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Chiqlette Marcera",
-            "item_id": "ay-005"
-          },
-          {
-            "type": "content",
-            "title": "Bible Quiz",
-            "content": "Kahoot - Book of Genesis",
-            "item_id": "ay-006"
-          },
-          {
-            "type": "content",
-            "title": "Intermission Number",
-            "content": "",
-            "item_id": "ay-007"
-          },
-          {
-            "type": "content",
-            "title": "Song Game",
-            "content": "Find My Tune",
-            "item_id": "ay-008"
-          },
-          {
-            "type": "song",
-            "title": "Turn Your Eyes Upon Jesus",
-            "item_id": "ay-009",
-            "hymn_number": "290",
-            "lyrics_key": "290",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "ay-010"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-012"
+            "participant": "Welcome",
+            "item_id": "mid-week-001"
           },
           {
             "type": "media",
-            "title": "rytytyr",
-            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
-            "media_type": "image",
+            "title": "Song Service",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
             "autoplay": true,
             "loop": false,
-            "mute": true,
-            "item_id": "ay-013"
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song Service",
+            "url": "/media/videos/It is Well with My Soul - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Opening Song",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-005"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T23:22:50.478075",
+    "saved_at": "2026-03-30T16:31:39.490065",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "sabbath-school",
-        "name": "Sabbath School",
+        "id": "mid-week",
+        "name": "Mid-Week",
         "items": [
           {
             "type": "content",
             "title": "Happy Sabbath",
             "content": "Happy Sabbath",
-            "item_id": "sabbath-school-014"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remarks",
-            "part": "Welcome Remarks",
-            "participant": "Michaella Grace Palar",
-            "item_id": "sabbath-school-001"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-002",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "XO Olasiman",
-            "item_id": "sabbath-school-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Palar  Kids",
-            "item_id": "sabbath-school-004"
-          },
-          {
-            "type": "participant",
-            "title": "Mission Story",
-            "part": "Mission Story",
-            "participant": "Sancho Agno",
-            "item_id": "sabbath-school-005"
-          },
-          {
-            "type": "participant",
-            "title": "Intermission Song",
-            "part": "Intermission Song",
-            "participant": "kid's Class",
-            "item_id": "sabbath-school-006"
-          },
-          {
-            "type": "participant",
-            "title": "Instrumental Number",
-            "part": "Instrumental Number",
-            "participant": "Yuri Corder, EJ & XO Alasiman",
-            "item_id": "sabbath-school-008"
-          },
-          {
-            "type": "participant",
-            "title": "Memory Verse",
-            "part": "Memory Verse",
-            "participant": "Kids Class",
-            "item_id": "sabbath-school-009"
-          },
-          {
-            "type": "participant",
-            "title": "Song",
-            "part": "Song",
-            "participant": "Kids & Teen Class",
-            "item_id": "sabbath-school-010"
-          },
-          {
-            "type": "content",
-            "title": "Lesson Study",
-            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
-            "item_id": "sabbath-school-007"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-011",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Amara Gandeza",
-            "item_id": "sabbath-school-012"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "sabbath-school-013"
-          },
-          {
-            "type": "media",
-            "title": "",
-            "url": "/media/videos/Mission Theme Song by Jader Santos.mp4",
-            "media_type": "video",
-            "autoplay": true,
-            "loop": false,
-            "mute": false,
-            "item_id": "sabbath-school-015"
-          }
-        ]
-      },
-      {
-        "id": "divine-service",
-        "name": "Divine Service",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-012"
-          },
-          {
-            "type": "participant",
-            "title": "Call To Worship",
-            "part": "Call To Worship",
-            "participant": "Joy Olasiman",
-            "item_id": "divine-service-001"
-          },
-          {
-            "type": "song",
-            "title": "Holy, Holy, Holy",
-            "item_id": "divine-service-002",
-            "hymn_number": "73",
-            "lyrics_key": "73",
-            "part": "Introit"
-          },
-          {
-            "type": "song",
-            "title": "We Love Thy Sabbath, Lord",
-            "item_id": "divine-service-003",
-            "hymn_number": "390",
-            "lyrics_key": "390",
-            "part": "Hymn Of Celebration"
-          },
-          {
-            "type": "participant",
-            "title": "Invocation",
-            "part": "Invocation",
-            "participant": "Speaker",
-            "item_id": "divine-service-004"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "divine-service-005",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Hymn of Adoration"
-          },
-          {
-            "type": "participant",
-            "title": "Scripture Reading",
-            "part": "Scripture Reading",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-006"
-          },
-          {
-            "type": "song",
-            "title": "Come, Christians, Join to Sing",
-            "item_id": "divine-service-007",
-            "hymn_number": "10",
-            "lyrics_key": "10",
-            "part": "Prayer Hymn"
-          },
-          {
-            "type": "participant",
-            "title": "Pastoral Prayer",
-            "part": "Pastoral Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-008"
-          },
-          {
-            "type": "song",
-            "title": "O Thou Who Hearest",
-            "item_id": "divine-service-009",
-            "hymn_number": "668",
-            "lyrics_key": "668",
-            "part": "Hymn of Response"
-          },
-          {
-            "type": "participant",
-            "title": "Toughts On Stewardship",
-            "part": "Toughts On Stewardship",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-010"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Music",
-            "part": "Offertory Music",
-            "participant": "KC Barbajano",
-            "item_id": "divine-service-011"
-          },
-          {
-            "type": "song",
-            "title": "Praise God, From Whom All Blessings",
-            "item_id": "divine-service-013",
-            "hymn_number": "694",
-            "lyrics_key": "694",
-            "part": "Hymn of Gratitude"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Prayer",
-            "part": "Offertory Prayer",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-014"
-          },
-          {
-            "type": "participant",
-            "title": "Children Homily",
-            "part": "Children Homily",
-            "participant": "Renee Mwamakamba",
-            "item_id": "divine-service-015"
-          },
-          {
-            "type": "participant",
-            "title": "Ministry In Song",
-            "part": "Ministry In Song",
-            "participant": "Jean Andres",
-            "item_id": "divine-service-016"
-          },
-          {
-            "type": "participant",
-            "title": "Child Dedication ",
-            "part": "Child Dedication ",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-017"
-          },
-          {
-            "type": "participant",
-            "title": "The Spoken Word",
-            "part": "The Spoken Word",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-018"
-          },
-          {
-            "type": "song",
-            "title": "All People That on Earth Do Well",
-            "item_id": "divine-service-019",
-            "hymn_number": "16",
-            "lyrics_key": "16",
-            "part": "Hymn of Consecration"
-          },
-          {
-            "type": "participant",
-            "title": "Hymn of Hope",
-            "part": "Hymn of Hope",
-            "participant": "The Mission",
-            "item_id": "divine-service-020"
-          },
-          {
-            "type": "participant",
-            "title": "Benediction",
-            "part": "Benediction",
-            "participant": "Speaker",
-            "item_id": "divine-service-021"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-022"
-          }
-        ]
-      },
-      {
-        "id": "ay",
-        "name": "AY",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-011"
-          },
-          {
-            "type": "participant",
-            "title": "Singspiration",
-            "part": "Singspiration",
-            "participant": "Floribel Doplon",
-            "item_id": "ay-002"
+            "item_id": "mid-week-002"
           },
           {
             "type": "participant",
             "title": "Welcome",
             "part": "Welcome",
-            "participant": "Aimyrrh Boholist",
-            "item_id": "ay-001"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "ay-004",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "Arnel Llaguno",
-            "item_id": "ay-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Chiqlette Marcera",
-            "item_id": "ay-005"
-          },
-          {
-            "type": "content",
-            "title": "Bible Quiz",
-            "content": "Kahoot - Book of Genesis",
-            "item_id": "ay-006"
-          },
-          {
-            "type": "content",
-            "title": "Intermission Number",
-            "content": "",
-            "item_id": "ay-007"
-          },
-          {
-            "type": "content",
-            "title": "Song Game",
-            "content": "Find My Tune",
-            "item_id": "ay-008"
-          },
-          {
-            "type": "song",
-            "title": "Turn Your Eyes Upon Jesus",
-            "item_id": "ay-009",
-            "hymn_number": "290",
-            "lyrics_key": "290",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "ay-010"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-012"
+            "participant": "Welcome",
+            "item_id": "mid-week-001"
           },
           {
             "type": "media",
-            "title": "rytytyr",
-            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
-            "media_type": "image",
+            "title": "Song Service",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
             "autoplay": true,
             "loop": false,
-            "mute": true,
-            "item_id": "ay-013"
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song Service",
+            "url": "/media/videos/It is Well with My Soul - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Opening Song",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-005"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T23:18:48.232614",
+    "saved_at": "2026-03-30T16:31:27.722304",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "sabbath-school",
-        "name": "Sabbath School",
+        "id": "mid-week",
+        "name": "Mid-Week",
         "items": [
           {
             "type": "content",
             "title": "Happy Sabbath",
             "content": "Happy Sabbath",
-            "item_id": "sabbath-school-014"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remarks",
-            "part": "Welcome Remarks",
-            "participant": "Michaella Grace Palar",
-            "item_id": "sabbath-school-001"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-002",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "XO Olasiman",
-            "item_id": "sabbath-school-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Palar  Kids",
-            "item_id": "sabbath-school-004"
-          },
-          {
-            "type": "participant",
-            "title": "Mission Story",
-            "part": "Mission Story",
-            "participant": "Sancho Agno",
-            "item_id": "sabbath-school-005"
-          },
-          {
-            "type": "participant",
-            "title": "Intermission Song",
-            "part": "Intermission Song",
-            "participant": "kid's Class",
-            "item_id": "sabbath-school-006"
-          },
-          {
-            "type": "participant",
-            "title": "Instrumental Number",
-            "part": "Instrumental Number",
-            "participant": "Yuri Corder, EJ & XO Alasiman",
-            "item_id": "sabbath-school-008"
-          },
-          {
-            "type": "participant",
-            "title": "Memory Verse",
-            "part": "Memory Verse",
-            "participant": "Kids Class",
-            "item_id": "sabbath-school-009"
-          },
-          {
-            "type": "participant",
-            "title": "Song",
-            "part": "Song",
-            "participant": "Kids & Teen Class",
-            "item_id": "sabbath-school-010"
-          },
-          {
-            "type": "content",
-            "title": "Lesson Study",
-            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
-            "item_id": "sabbath-school-007"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-011",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Amara Gandeza",
-            "item_id": "sabbath-school-012"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "sabbath-school-013"
-          },
-          {
-            "type": "media",
-            "title": "",
-            "url": "/media/videos/Mission Theme Song by Jader Santos.mp4",
-            "media_type": "video",
-            "autoplay": true,
-            "loop": false,
-            "mute": false,
-            "item_id": "sabbath-school-015"
-          }
-        ]
-      },
-      {
-        "id": "divine-service",
-        "name": "Divine Service",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-012"
-          },
-          {
-            "type": "participant",
-            "title": "Call To Worship",
-            "part": "Call To Worship",
-            "participant": "Joy Olasiman",
-            "item_id": "divine-service-001"
-          },
-          {
-            "type": "song",
-            "title": "Holy, Holy, Holy",
-            "item_id": "divine-service-002",
-            "hymn_number": "73",
-            "lyrics_key": "73",
-            "part": "Introit"
-          },
-          {
-            "type": "song",
-            "title": "We Love Thy Sabbath, Lord",
-            "item_id": "divine-service-003",
-            "hymn_number": "390",
-            "lyrics_key": "390",
-            "part": "Hymn Of Celebration"
-          },
-          {
-            "type": "participant",
-            "title": "Invocation",
-            "part": "Invocation",
-            "participant": "Speaker",
-            "item_id": "divine-service-004"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "divine-service-005",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Hymn of Adoration"
-          },
-          {
-            "type": "participant",
-            "title": "Scripture Reading",
-            "part": "Scripture Reading",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-006"
-          },
-          {
-            "type": "song",
-            "title": "Come, Christians, Join to Sing",
-            "item_id": "divine-service-007",
-            "hymn_number": "10",
-            "lyrics_key": "10",
-            "part": "Prayer Hymn"
-          },
-          {
-            "type": "participant",
-            "title": "Pastoral Prayer",
-            "part": "Pastoral Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-008"
-          },
-          {
-            "type": "song",
-            "title": "O Thou Who Hearest",
-            "item_id": "divine-service-009",
-            "hymn_number": "668",
-            "lyrics_key": "668",
-            "part": "Hymn of Response"
-          },
-          {
-            "type": "participant",
-            "title": "Toughts On Stewardship",
-            "part": "Toughts On Stewardship",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-010"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Music",
-            "part": "Offertory Music",
-            "participant": "KC Barbajano",
-            "item_id": "divine-service-011"
-          },
-          {
-            "type": "song",
-            "title": "Praise God, From Whom All Blessings",
-            "item_id": "divine-service-013",
-            "hymn_number": "694",
-            "lyrics_key": "694",
-            "part": "Hymn of Gratitude"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Prayer",
-            "part": "Offertory Prayer",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-014"
-          },
-          {
-            "type": "participant",
-            "title": "Children Homily",
-            "part": "Children Homily",
-            "participant": "Renee Mwamakamba",
-            "item_id": "divine-service-015"
-          },
-          {
-            "type": "participant",
-            "title": "Ministry In Song",
-            "part": "Ministry In Song",
-            "participant": "Jean Andres",
-            "item_id": "divine-service-016"
-          },
-          {
-            "type": "participant",
-            "title": "Child Dedication ",
-            "part": "Child Dedication ",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-017"
-          },
-          {
-            "type": "participant",
-            "title": "The Spoken Word",
-            "part": "The Spoken Word",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-018"
-          },
-          {
-            "type": "song",
-            "title": "All People That on Earth Do Well",
-            "item_id": "divine-service-019",
-            "hymn_number": "16",
-            "lyrics_key": "16",
-            "part": "Hymn of Consecration"
-          },
-          {
-            "type": "participant",
-            "title": "Hymn of Hope",
-            "part": "Hymn of Hope",
-            "participant": "The Mission",
-            "item_id": "divine-service-020"
-          },
-          {
-            "type": "participant",
-            "title": "Benediction",
-            "part": "Benediction",
-            "participant": "Speaker",
-            "item_id": "divine-service-021"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-022"
-          }
-        ]
-      },
-      {
-        "id": "ay",
-        "name": "AY",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-011"
-          },
-          {
-            "type": "participant",
-            "title": "Singspiration",
-            "part": "Singspiration",
-            "participant": "Floribel Doplon",
-            "item_id": "ay-002"
+            "item_id": "mid-week-002"
           },
           {
             "type": "participant",
             "title": "Welcome",
             "part": "Welcome",
-            "participant": "Aimyrrh Boholist",
-            "item_id": "ay-001"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "ay-004",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "Arnel Llaguno",
-            "item_id": "ay-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Chiqlette Marcera",
-            "item_id": "ay-005"
-          },
-          {
-            "type": "content",
-            "title": "Bible Quiz",
-            "content": "Kahoot - Book of Genesis",
-            "item_id": "ay-006"
-          },
-          {
-            "type": "content",
-            "title": "Intermission Number",
-            "content": "",
-            "item_id": "ay-007"
-          },
-          {
-            "type": "content",
-            "title": "Song Game",
-            "content": "Find My Tune",
-            "item_id": "ay-008"
-          },
-          {
-            "type": "song",
-            "title": "Turn Your Eyes Upon Jesus",
-            "item_id": "ay-009",
-            "hymn_number": "290",
-            "lyrics_key": "290",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "ay-010"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-012"
+            "participant": "Welcome",
+            "item_id": "mid-week-001"
           },
           {
             "type": "media",
-            "title": "rytytyr",
-            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
-            "media_type": "image",
+            "title": "Song Service",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
             "autoplay": true,
             "loop": false,
-            "mute": true,
-            "item_id": "ay-013"
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song Service",
+            "url": "/media/videos/It is Well with My Soul - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song Service",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-005"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T23:18:44.996325",
+    "saved_at": "2026-03-30T16:31:25.823424",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "sabbath-school",
-        "name": "Sabbath School",
+        "id": "mid-week",
+        "name": "Mid-Week",
         "items": [
           {
             "type": "content",
             "title": "Happy Sabbath",
             "content": "Happy Sabbath",
-            "item_id": "sabbath-school-014"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remarks",
-            "part": "Welcome Remarks",
-            "participant": "Michaella Grace Palar",
-            "item_id": "sabbath-school-001"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-002",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "XO Olasiman",
-            "item_id": "sabbath-school-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Palar  Kids",
-            "item_id": "sabbath-school-004"
-          },
-          {
-            "type": "participant",
-            "title": "Mission Story",
-            "part": "Mission Story",
-            "participant": "Sancho Agno",
-            "item_id": "sabbath-school-005"
-          },
-          {
-            "type": "participant",
-            "title": "Intermission Song",
-            "part": "Intermission Song",
-            "participant": "kid's Class",
-            "item_id": "sabbath-school-006"
-          },
-          {
-            "type": "participant",
-            "title": "Instrumental Number",
-            "part": "Instrumental Number",
-            "participant": "Yuri Corder, EJ & XO Alasiman",
-            "item_id": "sabbath-school-008"
-          },
-          {
-            "type": "participant",
-            "title": "Memory Verse",
-            "part": "Memory Verse",
-            "participant": "Kids Class",
-            "item_id": "sabbath-school-009"
-          },
-          {
-            "type": "participant",
-            "title": "Song",
-            "part": "Song",
-            "participant": "Kids & Teen Class",
-            "item_id": "sabbath-school-010"
-          },
-          {
-            "type": "content",
-            "title": "Lesson Study",
-            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
-            "item_id": "sabbath-school-007"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-011",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Amara Gandeza",
-            "item_id": "sabbath-school-012"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "sabbath-school-013"
-          },
-          {
-            "type": "media",
-            "title": "",
-            "url": "/media/videos/Mission Theme Song by Jader Santos.mp4",
-            "media_type": "video",
-            "autoplay": true,
-            "loop": false,
-            "mute": false,
-            "item_id": "sabbath-school-015"
-          }
-        ]
-      },
-      {
-        "id": "divine-service",
-        "name": "Divine Service",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-012"
-          },
-          {
-            "type": "participant",
-            "title": "Call To Worship",
-            "part": "Call To Worship",
-            "participant": "Joy Olasiman",
-            "item_id": "divine-service-001"
-          },
-          {
-            "type": "song",
-            "title": "Holy, Holy, Holy",
-            "item_id": "divine-service-002",
-            "hymn_number": "73",
-            "lyrics_key": "73",
-            "part": "Introit"
-          },
-          {
-            "type": "song",
-            "title": "We Love Thy Sabbath, Lord",
-            "item_id": "divine-service-003",
-            "hymn_number": "390",
-            "lyrics_key": "390",
-            "part": "Hymn Of Celebration"
-          },
-          {
-            "type": "participant",
-            "title": "Invocation",
-            "part": "Invocation",
-            "participant": "Speaker",
-            "item_id": "divine-service-004"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "divine-service-005",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Hymn of Adoration"
-          },
-          {
-            "type": "participant",
-            "title": "Scripture Reading",
-            "part": "Scripture Reading",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-006"
-          },
-          {
-            "type": "song",
-            "title": "Come, Christians, Join to Sing",
-            "item_id": "divine-service-007",
-            "hymn_number": "10",
-            "lyrics_key": "10",
-            "part": "Prayer Hymn"
-          },
-          {
-            "type": "participant",
-            "title": "Pastoral Prayer",
-            "part": "Pastoral Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-008"
-          },
-          {
-            "type": "song",
-            "title": "O Thou Who Hearest",
-            "item_id": "divine-service-009",
-            "hymn_number": "668",
-            "lyrics_key": "668",
-            "part": "Hymn of Response"
-          },
-          {
-            "type": "participant",
-            "title": "Toughts On Stewardship",
-            "part": "Toughts On Stewardship",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-010"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Music",
-            "part": "Offertory Music",
-            "participant": "KC Barbajano",
-            "item_id": "divine-service-011"
-          },
-          {
-            "type": "song",
-            "title": "Praise God, From Whom All Blessings",
-            "item_id": "divine-service-013",
-            "hymn_number": "694",
-            "lyrics_key": "694",
-            "part": "Hymn of Gratitude"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Prayer",
-            "part": "Offertory Prayer",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-014"
-          },
-          {
-            "type": "participant",
-            "title": "Children Homily",
-            "part": "Children Homily",
-            "participant": "Renee Mwamakamba",
-            "item_id": "divine-service-015"
-          },
-          {
-            "type": "participant",
-            "title": "Ministry In Song",
-            "part": "Ministry In Song",
-            "participant": "Jean Andres",
-            "item_id": "divine-service-016"
-          },
-          {
-            "type": "participant",
-            "title": "Child Dedication ",
-            "part": "Child Dedication ",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-017"
-          },
-          {
-            "type": "participant",
-            "title": "The Spoken Word",
-            "part": "The Spoken Word",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-018"
-          },
-          {
-            "type": "song",
-            "title": "All People That on Earth Do Well",
-            "item_id": "divine-service-019",
-            "hymn_number": "16",
-            "lyrics_key": "16",
-            "part": "Hymn of Consecration"
-          },
-          {
-            "type": "participant",
-            "title": "Hymn of Hope",
-            "part": "Hymn of Hope",
-            "participant": "The Mission",
-            "item_id": "divine-service-020"
-          },
-          {
-            "type": "participant",
-            "title": "Benediction",
-            "part": "Benediction",
-            "participant": "Speaker",
-            "item_id": "divine-service-021"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-022"
-          }
-        ]
-      },
-      {
-        "id": "ay",
-        "name": "AY",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-011"
-          },
-          {
-            "type": "participant",
-            "title": "Singspiration",
-            "part": "Singspiration",
-            "participant": "Floribel Doplon",
-            "item_id": "ay-002"
+            "item_id": "mid-week-002"
           },
           {
             "type": "participant",
             "title": "Welcome",
             "part": "Welcome",
-            "participant": "Aimyrrh Boholist",
-            "item_id": "ay-001"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "ay-004",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "Arnel Llaguno",
-            "item_id": "ay-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Chiqlette Marcera",
-            "item_id": "ay-005"
-          },
-          {
-            "type": "content",
-            "title": "Bible Quiz",
-            "content": "Kahoot - Book of Genesis",
-            "item_id": "ay-006"
-          },
-          {
-            "type": "content",
-            "title": "Intermission Number",
-            "content": "",
-            "item_id": "ay-007"
-          },
-          {
-            "type": "content",
-            "title": "Song Game",
-            "content": "Find My Tune",
-            "item_id": "ay-008"
-          },
-          {
-            "type": "song",
-            "title": "Turn Your Eyes Upon Jesus",
-            "item_id": "ay-009",
-            "hymn_number": "290",
-            "lyrics_key": "290",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "ay-010"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-012"
+            "participant": "Welcome",
+            "item_id": "mid-week-001"
           },
           {
             "type": "media",
-            "title": "rytytyr",
-            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
-            "media_type": "image",
+            "title": "Song Service",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
             "autoplay": true,
             "loop": false,
-            "mute": true,
-            "item_id": "ay-013"
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song Service",
+            "url": "/media/videos/It is Well with My Soul - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song Service",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-005"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T23:18:42.668776",
+    "saved_at": "2026-03-30T16:31:23.487153",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "sabbath-school",
-        "name": "Sabbath School",
+        "id": "mid-week",
+        "name": "Mid-Week",
         "items": [
           {
             "type": "content",
             "title": "Happy Sabbath",
             "content": "Happy Sabbath",
-            "item_id": "sabbath-school-014"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remarks",
-            "part": "Welcome Remarks",
-            "participant": "Michaella Grace Palar",
-            "item_id": "sabbath-school-001"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-002",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "XO Olasiman",
-            "item_id": "sabbath-school-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Palar  Kids",
-            "item_id": "sabbath-school-004"
-          },
-          {
-            "type": "participant",
-            "title": "Mission Story",
-            "part": "Mission Story",
-            "participant": "Sancho Agno",
-            "item_id": "sabbath-school-005"
-          },
-          {
-            "type": "participant",
-            "title": "Intermission Song",
-            "part": "Intermission Song",
-            "participant": "kid's Class",
-            "item_id": "sabbath-school-006"
-          },
-          {
-            "type": "participant",
-            "title": "Instrumental Number",
-            "part": "Instrumental Number",
-            "participant": "Yuri Corder, EJ & XO Alasiman",
-            "item_id": "sabbath-school-008"
-          },
-          {
-            "type": "participant",
-            "title": "Memory Verse",
-            "part": "Memory Verse",
-            "participant": "Kids Class",
-            "item_id": "sabbath-school-009"
-          },
-          {
-            "type": "participant",
-            "title": "Song",
-            "part": "Song",
-            "participant": "Kids & Teen Class",
-            "item_id": "sabbath-school-010"
-          },
-          {
-            "type": "content",
-            "title": "Lesson Study",
-            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
-            "item_id": "sabbath-school-007"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-011",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Amara Gandeza",
-            "item_id": "sabbath-school-012"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "sabbath-school-013"
-          },
-          {
-            "type": "media",
-            "title": "",
-            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4",
-            "media_type": "video",
-            "autoplay": true,
-            "loop": false,
-            "mute": false,
-            "item_id": "sabbath-school-015"
-          }
-        ]
-      },
-      {
-        "id": "divine-service",
-        "name": "Divine Service",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-012"
-          },
-          {
-            "type": "participant",
-            "title": "Call To Worship",
-            "part": "Call To Worship",
-            "participant": "Joy Olasiman",
-            "item_id": "divine-service-001"
-          },
-          {
-            "type": "song",
-            "title": "Holy, Holy, Holy",
-            "item_id": "divine-service-002",
-            "hymn_number": "73",
-            "lyrics_key": "73",
-            "part": "Introit"
-          },
-          {
-            "type": "song",
-            "title": "We Love Thy Sabbath, Lord",
-            "item_id": "divine-service-003",
-            "hymn_number": "390",
-            "lyrics_key": "390",
-            "part": "Hymn Of Celebration"
-          },
-          {
-            "type": "participant",
-            "title": "Invocation",
-            "part": "Invocation",
-            "participant": "Speaker",
-            "item_id": "divine-service-004"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "divine-service-005",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Hymn of Adoration"
-          },
-          {
-            "type": "participant",
-            "title": "Scripture Reading",
-            "part": "Scripture Reading",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-006"
-          },
-          {
-            "type": "song",
-            "title": "Come, Christians, Join to Sing",
-            "item_id": "divine-service-007",
-            "hymn_number": "10",
-            "lyrics_key": "10",
-            "part": "Prayer Hymn"
-          },
-          {
-            "type": "participant",
-            "title": "Pastoral Prayer",
-            "part": "Pastoral Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-008"
-          },
-          {
-            "type": "song",
-            "title": "O Thou Who Hearest",
-            "item_id": "divine-service-009",
-            "hymn_number": "668",
-            "lyrics_key": "668",
-            "part": "Hymn of Response"
-          },
-          {
-            "type": "participant",
-            "title": "Toughts On Stewardship",
-            "part": "Toughts On Stewardship",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-010"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Music",
-            "part": "Offertory Music",
-            "participant": "KC Barbajano",
-            "item_id": "divine-service-011"
-          },
-          {
-            "type": "song",
-            "title": "Praise God, From Whom All Blessings",
-            "item_id": "divine-service-013",
-            "hymn_number": "694",
-            "lyrics_key": "694",
-            "part": "Hymn of Gratitude"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Prayer",
-            "part": "Offertory Prayer",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-014"
-          },
-          {
-            "type": "participant",
-            "title": "Children Homily",
-            "part": "Children Homily",
-            "participant": "Renee Mwamakamba",
-            "item_id": "divine-service-015"
-          },
-          {
-            "type": "participant",
-            "title": "Ministry In Song",
-            "part": "Ministry In Song",
-            "participant": "Jean Andres",
-            "item_id": "divine-service-016"
-          },
-          {
-            "type": "participant",
-            "title": "Child Dedication ",
-            "part": "Child Dedication ",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-017"
-          },
-          {
-            "type": "participant",
-            "title": "The Spoken Word",
-            "part": "The Spoken Word",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-018"
-          },
-          {
-            "type": "song",
-            "title": "All People That on Earth Do Well",
-            "item_id": "divine-service-019",
-            "hymn_number": "16",
-            "lyrics_key": "16",
-            "part": "Hymn of Consecration"
-          },
-          {
-            "type": "participant",
-            "title": "Hymn of Hope",
-            "part": "Hymn of Hope",
-            "participant": "The Mission",
-            "item_id": "divine-service-020"
-          },
-          {
-            "type": "participant",
-            "title": "Benediction",
-            "part": "Benediction",
-            "participant": "Speaker",
-            "item_id": "divine-service-021"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-022"
-          }
-        ]
-      },
-      {
-        "id": "ay",
-        "name": "AY",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-011"
-          },
-          {
-            "type": "participant",
-            "title": "Singspiration",
-            "part": "Singspiration",
-            "participant": "Floribel Doplon",
-            "item_id": "ay-002"
+            "item_id": "mid-week-002"
           },
           {
             "type": "participant",
             "title": "Welcome",
             "part": "Welcome",
-            "participant": "Aimyrrh Boholist",
-            "item_id": "ay-001"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "ay-004",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "Arnel Llaguno",
-            "item_id": "ay-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Chiqlette Marcera",
-            "item_id": "ay-005"
-          },
-          {
-            "type": "content",
-            "title": "Bible Quiz",
-            "content": "Kahoot - Book of Genesis",
-            "item_id": "ay-006"
-          },
-          {
-            "type": "content",
-            "title": "Intermission Number",
-            "content": "",
-            "item_id": "ay-007"
-          },
-          {
-            "type": "content",
-            "title": "Song Game",
-            "content": "Find My Tune",
-            "item_id": "ay-008"
-          },
-          {
-            "type": "song",
-            "title": "Turn Your Eyes Upon Jesus",
-            "item_id": "ay-009",
-            "hymn_number": "290",
-            "lyrics_key": "290",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "ay-010"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-012"
+            "participant": "Welcome",
+            "item_id": "mid-week-001"
           },
           {
             "type": "media",
-            "title": "rytytyr",
-            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
+            "title": "Song Service",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song Service",
+            "url": "/media/videos/It is Well with My Soul - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song Service",
+            "url": "",
             "media_type": "image",
             "autoplay": true,
             "loop": false,
-            "mute": true,
-            "item_id": "ay-013"
+            "mute": false,
+            "item_id": "mid-week-005"
           }
         ]
       }
     ]
   },
   {
-    "saved_at": "2026-03-29T23:18:40.085546",
+    "saved_at": "2026-03-30T16:31:21.045777",
     "church": "",
     "date": "",
     "service_programs": [
       {
-        "id": "sabbath-school",
-        "name": "Sabbath School",
+        "id": "mid-week",
+        "name": "Mid-Week",
         "items": [
           {
             "type": "content",
             "title": "Happy Sabbath",
             "content": "Happy Sabbath",
-            "item_id": "sabbath-school-014"
-          },
-          {
-            "type": "participant",
-            "title": "Welcome Remarks",
-            "part": "Welcome Remarks",
-            "participant": "Michaella Grace Palar",
-            "item_id": "sabbath-school-001"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-002",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "XO Olasiman",
-            "item_id": "sabbath-school-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Palar  Kids",
-            "item_id": "sabbath-school-004"
-          },
-          {
-            "type": "participant",
-            "title": "Mission Story",
-            "part": "Mission Story",
-            "participant": "Sancho Agno",
-            "item_id": "sabbath-school-005"
-          },
-          {
-            "type": "participant",
-            "title": "Intermission Song",
-            "part": "Intermission Song",
-            "participant": "kid's Class",
-            "item_id": "sabbath-school-006"
-          },
-          {
-            "type": "participant",
-            "title": "Instrumental Number",
-            "part": "Instrumental Number",
-            "participant": "Yuri Corder, EJ & XO Alasiman",
-            "item_id": "sabbath-school-008"
-          },
-          {
-            "type": "participant",
-            "title": "Memory Verse",
-            "part": "Memory Verse",
-            "participant": "Kids Class",
-            "item_id": "sabbath-school-009"
-          },
-          {
-            "type": "participant",
-            "title": "Song",
-            "part": "Song",
-            "participant": "Kids & Teen Class",
-            "item_id": "sabbath-school-010"
-          },
-          {
-            "type": "content",
-            "title": "Lesson Study",
-            "content": "Visayan - Dunryl Valmores\nTagalog - Dan Dela Cruz\nEnglish - Ezra Mutsahuni",
-            "item_id": "sabbath-school-007"
-          },
-          {
-            "type": "song",
-            "title": "We Gather Together",
-            "item_id": "sabbath-school-011",
-            "hymn_number": "8",
-            "lyrics_key": "8",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Amara Gandeza",
-            "item_id": "sabbath-school-012"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "sabbath-school-013"
-          },
-          {
-            "type": "media",
-            "title": "",
-            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4",
-            "media_type": "video",
-            "autoplay": true,
-            "loop": false,
-            "mute": false,
-            "item_id": "sabbath-school-015"
-          }
-        ]
-      },
-      {
-        "id": "divine-service",
-        "name": "Divine Service",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-012"
-          },
-          {
-            "type": "participant",
-            "title": "Call To Worship",
-            "part": "Call To Worship",
-            "participant": "Joy Olasiman",
-            "item_id": "divine-service-001"
-          },
-          {
-            "type": "song",
-            "title": "Holy, Holy, Holy",
-            "item_id": "divine-service-002",
-            "hymn_number": "73",
-            "lyrics_key": "73",
-            "part": "Introit"
-          },
-          {
-            "type": "song",
-            "title": "We Love Thy Sabbath, Lord",
-            "item_id": "divine-service-003",
-            "hymn_number": "390",
-            "lyrics_key": "390",
-            "part": "Hymn Of Celebration"
-          },
-          {
-            "type": "participant",
-            "title": "Invocation",
-            "part": "Invocation",
-            "participant": "Speaker",
-            "item_id": "divine-service-004"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "divine-service-005",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Hymn of Adoration"
-          },
-          {
-            "type": "participant",
-            "title": "Scripture Reading",
-            "part": "Scripture Reading",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-006"
-          },
-          {
-            "type": "song",
-            "title": "Come, Christians, Join to Sing",
-            "item_id": "divine-service-007",
-            "hymn_number": "10",
-            "lyrics_key": "10",
-            "part": "Prayer Hymn"
-          },
-          {
-            "type": "participant",
-            "title": "Pastoral Prayer",
-            "part": "Pastoral Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "divine-service-008"
-          },
-          {
-            "type": "song",
-            "title": "O Thou Who Hearest",
-            "item_id": "divine-service-009",
-            "hymn_number": "668",
-            "lyrics_key": "668",
-            "part": "Hymn of Response"
-          },
-          {
-            "type": "participant",
-            "title": "Toughts On Stewardship",
-            "part": "Toughts On Stewardship",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-010"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Music",
-            "part": "Offertory Music",
-            "participant": "KC Barbajano",
-            "item_id": "divine-service-011"
-          },
-          {
-            "type": "song",
-            "title": "Praise God, From Whom All Blessings",
-            "item_id": "divine-service-013",
-            "hymn_number": "694",
-            "lyrics_key": "694",
-            "part": "Hymn of Gratitude"
-          },
-          {
-            "type": "participant",
-            "title": "Offertory Prayer",
-            "part": "Offertory Prayer",
-            "participant": "Ryan Micua",
-            "item_id": "divine-service-014"
-          },
-          {
-            "type": "participant",
-            "title": "Children Homily",
-            "part": "Children Homily",
-            "participant": "Renee Mwamakamba",
-            "item_id": "divine-service-015"
-          },
-          {
-            "type": "participant",
-            "title": "Ministry In Song",
-            "part": "Ministry In Song",
-            "participant": "Jean Andres",
-            "item_id": "divine-service-016"
-          },
-          {
-            "type": "participant",
-            "title": "Child Dedication ",
-            "part": "Child Dedication ",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-017"
-          },
-          {
-            "type": "participant",
-            "title": "The Spoken Word",
-            "part": "The Spoken Word",
-            "participant": "Jacinto Adap",
-            "item_id": "divine-service-018"
-          },
-          {
-            "type": "song",
-            "title": "All People That on Earth Do Well",
-            "item_id": "divine-service-019",
-            "hymn_number": "16",
-            "lyrics_key": "16",
-            "part": "Hymn of Consecration"
-          },
-          {
-            "type": "participant",
-            "title": "Hymn of Hope",
-            "part": "Hymn of Hope",
-            "participant": "The Mission",
-            "item_id": "divine-service-020"
-          },
-          {
-            "type": "participant",
-            "title": "Benediction",
-            "part": "Benediction",
-            "participant": "Speaker",
-            "item_id": "divine-service-021"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "divine-service-022"
-          }
-        ]
-      },
-      {
-        "id": "ay",
-        "name": "AY",
-        "items": [
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-011"
-          },
-          {
-            "type": "participant",
-            "title": "Singspiration",
-            "part": "Singspiration",
-            "participant": "Floribel Doplon",
-            "item_id": "ay-002"
+            "item_id": "mid-week-002"
           },
           {
             "type": "participant",
             "title": "Welcome",
             "part": "Welcome",
-            "participant": "Aimyrrh Boholist",
-            "item_id": "ay-001"
-          },
-          {
-            "type": "song",
-            "title": "To God Be the Glory",
-            "item_id": "ay-004",
-            "hymn_number": "341",
-            "lyrics_key": "341",
-            "part": "Opening Song"
-          },
-          {
-            "type": "participant",
-            "title": "Opening Prayer",
-            "part": "Opening Prayer",
-            "participant": "Arnel Llaguno",
-            "item_id": "ay-003"
-          },
-          {
-            "type": "participant",
-            "title": "Special Music",
-            "part": "Special Music",
-            "participant": "Chiqlette Marcera",
-            "item_id": "ay-005"
-          },
-          {
-            "type": "content",
-            "title": "Bible Quiz",
-            "content": "Kahoot - Book of Genesis",
-            "item_id": "ay-006"
-          },
-          {
-            "type": "content",
-            "title": "Intermission Number",
-            "content": "",
-            "item_id": "ay-007"
-          },
-          {
-            "type": "content",
-            "title": "Song Game",
-            "content": "Find My Tune",
-            "item_id": "ay-008"
-          },
-          {
-            "type": "song",
-            "title": "Turn Your Eyes Upon Jesus",
-            "item_id": "ay-009",
-            "hymn_number": "290",
-            "lyrics_key": "290",
-            "part": "Closing Song"
-          },
-          {
-            "type": "participant",
-            "title": "Closing Prayer",
-            "part": "Closing Prayer",
-            "participant": "Dan Dela Cruz",
-            "item_id": "ay-010"
-          },
-          {
-            "type": "content",
-            "title": "Happy Sabbath",
-            "content": "Happy Sabbath",
-            "item_id": "ay-012"
+            "participant": "Welcome",
+            "item_id": "mid-week-001"
           },
           {
             "type": "media",
-            "title": "rytytyr",
-            "url": "https://www.youtube.com/watch?v=muotvZ2qEO4&list=RDmuotvZ2qEO4&start_radio=1",
+            "title": "Song Service",
+            "url": "/media/videos/The Old Rugged Cross - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song Service",
+            "url": "/media/videos/It is Well with My Soul - piano instrumental hymn with lyrics.mp4",
+            "media_type": "video",
+            "autoplay": true,
+            "loop": false,
+            "mute": false,
+            "item_id": "mid-week-004"
+          },
+          {
+            "type": "media",
+            "title": "Song ",
+            "url": "",
             "media_type": "image",
             "autoplay": true,
             "loop": false,
-            "mute": true,
-            "item_id": "ay-013"
+            "mute": false,
+            "item_id": "mid-week-005"
           }
         ]
       }

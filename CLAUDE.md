@@ -13,7 +13,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-**Leiturgia** (formerly "Sabbath Program Builder") is a lightweight Flask web app for generating Sabbath School PowerPoint presentations. It runs on a Raspberry Pi and is accessible from any device on the same network.
+**Leiturgia** is a Flask web app for managing church service programs. It provides a
+live-editing UI, real-time projection to external displays via WebSockets, and
+PPTX/ODP slide generation. It runs on a Raspberry Pi and is accessible from any
+device on the same network.
 
 ## Running the app
 
@@ -22,49 +25,76 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python app.py
-# Accessible at http://<host-ip>:5000
+# Operator UI:      http://<host-ip>:5000
+# Projection display: http://<host-ip>:5000/ch1
 ```
 
-The app creates `data/` and `output/` directories on first run. Program state is persisted in `data/program.json`. The generated file is saved to `output/SabbathSchool.pptx`.
+Program state is persisted in `data/program.json`. Generated slides go to `output/{id}.pptx`.
 
 ## Architecture
 
-Three Python modules with clear separation of concerns:
+Key modules:
 
-- **`app.py`** — Flask server. Defines routes and the `DEFAULT_PROGRAM` structure (the canonical schema for program data). Loads/saves `data/program.json`. The `/api/generate` route fetches hymn lyrics for any item with a `hymn_number` before calling `generate_pptx`.
+- **`app.py`** — Flask server + Flask-SocketIO. All HTTP routes and Socket.IO event
+  handlers. Defines `DEFAULT_PROGRAM` (canonical schema). Loads/saves `data/program.json`
+  and `data/history.json`. The `/api/generate/<id>` route fetches lyrics transiently
+  before calling the generators.
 
-- **`generator.py`** — Builds the `.pptx` file using `python-pptx`. Slide sequence is always: title → overview → one item slide per program item (with hymn lyric slides injected after index 2 if lyrics exist) → closing. All colors are defined in the `C` dict (dark navy/gold theme). `add_text` and `add_rect` are the core primitives used by every slide builder.
+- **`generator.py`** — Builds `.pptx` files using python-pptx. Navy/gold theme.
+  Slide sequence: title → overview → item slides (with lyric slides injected for songs)
+  → closing. `add_text` and `add_rect` are the core layout primitives.
 
-- **`scraper.py`** — Fetches hymn lyrics from `sdahymnals.com` (primary) with fallback to `hymnary.org`. `_parse_lyrics_text` splits raw text into stanzas by blank lines. Only `fetch_hymn_lyrics(hymn_number)` and `fetch_program(url)` are public.
+- **`generator_odp.py`** — Mirrors `generator.py` for LibreOffice `.odp` output.
 
-**Frontend** (`templates/index.html`): Single-page Jinja2 template with all CSS inline. JavaScript `collectProgram()` serializes the form into the program JSON schema and POSTs to `/api/program`. The date input auto-advances to the next Saturday on page load if no date is set.
+- **`scraper.py`** — Fetches hymn lyrics from `sdahymnals.com` (primary) with fallback
+  to `hymnary.org`. Only `fetch_hymn_lyrics()` and `fetch_lyrics_by_title()` are public.
+
+- **`projection.py`** — `ProjectionStateManager`: per-channel in-memory state dict,
+  persisted to `data/projection_state.json` for TV reconnect.
+
+- **`timer.py`** — Server-side countdown timer state (start/pause/reset).
+
+- **`media_manager.py`** — Enumerates `data/media/images/` and `data/media/videos/`.
+
+- **`claude_helpers.py`** — Calls the Anthropic API to clean scraped lyric stanzas.
+  Fails gracefully if `ANTHROPIC_API_KEY` is not set.
+
+- **`hymnal.py`** — SQLite queries against `data/hymns.db` (695 SDA hymns).
+
+**Frontend** (`templates/index.html`): Single-page Jinja2 template. `collectProgram()`
+serialises the DOM into program JSON and POSTs to `/api/program`. Auto-save is debounced
+at 800ms. Socket.IO events are emitted via the `socket` global for live projection.
+
+**Projection display** (`templates/projection.html`): Fullscreen page opened on the
+TV/projector. Listens for Socket.IO events and renders slides, media, timers, and
+announcements. Loads a CSS theme from `templates/themes/` via `applyTheme()`.
 
 ## Program data schema
+
+See `data-schemas.md` in the docs folder for the full schema. Summary:
 
 ```json
 {
   "church": "string",
-  "section": "string",
   "date": "YYYY-MM-DD",
-  "items": [
+  "service_programs": [
     {
-      "title": "string",
-      "subtitle": "string (optional)",
-      "hymn_number": 123,
-      "participants": [
-        { "role": "string", "name": "string" }
-      ],
-      "lyrics": [ { "number": 1, "lines": ["..."] } ]
+      "id": "sabbath-school",
+      "name": "Sabbath School",
+      "time": "9:00 a.m.",
+      "items": [ { "item_id": "...", "type": "participant|song|content|media", "..." : "..." } ]
     }
-  ]
+  ],
+  "service_team": []
 }
 ```
 
-`lyrics` is never stored in `program.json` — it's fetched at generation time and added transiently.
+`lyrics` is never stored in `program.json` — fetched transiently at generation time.
 
-## Slide layout constants (generator.py)
+## Slide layout (generator.py)
 
-Slide dimensions: 10" × 5.625" (16:9). All coordinates use inches. The `add_item_slide` function has detailed layout math to vertically center content based on whether a subtitle and how many participants are present — take care when modifying those calculations.
+Slide dimensions: 10" × 5.625" (16:9). All coordinates in inches. `add_item_slide`
+has detailed vertical-centering math based on item type — take care when modifying.
 
 ---
 
@@ -74,27 +104,50 @@ Slide dimensions: 10" × 5.625" (16:9). All coordinates use inches. The `add_ite
   - See [`README.md`](file:///home/dennis/devops/projects/leiturgia/README.md) for the full index.
 - **Feature-specific dev docs** (TDD, TM, RP, IA per feature): `/home/dennis/devops/projects/leiturgia/dev/`
 
-### Filename Naming Convention
+### Directory structure
 
-Filenames follow the standard abbreviation patterns below:
+```
+/home/dennis/devops/projects/leiturgia/
+├── README.md               Project overview and layout
+├── DEVELOPER_GUIDE.md      Start here — onboarding, workflow, conventions
+├── CURRENT_STATE.md        What's done, in progress, and pending right now
+├── env.example             Required environment variables
+├── Leiturgia_System_TDD.md Full system technical design document
+├── architecture.md         Component map and data flows
+├── data-schemas.md         All JSON data structures
+├── api-reference.md        All HTTP routes and Socket.IO events
+├── deployment.md           Setup and systemd autostart
+├── ref/                    Deep reference docs (modules, slide layout, sheets)
+├── dev/                    Planning docs: TDDs, TMs, IPs, analysis (per feature)
+└── exports/                Generated output files (.odt, .pdf)
+```
+
+### Filename naming convention
+
+| Visibility | Convention | Examples |
+|------------|-----------|---------|
+| Meta / entry-point docs | `ALL_CAPS.md` | `README.md`, `DEVELOPER_GUIDE.md`, `CURRENT_STATE.md` |
+| Reference docs (root) | `kebab-case.md` | `architecture.md`, `data-schemas.md`, `api-reference.md` |
+| Feature docs (dev/) | `[Module]_[Feature]_[Type].md` | `Projection_ThemeSystem_TDD.md`, `Program_MediaItem_TM.md` |
+
+#### Type suffixes for `dev/` files
 
 | Type | Pattern | Purpose |
 |------|---------|---------|
-| IA  | `[Module]_Issue_Analysis.md` | Problem/issue analysis |
-| RP  | `[Module]_[Feature]_Refactoring_Plan.md` | Refactoring or redesign plan |
+| IA  | `[Module]_Issue_Analysis.md` | Problem / issue analysis |
+| RP  | `[Module]_[Feature]_Refactoring_Plan.md` | Redesign / new feature plan |
+| TDD | `[Module]_[Feature]_TDD.md` | Technical design document |
+| IP  | `[Module]_[Feature]_IP.md` | Implementation plan (ordered steps) |
 | TM  | `[Module]_[Feature]_TM.md` | Task management / checklist |
 | QA  | `[Module]_[Feature]_QA_Checklist.md` | Quality assurance checklist |
-| ADR | `ADR_[Number]_[Decision].md` | Architecture decision record |
-| DG  | `[System]_Deployment_Guide.md` | Deployment guide |
-| DEV | `[System]_Developer_Guide_DEV.md` | Developer reference guide |
-| TDD | `[Module]_[Feature]_TDD.md` | Technical design document |
 | MS  | `[Module]_[Feature]_MS.md` | Module spec / reference |
+| ADR | `ADR_[Number]_[Decision].md` | Architecture decision record |
 
-### Rules
-
-- Use `PascalCase` for module and feature names (e.g., `Generator`, `ServiceProgram`)
-- No spaces — use underscores as separators
-- Always include the type abbreviation suffix so purpose is clear from the filename
+#### Rules
+- Use `PascalCase` for module and feature names in `dev/` filenames
+- No spaces — use underscores as separators within `dev/` filenames
+- `CURRENT_STATE.md` must have its `Last updated` date updated on every commit that
+  changes feature status, adds a bug fix, or completes a pending item
 
 ---
 
@@ -105,8 +158,9 @@ Every non-trivial change follows this four-step sequence **before any code is wr
 ### 1. Plan (`IA` or `RP`)
 - Analyse the problem or feature request
 - Identify affected files, components, and risks
-- Document as an Issue Analysis (`_IA.md`) for bug/investigation work, or a Refactoring Plan (`_RP.md`) for redesign/new features
-- Get agreement before proceeding
+- Document as an Issue Analysis (`_IA.md`) for bugs, or a Refactoring Plan (`_RP.md`)
+  for new features or redesigns
+- Save to `dev/` — get agreement before proceeding
 
 ### 2. Technical Design (`TDD`)
 - Write a `_TDD.md` covering: purpose & scope, solution overview, component design, data schema, API contracts, security considerations, and open decisions
@@ -116,7 +170,7 @@ Every non-trivial change follows this four-step sequence **before any code is wr
 ### 3. Implementation Plan
 - Break the approved TDD into concrete, ordered steps
 - List exactly which files change and what each change does
-- Use Claude Code's plan mode (`EnterPlanMode`) so the user reviews and approves before implementation starts
+- Use Claude Code's plan mode (`EnterPlanMode`) so the plan is reviewed before coding
 
 ### 4. Task Management (`TM`)
 - Create a `_TM.md` in `/home/dennis/devops/projects/leiturgia/dev/` to track work
@@ -125,4 +179,7 @@ Every non-trivial change follows this four-step sequence **before any code is wr
 - Do not skip ahead — complete and verify each task before moving to the next
 
 ### Doc writing rule
-**Claude must always write the TDD and TM before writing any code.** If the user approves a plan in conversation without explicitly asking for docs, Claude still creates both documents first. The only exception is a single-file, single-function hotfix with no schema or API changes.
+**Claude must always write the TDD and TM before writing any code.** If the user
+approves a plan in conversation without explicitly asking for docs, Claude still
+creates both documents first. The only exception is a single-file, single-function
+hotfix with no schema or API changes.
