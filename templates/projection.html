@@ -21,7 +21,7 @@
       width: 100vw; height: 100vh;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      padding: 6vw;
+      padding: 4vw 6vw;
       transition: opacity 0.25s ease;
       position: relative;
     }
@@ -38,7 +38,7 @@
 
     .slide-part {
       font-family: var(--font-body);
-      font-size: clamp(0.75rem, 1.5vw, 1.1rem);
+      font-size: clamp(1.1rem, 5vw, 3.5rem);
       color: var(--proj-gold);
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -50,10 +50,20 @@
       font-family: var(--font-heading);
       font-size: clamp(2rem, 5vw, 4rem);
       font-weight: 700;
-      color: var(--proj-gold-lt);
+      color: var(--proj-off-white);
       text-align: center;
       line-height: 1.15;
       margin-bottom: 1.8rem;
+    }
+
+    .slide-hymn-number {
+      font-size: clamp(1.5rem, 6vw, 4.5rem);
+      font-style: italic;
+      color: var(--proj-gold);
+      letter-spacing: 0.08em;
+      margin-top: -1rem;
+      margin-bottom: 1rem;
+      text-align: center;
     }
 
     .slide-stanza-label {
@@ -87,6 +97,7 @@
       color: var(--proj-off-white);
       text-align: center;
       line-height: 1.35;
+      width: 100%;
     }
 
     /* Body text (non-song items) */
@@ -99,21 +110,26 @@
     }
 
     .slide-participants {
-      margin-top: 1.5rem;
+      margin-top: 0.6rem;
       display: flex; flex-direction: column;
-      align-items: center; gap: 0.4rem;
+      align-items: center; gap: 1.2rem;
     }
 
     .slide-participant {
-      font-size: clamp(1rem, 2vw, 1.5rem);
-      color: var(--proj-off-white);
+      display: flex; flex-direction: column;
+      align-items: center;
       text-align: center;
     }
 
-    .slide-participant .role {
-      color: var(--proj-muted);
-      font-size: 0.8em;
-      margin-right: 0.4em;
+    /* Scale name by participant count */
+    /* All counts share the same base — "Michaella Grace Palar" is the standard */
+    .slide-participant .name {
+      font-family: var(--font-heading);
+      font-size: clamp(1.5rem, 5vw, 4rem);
+      color: var(--proj-off-white);
+      font-weight: 700;
+      line-height: 1.05;
+      white-space: nowrap;
     }
 
     /* ── Announcement ── */
@@ -339,29 +355,50 @@
       fitLyricsToSlide();
       return;
     } else {
-      // Non-song slide: show part + title
+      const hasParticipants = data.participants && data.participants.length;
       if (data.part) {
         html += `<div class="slide-part">${esc(data.part)}</div>`;
       }
-      html += `<div class="slide-title">${esc(data.title || '')}</div>`;
-    }
+      if (!hasParticipants) {
+        html += `<div class="slide-title">${esc(data.title || '')}</div>`;
+        if (data.hymn_number) {
+          html += `<div class="slide-hymn-number">#${esc(String(data.hymn_number))}</div>`;
+        }
+      }
 
-    if (data.body) {
-      html += `<div class="slide-body">${esc(data.body)}</div>`;
-    }
+      if (data.body) {
+        html += `<div class="slide-body">${esc(data.body)}</div>`;
+      }
 
-    if (data.participants && data.participants.length) {
-      html += `<div class="slide-participants">`;
-      data.participants.forEach(p => {
-        html += `<div class="slide-participant">`;
-        if (p.role) html += `<span class="role">${esc(p.role)}</span>`;
-        html += `${esc(p.name || '')}`;
+      if (hasParticipants) {
+        const count = Math.min(data.participants.length, 3);
+        html += `<div class="slide-participants count-${count}">`;
+        data.participants.forEach(p => {
+          html += `<div class="slide-participant">`;
+          html += `<span class="name">${esc(p.name || '')}</span>`;
+          html += `</div>`;
+        });
         html += `</div>`;
-      });
-      html += `</div>`;
+      }
     }
 
     slide.innerHTML = html;
+    if (data.participants && data.participants.length) fitParticipantNames();
+  }
+
+  function fitParticipantNames() {
+    const limit = document.getElementById('slide').clientWidth * 0.55;
+    const els = document.querySelectorAll('.slide-participant .name');
+    let minSize = Infinity;
+    els.forEach(el => {
+      let size = parseFloat(getComputedStyle(el).fontSize);
+      while (el.scrollWidth > limit && size > 16) {
+        size -= 1;
+        el.style.fontSize = size + 'px';
+      }
+      minSize = Math.min(minSize, size);
+    });
+    els.forEach(el => el.style.fontSize = minSize + 'px');
   }
 
   // ── Blank ──────────────────────────────────────────────────────────────────
@@ -553,18 +590,22 @@
     const st     = getComputedStyle(slide);
     const availH = slide.clientHeight - parseFloat(st.paddingTop)  - parseFloat(st.paddingBottom);
     const availW = slide.clientWidth  - parseFloat(st.paddingLeft) - parseFloat(st.paddingRight);
-    let lo = 12, hi = 400;
+    if (availH <= 0 || availW <= 0) return;
+    let lo = 28, hi = 400;
     while (hi - lo > 2) {
       const mid = (lo + hi) / 2;
       lines.style.fontSize = mid + 'px';
-      if (lines.scrollHeight <= availH && lines.scrollWidth <= availW) lo = mid;
+      if (lines.scrollHeight <= availH) lo = mid;
       else hi = mid;
     }
-    lines.style.fontSize = Math.floor(lo) + 'px';
+    lines.style.fontSize = Math.max(28, Math.floor(lo)) + 'px';
   }
 
+  let _lyricsFitRaf;
   window.addEventListener('resize', function () {
-    if (document.querySelector('#slide .slide-lines')) fitLyricsToSlide();
+    if (!document.querySelector('#slide .slide-lines')) return;
+    cancelAnimationFrame(_lyricsFitRaf);
+    _lyricsFitRaf = requestAnimationFrame(fitLyricsToSlide);
   });
 </script>
 </body>
