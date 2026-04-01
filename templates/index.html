@@ -1320,7 +1320,6 @@
               {% elif _is_media %}
                 <div class="item-detail-text">{{ item.get('media_type','').capitalize() }}{% if item.get('url') %} — {{ item['url'].split('/')[-1] }}{% endif %}</div>
               {% else %}
-                {% if item.get('part') %}<div class="item-subtitle-text">{{ item.part }}</div>{% endif %}
                 {% if item.get('participant') %}<div class="item-detail-text">{{ item.participant }}</div>{% endif %}
               {% endif %}
             </div>
@@ -1410,18 +1409,16 @@
             <input type="hidden" class="item-title" value="{{ item.title }}">
             <input type="hidden" class="item-hymn"  value="{{ item.get('hymn_number', '') }}">
             {% else %}
-            <div class="form-row">
-              <div class="field">
-                <label>Title</label>
-                <input type="text" class="item-title" value="{{ item.title }}">
-              </div>
-              {% if not _is_content %}
-              <div class="field">
-                <label>Part</label>
-                <input type="text" class="item-part" value="{{ item.get('part', '') }}">
-              </div>
-              {% endif %}
+            <div class="participant">
+              <div class="role-label">Title</div>
+              <input type="text" class="item-title" value="{{ item.title }}">
             </div>
+            {% if not _is_content %}
+            <div class="participant" style="margin-top:8px">
+              <div class="role-label">Part</div>
+              <input type="text" class="item-part" value="{{ item.get('part', '') }}">
+            </div>
+            {% endif %}
             {% endif %}
             {% if _is_content %}
             <div class="field" style="margin-top:8px">
@@ -1711,9 +1708,11 @@
     } else {
       badgeClass = "badge-participant"; badgeLabel = "Participant";
       bodyInner = `
-        <div class="form-row">
-          <div class="field"><label>Title</label><input type="text" class="item-title" value=""></div>
-          <div class="field"><label>Part</label><input type="text" class="item-part" value=""></div>
+        <div class="participant">
+          <div class="role-label">Title</div><input type="text" class="item-title" value="">
+        </div>
+        <div class="participant" style="margin-top:8px">
+          <div class="role-label">Part</div><input type="text" class="item-part" value="">
         </div>
         <div class="participants">
           <div class="participant">
@@ -1724,7 +1723,7 @@
         <input type="hidden" class="lyrics-key" value="">`;
     }
 
-    itemsEl.insertAdjacentHTML("beforeend", `
+    const newItemHTML = `
       <div class="program-item" data-index="${count}" data-item-type="${type}" data-item-id="${itemId}" id="${domId}">
         <div class="item-header" onclick="selectItem(this)">
           <div class="drag-handle" draggable="true" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
@@ -1737,9 +1736,13 @@
           <div class="item-number">${num}</div>
         </div>
         <div class="item-body">${bodyInner}</div>
-      </div>`);
+      </div>`;
 
-    // Add outline entry in sidebar (before the add-buttons row)
+    const editingItem = itemsEl.querySelector(".program-item.item-editing");
+    if (editingItem) editingItem.insertAdjacentHTML("afterend", newItemHTML);
+    else             itemsEl.insertAdjacentHTML("beforeend", newItemHTML);
+
+    // Add outline entry in sidebar
     const panel   = document.getElementById("panel-" + programId);
     const addBtns = panel?.querySelector(".panel-add-buttons");
     const outline = `
@@ -1751,17 +1754,37 @@
           <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'down')" title="Move down">▼</button>
         </div>
       </div>`;
-    addBtns ? addBtns.insertAdjacentHTML("beforebegin", outline)
-            : panel?.insertAdjacentHTML("beforeend", outline);
+    if (editingItem) {
+      const editingOutline = panel?.querySelector(`.outline-item[data-for="${editingItem.id}"]`);
+      if (editingOutline) editingOutline.insertAdjacentHTML("afterend", outline);
+      else addBtns ? addBtns.insertAdjacentHTML("beforebegin", outline) : panel?.insertAdjacentHTML("beforeend", outline);
+    } else {
+      addBtns ? addBtns.insertAdjacentHTML("beforebegin", outline)
+              : panel?.insertAdjacentHTML("beforeend", outline);
+    }
 
     // Hide empty state now that there's an item
     const emptyState = itemsEl.querySelector(".empty-state");
     if (emptyState) emptyState.style.display = "none";
 
     updateReorderButtons(panel);
+    renumberItems(itemsEl, panel);
 
     // Open the new item in edit mode
     selectItem(domId);
+  }
+
+  function renumberItems(itemsEl, panel) {
+    itemsEl.querySelectorAll(".program-item").forEach((item, i) => {
+      const num = i + 1;
+      const badge = item.querySelector(".item-number");
+      if (badge) badge.textContent = num;
+      // Update outline thumb for non-song items
+      if (item.dataset.itemType !== "song") {
+        const outlineThumb = panel?.querySelector(`.outline-item[data-for="${item.id}"] .outline-thumb`);
+        if (outlineThumb) outlineThumb.textContent = num;
+      }
+    });
   }
 
   // ── Collect item from a .program-item element ─────────────────────────────
@@ -2091,18 +2114,30 @@
     const isSong  = item.dataset.itemType === "song";
 
     if (e.target.classList.contains("item-title")) {
-      const partVal = item.querySelector(".item-part")?.value || "";
+      const partEl  = item.querySelector(".item-part");
+      const partVal = partEl?.value || "";
+      if (partEl && !isSong) partEl.value = e.target.value;
       if (outline && (!isSong || !partVal))
         outline.querySelector(".outline-title").textContent = e.target.value;
+      const thumb = document.querySelector(`#slideStrip .strip-thumb[data-item-id="${item.id}"]`);
+      if (thumb) {
+        const titleEl = thumb.querySelector('.strip-thumb-title');
+        if (titleEl) titleEl.textContent = isSong ? (partVal || e.target.value) : e.target.value;
+      }
+      syncItemHeader(item);
     }
     if (e.target.classList.contains("item-part")) {
       const val = e.target.value || (isSong ? "" : (item.querySelector(".item-title")?.value || ""));
       if (outline) outline.querySelector(".outline-title").textContent = val;
+      const thumb = document.querySelector(`#slideStrip .strip-thumb[data-item-id="${item.id}"]`);
+      if (thumb) { const t = thumb.querySelector('.strip-thumb-title'); if (t) t.textContent = val; }
+      syncItemHeader(item);
       if (isSong) {
         const titleEl = item.querySelector(".item-title-text");
         if (titleEl) titleEl.textContent = val;
       }
     }
+    if (e.target.classList.contains("item-participant")) syncItemHeader(item);
     scheduleAutoSave();
   });
   document.getElementById("mainContainer").addEventListener("change", scheduleAutoSave);
@@ -3367,7 +3402,7 @@
     itemEl.querySelector('.btn-live')?.classList.add('active');
     _activateStripThumb(itemEl, si);
     document.activeElement?.blur();
-    _sendCurrentStanza(_getChannel(), title, part);
+    _sendCurrentStanza(_getChannel(), title, part, itemEl.querySelector('.item-hymn')?.value || '');
   }
 
   function _activateStripThumb(itemEl, stanzaIdx) {
@@ -3408,10 +3443,11 @@
 
   async function sendLive(itemEl, startFromEnd = false) {
     if (!itemEl) return;
-    const ch      = _getChannel();
-    const type    = itemEl.dataset.itemType || 'participant';
-    const title   = itemEl.querySelector('.item-title')?.value || '';
-    const part    = itemEl.querySelector('.item-part')?.value  || '';
+    const ch         = _getChannel();
+    const type       = itemEl.dataset.itemType || 'participant';
+    const title      = itemEl.querySelector('.item-title')?.value || '';
+    const part       = itemEl.querySelector('.item-part')?.value  || '';
+    const hymn_number = itemEl.querySelector('.item-hymn')?.value || '';
 
     // Highlight active live button
     document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
@@ -3424,6 +3460,7 @@
         _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
         _activateStripThumb(itemEl, null);
         const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+        if (hymn_number) sd.hymn_number = hymn_number;
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
         return;
@@ -3437,11 +3474,12 @@
         _projStanzaIdx = (startFromEnd && _projStanzas.length) ? _projStanzas.length - 1 : 0;
         _projItem      = itemEl;
         _activateStripThumb(itemEl, _projStanzas.length ? _projStanzaIdx : null);
-        _sendCurrentStanza(ch, title, part);
+        _sendCurrentStanza(ch, title, part, hymn_number);
       } catch (e) {
         _projStanzas = []; _projItem = itemEl; _projStanzaIdx = 0;
         _activateStripThumb(itemEl, null);
         const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+        if (hymn_number) sd.hymn_number = hymn_number;
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
       }
@@ -3471,11 +3509,12 @@
     }
   }
 
-  function _sendCurrentStanza(ch, title, part) {
+  function _sendCurrentStanza(ch, title, part, hymn_number) {
     const stanza = _projStanzas[_projStanzaIdx] || null;
     const sd     = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
     // Only attach stanza if it's a real stanza (not the title-card sentinel)
     if (stanza && stanza.type !== '__title__') sd.stanza = stanza;
+    if (hymn_number) sd.hymn_number = hymn_number;
     _socket.emit('slide:show', sd);
     renderLivePreview(sd);
   }
@@ -3496,7 +3535,8 @@
     _activateStripThumb(_projItem, _projStanzaIdx);
     _sendCurrentStanza(_getChannel(),
       _projItem.querySelector('.item-title')?.value || '',
-      _projItem.querySelector('.item-part')?.value  || '');
+      _projItem.querySelector('.item-part')?.value  || '',
+      _projItem.querySelector('.item-hymn')?.value  || '');
   }
 
   function _projPrev() {
@@ -3507,7 +3547,8 @@
       _activateStripThumb(_projItem, _projStanzaIdx);
       _sendCurrentStanza(_getChannel(),
         _projItem.querySelector('.item-title')?.value || '',
-        _projItem.querySelector('.item-part')?.value  || '');
+        _projItem.querySelector('.item-part')?.value  || '',
+        _projItem.querySelector('.item-hymn')?.value  || '');
     } else {
       _projNextItem(-1);  // at first stanza → go to previous item (last stanza)
     }
