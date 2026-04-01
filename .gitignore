@@ -18,3 +18,9 @@ output/
 
 # OS
 .DS_Store
+
+# Media uploads (large binaries)
+media/
+
+# Claude Code memory
+memory/
