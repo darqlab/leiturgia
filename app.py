@@ -415,11 +415,6 @@ def delete_program(program_id):
     return jsonify({"ok": True, "selected": program["service_programs"][0]["id"]})
 
 
-@app.route("/api/reset", methods=["POST"])
-def reset():
-    save_program(copy.deepcopy(DEFAULT_PROGRAM))
-    return jsonify({"status": "reset"})
-
 
 # ── Projection routes ────────────────────────────────────────────────────────
 @app.route("/ch<int:n>")

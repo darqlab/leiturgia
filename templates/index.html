@@ -1220,8 +1220,6 @@
     <div class="logo-text">Lei<span>turgia</span></div>
   </div>
   <div class="header-actions">
-    <button class="btn btn-ghost" onclick="resetProgram()">Reset</button>
-    <button class="btn btn-outline" onclick="saveProgram()">Save Draft</button>
   </div>
 </header>
 
@@ -2254,17 +2252,6 @@
     }
   }
 
-  // ── Save draft ────────────────────────────────────────────────────────────
-  async function saveProgram() {
-    const res = await fetch("/api/program", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: collectProgram(),
-    });
-    if (res.ok) toast("Draft saved", "success");
-    else        toast("Save failed", "error");
-  }
-
   // Sidebar outline click → select item inline
   function scrollToItem(id) { selectItem(id); }
 
@@ -2785,13 +2772,6 @@
     } finally {
       btn.disabled = false;
     }
-  }
-
-  // ── Reset ─────────────────────────────────────────────────────────────────
-  async function resetProgram() {
-    if (!confirm("Reset all program data to defaults?")) return;
-    await fetch("/api/reset", { method: "POST" });
-    location.reload();
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────────
