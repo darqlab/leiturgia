@@ -559,8 +559,8 @@
       transition: color 0.15s;
     }
     .back-bar:hover { color: var(--gold); }
-    .item-chevron { color: var(--muted); transition: transform 0.2s; font-size: 11px; opacity: 0.5; }
-    .item-chevron.open { transform: rotate(180deg); opacity: 1; }
+    .item-chevron { color: var(--muted); transition: transform 0.2s; font-size: 11px; opacity: 1; }
+    .item-chevron.open { transform: rotate(180deg); }
 
     .outline-item { cursor: grab; }
     .outline-item:active { cursor: grabbing; }
@@ -569,7 +569,7 @@
     .outline-item.drop-below { border-bottom: 2px solid var(--gold); }
 
     .item-delete {
-      opacity: 0;
+      opacity: 0.45;
       background: none; border: none;
       color: var(--error);
       font-size: 13px; line-height: 1;
@@ -578,13 +578,14 @@
       transition: opacity 0.15s, background 0.15s;
       flex-shrink: 0;
     }
-    .program-item:hover .item-delete { opacity: 0.45; }
+    .program-item:hover .item-delete { opacity: 0.7; }
     .item-delete:hover { opacity: 1 !important; background: rgba(224,82,82,0.12); }
     @media (hover: none) { .item-delete { opacity: 0.45; } }
 
-    .edit-hint { font-size: 11px; color: var(--muted); opacity: 0; transition: opacity 0.15s; }
-    .program-item:hover .edit-hint { opacity: 0.6; }
-    @media (hover: none) { .edit-hint { display: none; } }
+    .edit-hint { display: none; }
+    .duplicate-hint { font-size: 13px; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 3px; background: none; border: none; }
+    .duplicate-hint:hover { color: var(--gold); }
+    .program-item.item-editing .duplicate-hint { display: none; }
 
     .reorder-btns { display: flex; flex-direction: column; gap: 1px; opacity: 0; transition: opacity 0.15s; margin-left: auto; flex-shrink: 0; }
     .outline-item:hover .reorder-btns { opacity: 1; }
@@ -1324,7 +1325,7 @@
               {% endif %}
             </div>
             <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else ('badge-media' if _is_media else 'badge-participant')) }}">{{ 'Song' if _is_song else ('Content' if _is_content else ('Media' if _is_media else 'Participant')) }}</span>
-            <span class="edit-hint">✎</span>
+            <button class="duplicate-hint" onclick="event.stopPropagation();duplicateItem(this.closest('.program-item'))" title="Duplicate item">⧉</button>
             <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
             <div class="item-chevron">▼</div>
             <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -1785,6 +1786,71 @@
         if (outlineThumb) outlineThumb.textContent = num;
       }
     });
+  }
+
+  // ── Duplicate a program item ───────────────────────────────────────────────
+  function duplicateItem(src) {
+    const type      = src.dataset.itemType || "participant";
+    const programId = src.closest(".service-program")?.dataset.programId;
+    const spEl      = src.closest(".service-program");
+    const itemsEl   = spEl?.querySelector(".program-items");
+    const panel     = document.getElementById("panel-" + programId);
+    if (!itemsEl) { toast('Duplicate error: items container not found', 'error'); return; }
+
+    const count  = itemsEl.querySelectorAll(".program-item").length;
+    const itemId = `${programId}-dup-${Date.now()}`;
+    const domId  = `${programId}-item-dup-${count}`;
+
+    // Reuse body inner HTML from addProgramItem by cloning src's item-body
+    const srcBody    = src.querySelector(".item-body")?.innerHTML || "";
+    const badgeClass = src.querySelector(".item-type-badge")?.className.split(" ").find(c => c.startsWith("badge-")) || "";
+    const badgeLabel = src.querySelector(".item-type-badge")?.textContent || "";
+
+    // Insert new item directly after src
+    src.insertAdjacentHTML("afterend", `
+      <div class="program-item" data-index="${count}" data-item-type="${type}" data-item-id="${itemId}" id="${domId}">
+        <div class="item-header" onclick="selectItem(this)">
+          <div class="drag-handle" draggable="true" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
+          <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
+          <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
+          <button class="duplicate-hint" onclick="event.stopPropagation();duplicateItem(this.closest('.program-item'))" title="Duplicate item">⧉</button>
+          <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
+          <div class="item-chevron">▼</div>
+          <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
+          <div class="item-number"></div>
+        </div>
+        <div class="item-body">${srcBody}</div>
+      </div>`);
+
+    const dest = document.getElementById(domId);
+
+    // Copy field values from src to dest
+    [".item-title", ".item-part", ".item-participant", ".item-hymn",
+     ".lyrics-key", ".item-content", ".item-media-url", ".item-media-type"].forEach(cls => {
+      const s = src.querySelector(cls), d = dest?.querySelector(cls);
+      if (s && d) d.value = s.value;
+    });
+
+    // Insert outline entry after src's outline entry
+    const srcOutline = panel?.querySelector(`.outline-item[data-for="${src.id}"]`);
+    const outlineHTML = `
+      <div class="outline-item ${type === "song" ? "song" : ""}" draggable="true" data-for="${domId}" onclick="scrollToItem('${domId}')">
+        <div class="outline-thumb"></div>
+        <div class="outline-info"><div class="outline-title">&nbsp;</div></div>
+        <div class="reorder-btns">
+          <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'up')" title="Move up">▲</button>
+          <button class="btn-reorder" onclick="event.stopPropagation();reorderItem(this,'down')" title="Move down">▼</button>
+        </div>
+      </div>`;
+    if (srcOutline) srcOutline.insertAdjacentHTML("afterend", outlineHTML);
+    else panel?.querySelector(".panel-add-buttons")?.insertAdjacentHTML("beforebegin", outlineHTML);
+
+    if (dest) syncItemHeader(dest);
+    else { toast('Duplicate error: dest element not found', 'error'); return; }
+    renumberItems(itemsEl, panel);
+    updateReorderButtons(panel);
+    scheduleAutoSave();
+    toast('Item duplicated', 'success');
   }
 
   // ── Collect item from a .program-item element ─────────────────────────────
