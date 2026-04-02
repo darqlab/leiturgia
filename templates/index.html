@@ -2309,7 +2309,7 @@
     document.querySelectorAll('.service-program').forEach(sp => {
       sp.style.display = sp.dataset.programId === val ? '' : 'none';
     });
-    buildSlideStrip(val);
+    return buildSlideStrip(val);
   }
 
   // ── Delete program ──────────────────────────────────────────────────────
@@ -2698,12 +2698,13 @@
   let _activeProgram = null;
 
   // Initialise active program — restore from localStorage or fall back to first
-  (function () {
+  (async function () {
     const saved  = localStorage.getItem('leiturgia_active_program');
     const target = saved && document.querySelector(`.program-nav-item[data-program-id="${saved}"]`)
                    ? saved
                    : document.querySelector('.program-nav-item')?.dataset.programId;
-    if (target) switchPanelSection(target);
+    if (target) await switchPanelSection(target);
+    restoreLiveState();
   })();
 
   // ── Main-content drag-and-drop reorder ───────────────────────────────────
@@ -3212,6 +3213,7 @@
     const ch  = _getChannel();
     const btn = document.getElementById('openDisplayBtn');
     if (btn) btn.href = '/' + ch;
+    restoreLiveState();
   }
 
   // ── Channel tile selection ─────────────────────────────────────────────────
@@ -3444,6 +3446,50 @@
     return result;
   }
 
+  async function restoreLiveState() {
+    try {
+      const res = await fetch('/api/projection-state');
+      if (!res.ok) return;
+      const states = await res.json();
+      const ch     = _getChannel();
+      const state  = states[ch];
+
+      // Clear indicators regardless — so switching to a blank channel resets UI
+      document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
+      _projItem = null; _projStanzas = []; _projStanzaIdx = 0;
+
+      if (!state || state.type === 'blank') return;
+
+      const itemId = state.data?.item_id;
+      if (itemId) {
+        const itemEl = document.querySelector(`.program-item[data-item-id="${itemId}"]`);
+        if (itemEl) {
+          itemEl.querySelector('.btn-live')?.classList.add('active');
+          _projItem      = itemEl;
+          _projStanzaIdx = state.data.stanza_idx ?? 0;
+
+          // Re-fetch lyrics so keyboard stanza nav works after refresh
+          if (itemEl.dataset.itemType === 'song') {
+            const lyricsKey = itemEl.querySelector('.lyrics-key')?.value || '';
+            if (lyricsKey) {
+              try {
+                const r = await fetch(`/api/lyrics/${encodeURIComponent(lyricsKey)}`);
+                const d = await r.json();
+                if (d.status === 'ok' && d.stanzas?.length)
+                  _projStanzas = [{ type: '__title__' }, ..._interleaveStanzas(d.stanzas)];
+              } catch {}
+            }
+          }
+
+          const stanzaIdx = state.data.stanza_idx ?? null;
+          _activateStripThumb(itemEl, stanzaIdx);
+        }
+      }
+
+      renderLivePreview(state);
+    } catch {}
+  }
+
   async function sendLive(itemEl, startFromEnd = false) {
     if (!itemEl) return;
     const ch         = _getChannel();
@@ -3462,7 +3508,8 @@
       if (!lyricsKey) {
         _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
         _activateStripThumb(itemEl, null);
-        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+                     item_id: itemEl.dataset.itemId, stanza_idx: null };
         if (hymn_number) sd.hymn_number = hymn_number;
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
@@ -3481,7 +3528,8 @@
       } catch (e) {
         _projStanzas = []; _projItem = itemEl; _projStanzaIdx = 0;
         _activateStripThumb(itemEl, null);
-        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+                     item_id: itemEl.dataset.itemId, stanza_idx: null };
         if (hymn_number) sd.hymn_number = hymn_number;
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
@@ -3496,7 +3544,8 @@
       const mute       = itemEl.querySelector('.media-opt-mute')?.checked       ?? false;
       if (!url) { toast('No media file selected', 'error'); return; }
       const event = media_type === 'video' ? 'media:video' : 'media:image';
-      const sd = { channel: ch, type: media_type, url, autoplay, loop, mute, theme_id: _getTheme() };
+      const sd = { channel: ch, type: media_type, url, autoplay, loop, mute, theme_id: _getTheme(),
+                   item_id: itemEl.dataset.itemId, stanza_idx: null };
       _socket.emit(event, sd);
       renderLivePreview({ type: media_type, data: sd });
     } else {
@@ -3504,7 +3553,8 @@
       _activateStripThumb(itemEl, null);
       const participant = itemEl.querySelector('.item-participant')?.value || '';
       const body        = itemEl.querySelector('.item-content')?.value     || '';
-      const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+      const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+                   item_id: itemEl.dataset.itemId, stanza_idx: null };
       if (participant) sd.participants = [{ role: part || '', name: participant }];
       if (body)        sd.body = body;
       _socket.emit('slide:show', sd);
@@ -3514,7 +3564,11 @@
 
   function _sendCurrentStanza(ch, title, part, hymn_number) {
     const stanza = _projStanzas[_projStanzaIdx] || null;
-    const sd     = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+    const sd     = {
+      type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+      item_id: _projItem?.dataset.itemId || null,
+      stanza_idx: _projStanzaIdx,
+    };
     // Only attach stanza if it's a real stanza (not the title-card sentinel)
     if (stanza && stanza.type !== '__title__') sd.stanza = stanza;
     if (hymn_number) sd.hymn_number = hymn_number;
