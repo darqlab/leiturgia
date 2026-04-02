@@ -404,6 +404,11 @@ def add_program():
 
 
 
+@app.route("/api/projection-state", methods=["GET"])
+def get_projection_state():
+    return jsonify(proj._state)
+
+
 @app.route("/api/programs/<program_id>", methods=["DELETE"])
 def delete_program(program_id):
     program = load_program()

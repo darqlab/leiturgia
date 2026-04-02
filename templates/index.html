@@ -820,17 +820,6 @@
     #toast.success { border-color: var(--success); }
     #toast.error   { border-color: var(--error); }
 
-    .delete-toast {
-      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 8px; padding: 12px 18px;
-      font-size: 13px; display: flex; align-items: center; gap: 12px;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.3s;
-      z-index: 1000; white-space: nowrap;
-    }
-    .delete-toast.visible { opacity: 1; pointer-events: auto; }
-    .delete-toast button { background: none; border: none; color: var(--gold); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
 
     /* ── Rule ── */
     .rule {
@@ -1725,7 +1714,7 @@
     }
 
     const newItemHTML = `
-      <div class="program-item" data-index="${count}" data-item-type="${type}" data-item-id="${itemId}" id="${domId}">
+      <div class="program-item" data-index="${count}" data-item-type="${type}" data-item-id="${itemId}" data-new="1" id="${domId}">
         <div class="item-header" onclick="selectItem(this)">
           <div class="drag-handle" draggable="true" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
@@ -2004,28 +1993,27 @@
     });
   }
 
-  // ── Delete item (soft-delete with 5s undo) ───────────────────────────────
-  let _pendingDelete = null;
-
+  // ── Delete item ──────────────────────────────────────────────────────────
   function deleteItem(btn) {
     const item = btn.closest(".program-item");
     if (!item) return;
-    const id = item.id;
-
-    // Commit any previous pending delete before starting a new one
-    if (_pendingDelete) commitPendingDelete();
-
-    // Save enough context to undo
-    const outline       = id ? document.querySelector(`.outline-item[data-for="${id}"]`) : null;
-    const nextItem      = item.nextElementSibling;
-    const parent        = item.parentElement;
-    const outlineNext   = outline?.nextElementSibling;
-    const outlineParent = outline?.parentElement;
-    const title         = item.querySelector(".item-title-text")?.textContent?.trim() || "Item";
+    if (item.dataset.new !== '1') {
+      const label = item.querySelector(".item-title-text")?.textContent?.trim() || "this item";
+      if (!confirm(`Delete "${label}"? This cannot be undone.`)) return;
+    }
+    const id        = item.id;
+    const outline   = id ? document.querySelector(`.outline-item[data-for="${id}"]`) : null;
+    const parent    = item.parentElement;
+    const spEl      = item.closest(".service-program");
+    const programId = spEl?.dataset.programId;
+    const panel     = programId ? document.getElementById("panel-" + programId) : null;
 
     if (id && _activeItemId === id) {
       _activeItemId = null;
       document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
+      // Restore siblings hidden by selectItem
+      const container = item.closest(".program-items");
+      if (container) container.querySelectorAll(".program-item").forEach(p => { if (p !== item) p.style.display = ""; });
     }
 
     item.remove();
@@ -2035,57 +2023,10 @@
     const emptyState = parent?.querySelector(".empty-state");
     if (emptyState && !parent.querySelector(".program-item")) emptyState.style.display = "";
 
-    _pendingDelete = {
-      item, outline, nextItem, parent, outlineNext, outlineParent,
-      timer: setTimeout(commitPendingDelete, 5000),
-    };
+    renumberItems(parent, panel);
 
-    showDeleteToast(title);
-  }
-
-  function commitPendingDelete() {
-    if (!_pendingDelete) return;
-    clearTimeout(_pendingDelete.timer);
-    _pendingDelete = null;
-    hideDeleteToast();
-    autoSaveNow();
-  }
-
-  function undoDelete() {
-    if (!_pendingDelete) return;
-    clearTimeout(_pendingDelete.timer);
-    const { item, outline, nextItem, parent, outlineNext, outlineParent } = _pendingDelete;
-    _pendingDelete = null;
-
-    if (nextItem) parent.insertBefore(item, nextItem);
-    else parent.appendChild(item);
-
-    if (outline) {
-      if (outlineNext) outlineParent.insertBefore(outline, outlineNext);
-      else outlineParent.appendChild(outline);
-    }
-
-    // Hide empty state again
-    const emptyState = parent?.querySelector(".empty-state");
-    if (emptyState) emptyState.style.display = "none";
-
-    hideDeleteToast();
-  }
-
-  function showDeleteToast(title) {
-    let t = document.getElementById("deleteToast");
-    if (!t) {
-      t = document.createElement("div");
-      t.id = "deleteToast";
-      t.className = "delete-toast";
-      document.body.appendChild(t);
-    }
-    t.innerHTML = `<span>'${title}' removed.</span><button onclick="undoDelete()">Undo</button>`;
-    t.classList.add("visible");
-  }
-
-  function hideDeleteToast() {
-    document.getElementById("deleteToast")?.classList.remove("visible");
+    // Only save if the item had actual data (skip brand-new untouched items)
+    if (item.dataset.new !== '1') autoSaveNow();
   }
 
   // ── Drag-and-drop reorder (sidebar outline items) ────────────────────────
@@ -2168,7 +2109,6 @@
   }
 
   function scheduleAutoSave() {
-    if (_pendingDelete) return;
     clearTimeout(_autoSaveTimer);
     _autoSaveTimer = setTimeout(autoSaveNow, 800);
   }
@@ -2176,6 +2116,7 @@
   document.getElementById("mainContainer").addEventListener("input", function(e) {
     const item = e.target.closest(".program-item");
     if (!item) { scheduleAutoSave(); return; }
+    delete item.dataset.new;
     const outline = document.querySelector(`.outline-item[data-for="${item.id}"]`);
     const isSong  = item.dataset.itemType === "song";
 
@@ -3074,6 +3015,7 @@
     const hymnInput   = programItem?.querySelector(".item-hymn");
     const titleInput  = programItem?.querySelector(".item-title");
     const outline     = document.querySelector(`.outline-item[data-for="${programItem?.id}"]`);
+    if (programItem) delete programItem.dataset.new;
 
     input.value = item.dataset.number;
     if (hymnInput)  hymnInput.value  = item.dataset.number;
@@ -3525,7 +3467,8 @@
       if (!lyricsKey) {
         _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
         _activateStripThumb(itemEl, null);
-        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+                     item_id: itemEl.dataset.itemId, stanza_idx: null };
         if (hymn_number) sd.hymn_number = hymn_number;
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
@@ -3544,7 +3487,8 @@
       } catch (e) {
         _projStanzas = []; _projItem = itemEl; _projStanzaIdx = 0;
         _activateStripThumb(itemEl, null);
-        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+                     item_id: itemEl.dataset.itemId, stanza_idx: null };
         if (hymn_number) sd.hymn_number = hymn_number;
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
@@ -3559,7 +3503,8 @@
       const mute       = itemEl.querySelector('.media-opt-mute')?.checked       ?? false;
       if (!url) { toast('No media file selected', 'error'); return; }
       const event = media_type === 'video' ? 'media:video' : 'media:image';
-      const sd = { channel: ch, type: media_type, url, autoplay, loop, mute, theme_id: _getTheme() };
+      const sd = { channel: ch, type: media_type, url, autoplay, loop, mute, theme_id: _getTheme(),
+                   item_id: itemEl.dataset.itemId, stanza_idx: null };
       _socket.emit(event, sd);
       renderLivePreview({ type: media_type, data: sd });
     } else {
@@ -3567,7 +3512,8 @@
       _activateStripThumb(itemEl, null);
       const participant = itemEl.querySelector('.item-participant')?.value || '';
       const body        = itemEl.querySelector('.item-content')?.value     || '';
-      const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+      const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+                   item_id: itemEl.dataset.itemId, stanza_idx: null };
       if (participant) sd.participants = [{ role: part || '', name: participant }];
       if (body)        sd.body = body;
       _socket.emit('slide:show', sd);
@@ -3577,7 +3523,11 @@
 
   function _sendCurrentStanza(ch, title, part, hymn_number) {
     const stanza = _projStanzas[_projStanzaIdx] || null;
-    const sd     = { type: 'text', title, part, channel: ch, theme_id: _getTheme() };
+    const sd     = {
+      type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+      item_id: _projItem?.dataset.itemId || null,
+      stanza_idx: _projStanzaIdx,
+    };
     // Only attach stanza if it's a real stanza (not the title-card sentinel)
     if (stanza && stanza.type !== '__title__') sd.stanza = stanza;
     if (hymn_number) sd.hymn_number = hymn_number;
