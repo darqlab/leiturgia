@@ -820,17 +820,6 @@
     #toast.success { border-color: var(--success); }
     #toast.error   { border-color: var(--error); }
 
-    .delete-toast {
-      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 8px; padding: 12px 18px;
-      font-size: 13px; display: flex; align-items: center; gap: 12px;
-      opacity: 0; pointer-events: none;
-      transition: opacity 0.3s;
-      z-index: 1000; white-space: nowrap;
-    }
-    .delete-toast.visible { opacity: 1; pointer-events: auto; }
-    .delete-toast button { background: none; border: none; color: var(--gold); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; padding: 0; }
 
     /* ── Rule ── */
     .rule {
@@ -1725,7 +1714,7 @@
     }
 
     const newItemHTML = `
-      <div class="program-item" data-index="${count}" data-item-type="${type}" data-item-id="${itemId}" id="${domId}">
+      <div class="program-item" data-index="${count}" data-item-type="${type}" data-item-id="${itemId}" data-new="1" id="${domId}">
         <div class="item-header" onclick="selectItem(this)">
           <div class="drag-handle" draggable="true" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
@@ -2004,32 +1993,21 @@
     });
   }
 
-  // ── Delete item (soft-delete with 5s undo) ───────────────────────────────
-  let _pendingDelete = null;
-
+  // ── Delete item ──────────────────────────────────────────────────────────
   function deleteItem(btn) {
     const item = btn.closest(".program-item");
     if (!item) return;
     const id = item.id;
-
-    // Save enough context to undo
-    const outline       = id ? document.querySelector(`.outline-item[data-for="${id}"]`) : null;
-    const nextItem      = item.nextElementSibling;
-    const parent        = item.parentElement;
-    const outlineNext   = outline?.nextElementSibling;
-    const outlineParent = outline?.parentElement;
-    const title         = item.querySelector(".item-title-text")?.textContent?.trim() || "Item";
+    const outline = id ? document.querySelector(`.outline-item[data-for="${id}"]`) : null;
+    const parent  = item.parentElement;
 
     if (id && _activeItemId === id) {
       _activeItemId = null;
       document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
-      // Restore siblings hidden by selectItem before removing this item
+      // Restore siblings hidden by selectItem
       const container = item.closest(".program-items");
       if (container) container.querySelectorAll(".program-item").forEach(p => { if (p !== item) p.style.display = ""; });
     }
-
-    const isEmpty = [...item.querySelectorAll('input[type="text"], input:not([type]), textarea')]
-      .every(el => !el.value.trim());
 
     item.remove();
     outline?.remove();
@@ -2038,67 +2016,8 @@
     const emptyState = parent?.querySelector(".empty-state");
     if (emptyState && !parent.querySelector(".program-item")) emptyState.style.display = "";
 
-    if (isEmpty) {
-      // Nothing was entered — remove silently, no undo, no save
-      if (_pendingDelete) commitPendingDelete();
-      return;
-    }
-
-    // Commit any previous pending delete now that this item is out of the DOM,
-    // so autoSaveNow() doesn't capture it in collectProgram()
-    if (_pendingDelete) commitPendingDelete();
-
-    _pendingDelete = {
-      item, outline, nextItem, parent, outlineNext, outlineParent,
-      timer: setTimeout(commitPendingDelete, 5000),
-    };
-
-    showDeleteToast(title);
-  }
-
-  function commitPendingDelete() {
-    if (!_pendingDelete) return;
-    clearTimeout(_pendingDelete.timer);
-    _pendingDelete = null;
-    hideDeleteToast();
-    autoSaveNow();
-  }
-
-  function undoDelete() {
-    if (!_pendingDelete) return;
-    clearTimeout(_pendingDelete.timer);
-    const { item, outline, nextItem, parent, outlineNext, outlineParent } = _pendingDelete;
-    _pendingDelete = null;
-
-    if (nextItem) parent.insertBefore(item, nextItem);
-    else parent.appendChild(item);
-
-    if (outline) {
-      if (outlineNext) outlineParent.insertBefore(outline, outlineNext);
-      else outlineParent.appendChild(outline);
-    }
-
-    // Hide empty state again
-    const emptyState = parent?.querySelector(".empty-state");
-    if (emptyState) emptyState.style.display = "none";
-
-    hideDeleteToast();
-  }
-
-  function showDeleteToast(title) {
-    let t = document.getElementById("deleteToast");
-    if (!t) {
-      t = document.createElement("div");
-      t.id = "deleteToast";
-      t.className = "delete-toast";
-      document.body.appendChild(t);
-    }
-    t.innerHTML = `<span>'${title}' removed.</span><button onclick="undoDelete()">Undo</button>`;
-    t.classList.add("visible");
-  }
-
-  function hideDeleteToast() {
-    document.getElementById("deleteToast")?.classList.remove("visible");
+    // Only save if the item had actual data (skip brand-new untouched items)
+    if (item.dataset.new !== '1') autoSaveNow();
   }
 
   // ── Drag-and-drop reorder (sidebar outline items) ────────────────────────
@@ -2181,7 +2100,6 @@
   }
 
   function scheduleAutoSave() {
-    if (_pendingDelete) return;
     clearTimeout(_autoSaveTimer);
     _autoSaveTimer = setTimeout(autoSaveNow, 800);
   }
@@ -2189,6 +2107,7 @@
   document.getElementById("mainContainer").addEventListener("input", function(e) {
     const item = e.target.closest(".program-item");
     if (!item) { scheduleAutoSave(); return; }
+    delete item.dataset.new;
     const outline = document.querySelector(`.outline-item[data-for="${item.id}"]`);
     const isSong  = item.dataset.itemType === "song";
 
