@@ -204,6 +204,32 @@
       font-weight: 600;
     }
     #addProgramModal .modal-body { padding: 1.4rem; display: flex; flex-direction: column; gap: 1rem; }
+    #confirmModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.65);
+      align-items: center;
+      justify-content: center;
+    }
+    #confirmModal.open { display: flex; }
+    #confirmModal .modal-box {
+      max-width: 380px;
+      width: 90%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    #confirmModal .modal-body { padding: 1.4rem 1.4rem 1rem; font-size: 14px; color: var(--white); line-height: 1.5; }
+    #confirmModal .modal-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: .8rem 1.4rem 1.2rem;
+    }
+
     #addProgramModal .modal-foot {
       display: flex;
       justify-content: flex-end;
@@ -1259,6 +1285,16 @@
 </div>
 
 <!-- ── Add Program Modal ─────────────────────────────────────────────────── -->
+<div id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-body" id="confirmModalMessage"></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" id="confirmModalCancel">Cancel</button>
+      <button class="btn btn-gold" id="confirmModalOk" style="background:var(--error);border-color:var(--error);">Delete</button>
+    </div>
+  </div>
+</div>
+
 <div id="addProgramModal">
   <div class="modal-box">
     <div class="modal-head">
@@ -1994,12 +2030,33 @@
   }
 
   // ── Delete item ──────────────────────────────────────────────────────────
-  function deleteItem(btn) {
+  function _confirmDelete(label) {
+    return new Promise(resolve => {
+      const modal  = document.getElementById('confirmModal');
+      const msgEl  = document.getElementById('confirmModalMessage');
+      const okBtn  = document.getElementById('confirmModalOk');
+      const cancel = document.getElementById('confirmModalCancel');
+      msgEl.textContent = `Delete "${label}"? This cannot be undone.`;
+      modal.classList.add('open');
+      const finish = result => {
+        modal.classList.remove('open');
+        okBtn.removeEventListener('click', onOk);
+        cancel.removeEventListener('click', onCancel);
+        resolve(result);
+      };
+      const onOk     = () => finish(true);
+      const onCancel = () => finish(false);
+      okBtn.addEventListener('click', onOk);
+      cancel.addEventListener('click', onCancel);
+    });
+  }
+
+  async function deleteItem(btn) {
     const item = btn.closest(".program-item");
     if (!item) return;
     if (item.dataset.new !== '1') {
       const label = item.querySelector(".item-title-text")?.textContent?.trim() || "this item";
-      if (!confirm(`Delete "${label}"? This cannot be undone.`)) return;
+      if (!await _confirmDelete(label)) return;
     }
     const id        = item.id;
     const outline   = id ? document.querySelector(`.outline-item[data-for="${id}"]`) : null;
@@ -2317,8 +2374,8 @@
   }
 
   // ── Delete program ──────────────────────────────────────────────────────
-  function deleteProgram(programId, programName) {
-    if (!confirm(`Delete "${programName}" and all its items? This cannot be undone.`)) return;
+  async function deleteProgram(programId, programName) {
+    if (!await _confirmDelete(`${programName}" and all its items`)) return;
     fetch(`/api/programs/${programId}`, { method: "DELETE" })
       .then(r => r.json())
       .then(data => {
