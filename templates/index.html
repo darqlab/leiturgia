@@ -1997,6 +1997,10 @@
   function deleteItem(btn) {
     const item = btn.closest(".program-item");
     if (!item) return;
+    if (item.dataset.new !== '1') {
+      const label = item.querySelector(".item-title-text")?.textContent?.trim() || "this item";
+      if (!confirm(`Delete "${label}"? This cannot be undone.`)) return;
+    }
     const id        = item.id;
     const outline   = id ? document.querySelector(`.outline-item[data-for="${id}"]`) : null;
     const parent    = item.parentElement;
@@ -2309,7 +2313,7 @@
     document.querySelectorAll('.service-program').forEach(sp => {
       sp.style.display = sp.dataset.programId === val ? '' : 'none';
     });
-    return buildSlideStrip(val);
+    buildSlideStrip(val);
   }
 
   // ── Delete program ──────────────────────────────────────────────────────
@@ -2698,13 +2702,12 @@
   let _activeProgram = null;
 
   // Initialise active program — restore from localStorage or fall back to first
-  (async function () {
+  (function () {
     const saved  = localStorage.getItem('leiturgia_active_program');
     const target = saved && document.querySelector(`.program-nav-item[data-program-id="${saved}"]`)
                    ? saved
                    : document.querySelector('.program-nav-item')?.dataset.programId;
-    if (target) await switchPanelSection(target);
-    restoreLiveState();
+    if (target) switchPanelSection(target);
   })();
 
   // ── Main-content drag-and-drop reorder ───────────────────────────────────
@@ -3012,6 +3015,7 @@
     const hymnInput   = programItem?.querySelector(".item-hymn");
     const titleInput  = programItem?.querySelector(".item-title");
     const outline     = document.querySelector(`.outline-item[data-for="${programItem?.id}"]`);
+    if (programItem) delete programItem.dataset.new;
 
     input.value = item.dataset.number;
     if (hymnInput)  hymnInput.value  = item.dataset.number;
@@ -3213,7 +3217,6 @@
     const ch  = _getChannel();
     const btn = document.getElementById('openDisplayBtn');
     if (btn) btn.href = '/' + ch;
-    restoreLiveState();
   }
 
   // ── Channel tile selection ─────────────────────────────────────────────────
@@ -3444,50 +3447,6 @@
     const result = [];
     verses.forEach(v => { result.push(v); refrains.forEach(r => result.push(r)); });
     return result;
-  }
-
-  async function restoreLiveState() {
-    try {
-      const res = await fetch('/api/projection-state');
-      if (!res.ok) return;
-      const states = await res.json();
-      const ch     = _getChannel();
-      const state  = states[ch];
-
-      // Clear indicators regardless — so switching to a blank channel resets UI
-      document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
-      _projItem = null; _projStanzas = []; _projStanzaIdx = 0;
-
-      if (!state || state.type === 'blank') return;
-
-      const itemId = state.data?.item_id;
-      if (itemId) {
-        const itemEl = document.querySelector(`.program-item[data-item-id="${itemId}"]`);
-        if (itemEl) {
-          itemEl.querySelector('.btn-live')?.classList.add('active');
-          _projItem      = itemEl;
-          _projStanzaIdx = state.data.stanza_idx ?? 0;
-
-          // Re-fetch lyrics so keyboard stanza nav works after refresh
-          if (itemEl.dataset.itemType === 'song') {
-            const lyricsKey = itemEl.querySelector('.lyrics-key')?.value || '';
-            if (lyricsKey) {
-              try {
-                const r = await fetch(`/api/lyrics/${encodeURIComponent(lyricsKey)}`);
-                const d = await r.json();
-                if (d.status === 'ok' && d.stanzas?.length)
-                  _projStanzas = [{ type: '__title__' }, ..._interleaveStanzas(d.stanzas)];
-              } catch {}
-            }
-          }
-
-          const stanzaIdx = state.data.stanza_idx ?? null;
-          _activateStripThumb(itemEl, stanzaIdx);
-        }
-      }
-
-      renderLivePreview(state);
-    } catch {}
   }
 
   async function sendLive(itemEl, startFromEnd = false) {
