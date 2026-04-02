@@ -2374,8 +2374,8 @@
   }
 
   // ── Delete program ──────────────────────────────────────────────────────
-  function deleteProgram(programId, programName) {
-    if (!confirm(`Delete "${programName}" and all its items? This cannot be undone.`)) return;
+  async function deleteProgram(programId, programName) {
+    if (!await _confirmDelete(`${programName}" and all its items`)) return;
     fetch(`/api/programs/${programId}`, { method: "DELETE" })
       .then(r => r.json())
       .then(data => {
