@@ -2012,9 +2012,6 @@
     if (!item) return;
     const id = item.id;
 
-    // Commit any previous pending delete before starting a new one
-    if (_pendingDelete) commitPendingDelete();
-
     // Save enough context to undo
     const outline       = id ? document.querySelector(`.outline-item[data-for="${id}"]`) : null;
     const nextItem      = item.nextElementSibling;
@@ -2026,7 +2023,13 @@
     if (id && _activeItemId === id) {
       _activeItemId = null;
       document.querySelectorAll(".outline-item.active").forEach(e => e.classList.remove("active"));
+      // Restore siblings hidden by selectItem before removing this item
+      const container = item.closest(".program-items");
+      if (container) container.querySelectorAll(".program-item").forEach(p => { if (p !== item) p.style.display = ""; });
     }
+
+    const isEmpty = [...item.querySelectorAll('input[type="text"], input:not([type]), textarea')]
+      .every(el => !el.value.trim());
 
     item.remove();
     outline?.remove();
@@ -2034,6 +2037,16 @@
     // Show empty state if no items left
     const emptyState = parent?.querySelector(".empty-state");
     if (emptyState && !parent.querySelector(".program-item")) emptyState.style.display = "";
+
+    if (isEmpty) {
+      // Nothing was entered — remove silently, no undo, no save
+      if (_pendingDelete) commitPendingDelete();
+      return;
+    }
+
+    // Commit any previous pending delete now that this item is out of the DOM,
+    // so autoSaveNow() doesn't capture it in collectProgram()
+    if (_pendingDelete) commitPendingDelete();
 
     _pendingDelete = {
       item, outline, nextItem, parent, outlineNext, outlineParent,
