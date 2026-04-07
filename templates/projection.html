@@ -50,7 +50,7 @@
       font-family: var(--font-heading);
       font-size: clamp(2rem, 5vw, 4rem);
       font-weight: 700;
-      color: var(--proj-off-white);
+      color: var(--proj-gold);
       text-align: center;
       line-height: 1.15;
       margin-bottom: 1.8rem;
@@ -105,8 +105,6 @@
       font-size: clamp(1.2rem, 2.5vw, 2rem);
       color: var(--proj-off-white);
       text-align: center;
-      margin-top: 0.8rem;
-      line-height: 1.5;
     }
 
     .slide-participants {
@@ -367,7 +365,11 @@
       }
 
       if (data.body) {
-        html += `<div class="slide-body">${esc(data.body)}</div>`;
+        const fsSizes = { sm: 'clamp(0.9rem,1.8vw,1.5rem)', md: 'clamp(1.2rem,2.5vw,2rem)',
+                          lg: 'clamp(1.6rem,3.2vw,2.7rem)', xl: 'clamp(2rem,4vw,3.5rem)' };
+        const fsVal  = fsSizes[data.font_size] || fsSizes.md;
+        const taVal  = ['left','center','right'].includes(data.text_align) ? data.text_align : 'center';
+        html += `<div class="slide-body" style="font-size:${fsVal};text-align:${taVal};white-space:pre-wrap">${esc(data.body)}</div>`;
       }
 
       if (hasParticipants) {
