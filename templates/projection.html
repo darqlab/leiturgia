@@ -57,6 +57,15 @@
       white-space: nowrap;
     }
 
+    /* Pinned to top-center (participant slides) */
+    .slide-part-label--top {
+      position: absolute;
+      top: clamp(1.2rem, 3.5vh, 3rem);
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+
     .slide-part {
       font-family: var(--font-heading);
       font-size: clamp(2.5rem, 10vw, 7.5rem);
@@ -392,7 +401,8 @@
         const pFsSizes = { sm: 'clamp(1rem,3vw,2.5rem)', md: 'clamp(1.5rem,5vw,4rem)',
                            lg: 'clamp(2rem,7vw,5.5rem)', xl: 'clamp(2.5rem,9vw,7rem)' };
         const pFsVal = pFsSizes[data.part_font_size] || pFsSizes.md;
-        html += `<div class="slide-part-label" style="font-size:${pFsVal}">${esc(data.part)}</div>`;
+        const labelClass = hasParticipants ? 'slide-part-label slide-part-label--top' : 'slide-part-label';
+        html += `<div class="${labelClass}" style="font-size:${pFsVal}">${esc(data.part)}</div>`;
       }
 
       // Centered title card content (title + hymn number)
