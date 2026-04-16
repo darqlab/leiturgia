@@ -3464,7 +3464,7 @@
       const d = data.data || data;
       if (d.is_content_para) {
         // Content paragraph preview: part only on first para, then lines like a stanza
-        if (d.para_idx === 0 && d.part) html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
+        if (d.part) html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
         html += `<div class="lp-lines">${_lpEsc(d.body || '').replace(/\n/g, '<br>')}</div>`;
       } else {
         if (d.part)  html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
