@@ -289,8 +289,21 @@
       font-weight: 600;
       letter-spacing: 0.04em;
       color: var(--white);
+      cursor: text;
     }
     .program-nav-item.active .program-nav-name { color: var(--gold-lt); }
+    .program-nav-name-input {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid var(--gold);
+      border-radius: 3px;
+      padding: 1px 5px;
+      width: 120px;
+      outline: none;
+    }
     .program-nav-item.dragging { opacity: 0.35; }
     .program-nav-item.drop-above { border-top: 2px solid var(--gold); }
     .program-nav-item.drop-below { border-bottom: 2px solid var(--gold); }
@@ -1279,7 +1292,7 @@
        draggable="true"
        onclick="switchPanelSection('{{ sp.id }}')">
     <span class="program-nav-drag" title="Drag to reorder">⠿</span>
-    <span class="program-nav-name">{{ sp.name }}</span>
+    <span class="program-nav-name" title="Double-click to rename" ondblclick="event.stopPropagation(); renameProgramInline(this.closest('.program-nav-item'))">{{ sp.name }}</span>
     <button class="btn-delete-prog-inline"
             onclick="event.stopPropagation(); var n=this.closest('.program-nav-item'); deleteProgram(n.dataset.programId, n.dataset.programName)"
             {% if program.service_programs|length <= 1 %}disabled{% endif %}
@@ -2500,6 +2513,57 @@
       sp.style.display = sp.dataset.programId === val ? '' : 'none';
     });
     buildSlideStrip(val);
+  }
+
+  // ── Rename program inline ───────────────────────────────────────────────
+  function renameProgramInline(navItem) {
+    const nameSpan = navItem.querySelector('.program-nav-name');
+    if (!nameSpan) return;
+    const oldName = nameSpan.textContent;
+    const pid = navItem.dataset.programId;
+
+    const input = document.createElement('input');
+    input.className = 'program-nav-name-input';
+    input.value = oldName;
+    nameSpan.replaceWith(input);
+    input.focus();
+    input.select();
+
+    let committed = false;
+
+    function makeSpan(text) {
+      const span = document.createElement('span');
+      span.className = 'program-nav-name';
+      span.title = 'Double-click to rename';
+      span.ondblclick = (e) => { e.stopPropagation(); renameProgramInline(navItem); };
+      span.textContent = text;
+      return span;
+    }
+
+    function commit() {
+      if (committed) return;
+      committed = true;
+      const newName = input.value.trim() || oldName;
+      input.replaceWith(makeSpan(newName));
+      if (newName !== oldName) {
+        navItem.dataset.programName = newName;
+        const spEl = document.querySelector(`.service-program[data-program-id="${pid}"]`);
+        if (spEl) spEl.dataset.programName = newName;
+        autoSaveNow();
+      }
+    }
+
+    function cancel() {
+      if (committed) return;
+      committed = true;
+      input.replaceWith(makeSpan(oldName));
+    }
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter')  { e.preventDefault(); commit(); }
+      if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+    });
+    input.addEventListener('blur', commit);
   }
 
   // ── Delete program ──────────────────────────────────────────────────────
