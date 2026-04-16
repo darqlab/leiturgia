@@ -3522,7 +3522,7 @@
             const res     = await fetch(`/api/lyrics/${encodeURIComponent(lk)}`);
             if (buildId !== _stripBuildId) return;  // stale — a newer build has started
             const data    = await res.json();
-            const stanzas = _interleaveStanzas((data.status === 'ok') ? data.stanzas : []);
+            const stanzas = _splitLongStanzas(_interleaveStanzas((data.status === 'ok') ? data.stanzas : []));
             if (stanzas.length) {
               // fullStanzas mirrors _projStanzas: index 0 = title card, 1+ = real stanzas
               const fullStanzas = [{ type: '__title__' }, ...stanzas];
@@ -3676,6 +3676,22 @@
     }
   }
 
+  // Split stanzas with >5 lines into balanced chunks of ≤5 lines each
+  function _splitLongStanzas(stanzas) {
+    const MAX = 5;
+    const result = [];
+    stanzas.forEach(s => {
+      const lines = s.lines || [];
+      if (lines.length <= MAX) { result.push(s); return; }
+      const numChunks = Math.ceil(lines.length / MAX);
+      const chunkSize = Math.ceil(lines.length / numChunks);
+      for (let i = 0; i < lines.length; i += chunkSize) {
+        result.push({ ...s, lines: lines.slice(i, i + chunkSize) });
+      }
+    });
+    return result;
+  }
+
   // Interleave chorus/refrain after every verse: V1 Ch V2 Ch V3 Ch ...
   function _interleaveStanzas(stanzas) {
     const isRefrain = s => ['chorus','refrain'].includes((s.type || 'verse').toLowerCase());
@@ -3715,7 +3731,7 @@
       try {
         const res  = await fetch(`/api/lyrics/${encodeURIComponent(lyricsKey)}`);
         const data = await res.json();
-        const fetched  = _interleaveStanzas((data.status === 'ok') ? data.stanzas : []);
+        const fetched  = _splitLongStanzas(_interleaveStanzas((data.status === 'ok') ? data.stanzas : []));
         // Index 0 = title card, indices 1+ = stanzas
         _projStanzas   = fetched.length ? [{ type: '__title__' }, ...fetched] : [];
         _projStanzaIdx = (startFromEnd && _projStanzas.length) ? _projStanzas.length - 1 : 0;
@@ -3765,7 +3781,7 @@
         _sendCurrentContentPara(ch);
       } else {
         _activateStripThumb(itemEl, null);
-        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+        const sd = { type: 'text', title: type === 'content' ? '' : title, part, channel: ch, theme_id: _getTheme(),
                      item_id: itemEl.dataset.itemId, stanza_idx: null };
         if (part) sd.part_font_size = part_font_size;
         if (participant) sd.participants = [{ role: part || '', name: participant }];
