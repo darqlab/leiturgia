@@ -24,3 +24,4 @@ media/
 
 # Claude Code memory
 memory/
+deploy.sh
