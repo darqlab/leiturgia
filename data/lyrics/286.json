@@ -1,0 +1,51 @@
+{
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "verse",
+      "lines": [
+        "Sing them over again to me,",
+        "wonderful words of life,",
+        "Let me more of their beauty see,",
+        "wonderful words of life;",
+        "Words of life and beauty",
+        "teach me faith and duty."
+      ]
+    },
+    {
+      "number": 1,
+      "type": "refrain",
+      "lines": [
+        "Beautiful words, wonderful words,",
+        "wonderful words of life,",
+        "Beautiful words, wonderful words,",
+        "wonderful words of life."
+      ]
+    },
+    {
+      "number": 2,
+      "type": "verse",
+      "lines": [
+        "Christ, the bless'd One, gives to all",
+        "wonderful words of life;",
+        "Sinner, list to the loving call,",
+        "wonderful words of life;",
+        "All so freely given,",
+        "wooing us to heaven."
+      ]
+    },
+    {
+      "number": 3,
+      "type": "verse",
+      "lines": [
+        "Sweetly echo the Gospel call,",
+        "wonderful words of life;",
+        "Offer pardon and peace to all,",
+        "wonderful words of life;",
+        "Jesus, only Savior,",
+        "sanctify forever."
+      ]
+    }
+  ],
+  "hymn_number": 286
+}

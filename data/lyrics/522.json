@@ -1,0 +1,54 @@
+{
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "verse",
+      "lines": [
+        "My hope is built on nothing less",
+        "than Jesus' blood and righteousness.",
+        "I dare not trust the sweetest frame,",
+        "but wholly lean on Jesus' name."
+      ]
+    },
+    {
+      "number": 2,
+      "type": "verse",
+      "lines": [
+        "When darkness veils his lovely face,",
+        "I rest on his unchanging grace.",
+        "In every high and stormy gale,",
+        "my anchor holds within the veil."
+      ]
+    },
+    {
+      "number": 3,
+      "type": "verse",
+      "lines": [
+        "His oath, his covenant, his blood",
+        "supports me in the whelming flood.",
+        "When all around my soul gives way,",
+        "he then is all my hope and stay."
+      ]
+    },
+    {
+      "number": 4,
+      "type": "verse",
+      "lines": [
+        "When he shall come with trumpet sound,",
+        "O may I then in him be found!",
+        "Dressed in his righteousness alone,",
+        "faultless to stand before the throne."
+      ]
+    },
+    {
+      "number": 1,
+      "type": "refrain",
+      "lines": [
+        "On Christ the solid rock I stand;",
+        "all other ground is sinking sand,",
+        "all other ground is sinking sand."
+      ]
+    }
+  ],
+  "hymn_number": 522
+}
