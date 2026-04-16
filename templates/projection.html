@@ -199,11 +199,25 @@
     #slide.type-image, #slide.type-video {
       padding: 0;
       background: #000;
+      overflow: hidden;
     }
 
-    #slide.type-image img {
+    /* Blurred background layer for portrait/narrow images */
+    #slide.type-image .img-blur-bg {
+      position: absolute;
+      inset: -30px;          /* overshoot to hide blur fade at edges */
+      background-size: cover;
+      background-position: center;
+      filter: blur(28px);
+      transform: scale(1.05);
+      display: none;
+    }
+
+    #slide.type-image .img-main {
       width: 100%; height: 100%;
-      object-fit: contain;
+      position: relative;
+      z-index: 1;
+      object-fit: contain;   /* overridden to cover for landscape */
     }
 
     #slide.type-video video {
@@ -460,8 +474,31 @@
   // ── Image ──────────────────────────────────────────────────────────────────
   function renderImage(data) {
     setSlideType('image');
-    document.getElementById('slide').innerHTML =
-      `<img src="${esc(data.url || data.src || '')}" alt="">`;
+    const slide = document.getElementById('slide');
+    const url = esc(data.url || data.src || '');
+
+    slide.innerHTML =
+      `<div class="img-blur-bg" style="background-image:url('${url}')"></div>
+       <img class="img-main" src="${url}" alt="">`;
+
+    const img    = slide.querySelector('.img-main');
+    const blurBg = slide.querySelector('.img-blur-bg');
+
+    function applyFit() {
+      const ratio = img.naturalWidth / img.naturalHeight;
+      if (ratio > 1) {
+        // Landscape: scale to cover, slight top/bottom crop if needed
+        img.style.objectFit = 'cover';
+        blurBg.style.display = 'none';
+      } else {
+        // Portrait or square: show full image, blur-pad fills the sides
+        img.style.objectFit = 'contain';
+        blurBg.style.display = 'block';
+      }
+    }
+
+    if (img.complete && img.naturalWidth) applyFit();
+    else img.addEventListener('load', applyFit);
   }
 
   // ── YouTube IFrame API loader ──────────────────────────────────────────────
