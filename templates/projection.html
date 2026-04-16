@@ -388,7 +388,7 @@
       const hasParticipants = data.participants && data.participants.length;
       const isContent = !!data.body;
 
-      if (data.part) {
+      if (data.part && !hasParticipants) {
         const pFsSizes = { sm: 'clamp(1rem,3vw,2.5rem)', md: 'clamp(1.5rem,5vw,4rem)',
                            lg: 'clamp(2rem,7vw,5.5rem)', xl: 'clamp(2.5rem,9vw,7rem)' };
         const pFsVal = pFsSizes[data.part_font_size] || pFsSizes.md;
