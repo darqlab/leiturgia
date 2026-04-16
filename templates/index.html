@@ -2880,9 +2880,10 @@
   // because buildSlideStrip (called from switchPanelSection) reads these
   let _activeThumbItemId   = null;
   let _activeThumbStanzaIdx = null;
-  let _projItem      = null;
-  let _projStanzas   = [];
-  let _projStanzaIdx = 0;
+  let _projItem        = null;
+  let _projStanzas     = [];
+  let _projStanzaIdx   = 0;
+  let _projContentMeta = null;  // font_size, text_align, part_font_size, etc. for content para navigation
   let _stripBuildId  = 0;
   const _chStateSummary = {};
   let _activeProgram = null;
@@ -3461,19 +3462,25 @@
       // text
       screen.style.background = '#0D1B3E';
       const d = data.data || data;
-      if (d.part)  html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
-      if (d.title) html += `<div class="lp-title">${_lpEsc(d.title)}</div>`;
-      if (d.stanza) {
-        const t = (d.stanza.type || 'verse').toLowerCase();
-        const label = t === 'chorus' ? 'Chorus' : t === 'refrain' ? 'Refrain' : `Verse ${d.stanza.number}`;
-        html += `<div class="lp-stanza-label">${label}</div>`;
-        html += `<div class="lp-lines">${(d.stanza.lines || []).map(_lpEsc).join('<br>')}</div>`;
-      }
-      if (d.body) {
-        const lpSizes = { sm: '5.5px', md: '7.5px', lg: '9.5px', xl: '12px' };
-        const lpFs = lpSizes[d.font_size] || lpSizes.md;
-        const lpTa = ['left','center','right'].includes(d.text_align) ? d.text_align : 'center';
-        html += `<div class="lp-body" style="font-size:${lpFs};text-align:${lpTa};white-space:pre-wrap">${_lpEsc(d.body)}</div>`;
+      if (d.is_content_para) {
+        // Content paragraph preview: part only on first para, then lines like a stanza
+        if (d.para_idx === 0 && d.part) html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
+        html += `<div class="lp-lines">${_lpEsc(d.body || '').replace(/\n/g, '<br>')}</div>`;
+      } else {
+        if (d.part)  html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
+        if (d.title) html += `<div class="lp-title">${_lpEsc(d.title)}</div>`;
+        if (d.stanza) {
+          const t = (d.stanza.type || 'verse').toLowerCase();
+          const label = t === 'chorus' ? 'Chorus' : t === 'refrain' ? 'Refrain' : `Verse ${d.stanza.number}`;
+          html += `<div class="lp-stanza-label">${label}</div>`;
+          html += `<div class="lp-lines">${(d.stanza.lines || []).map(_lpEsc).join('<br>')}</div>`;
+        }
+        if (d.body) {
+          const lpSizes = { sm: '5.5px', md: '7.5px', lg: '9.5px', xl: '12px' };
+          const lpFs = lpSizes[d.font_size] || lpSizes.md;
+          const lpTa = ['left','center','right'].includes(d.text_align) ? d.text_align : 'center';
+          html += `<div class="lp-body" style="font-size:${lpFs};text-align:${lpTa};white-space:pre-wrap">${_lpEsc(d.body)}</div>`;
+        }
       }
       if (d.participants?.length) {
         html += `<div class="lp-participants">${d.participants.map(p =>
@@ -3559,7 +3566,47 @@
         }
       }
 
-      // Single thumb (non-song, or song with no lyrics)
+      // Multi-paragraph content: add one thumb per paragraph
+      if (type === 'content') {
+        const bodyVal = itemEl.querySelector('.item-content')?.value || '';
+        const paras   = bodyVal ? bodyVal.split(/\n[ \t]*\n/).map(s => s.trim()).filter(Boolean) : [];
+        if (paras.length > 1) {
+          paras.forEach((para, pi) => {
+            slideNum++;
+            const isActive = itemEl.id === _activeThumbItemId && pi === _activeThumbStanzaIdx;
+            const thumb = document.createElement('div');
+            thumb.className          = 'strip-thumb' + (isActive ? ' active' : '');
+            thumb.dataset.itemId     = itemEl.id;
+            thumb.dataset.stanzaIdx  = pi;
+            thumb.innerHTML = `
+              <div class="strip-thumb-num">${slideNum} <span class="badge badge-cont-s">C</span></div>
+              <div class="strip-thumb-title">${_lpEsc(title)}</div>
+              <div class="strip-thumb-detail">§${pi + 1}: ${_lpEsc(para.split('\n')[0])}</div>`;
+            thumb.addEventListener('click', () => {
+              _projItem        = itemEl;
+              _projStanzas     = paras.map(t => ({ type: '__content_para__', text: t }));
+              _projStanzaIdx   = pi;
+              _projContentMeta = {
+                font_size:      itemEl.querySelector('.item-font-size')?.value      || 'md',
+                text_align:     itemEl.querySelector('.item-text-align')?.value     || 'center',
+                part_font_size: itemEl.querySelector('.item-part-font-size')?.value || 'md',
+                participant:    itemEl.querySelector('.item-participant')?.value     || '',
+                title:          itemEl.querySelector('.item-title')?.value          || '',
+                part:           itemEl.querySelector('.item-part')?.value           || '',
+              };
+              document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
+              itemEl.querySelector('.btn-live')?.classList.add('active');
+              _activateStripThumb(itemEl, pi);
+              document.activeElement?.blur();
+              _sendCurrentContentPara(_getChannel());
+            });
+            strip.appendChild(thumb);
+          });
+          continue;
+        }
+      }
+
+      // Single thumb (non-song, or song with no lyrics, or single-para content)
       slideNum++;
       let badge = '', detail = '', thumbExtra = '';
       if (type === 'song') {
@@ -3700,19 +3747,32 @@
       renderLivePreview({ type: media_type, data: sd });
     } else {
       _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
-      _activateStripThumb(itemEl, null);
-      const participant = itemEl.querySelector('.item-participant')?.value  || '';
+      const participant    = itemEl.querySelector('.item-participant')?.value     || '';
       const body           = itemEl.querySelector('.item-content')?.value         || '';
       const font_size      = itemEl.querySelector('.item-font-size')?.value       || 'md';
       const text_align     = itemEl.querySelector('.item-text-align')?.value      || 'center';
       const part_font_size = itemEl.querySelector('.item-part-font-size')?.value  || 'md';
-      const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
-                   item_id: itemEl.dataset.itemId, stanza_idx: null };
-      if (part) sd.part_font_size = part_font_size;
-      if (participant) sd.participants = [{ role: part || '', name: participant }];
-      if (body) { sd.body = body; sd.font_size = font_size; sd.text_align = text_align; }
-      _socket.emit('slide:show', sd);
-      renderLivePreview(sd);
+
+      // Split body into paragraphs separated by blank lines
+      const paras = body ? body.split(/\n[ \t]*\n/).map(s => s.trim()).filter(Boolean) : [];
+
+      if (paras.length > 1) {
+        // Multi-paragraph content: navigate like song stanzas
+        _projStanzas     = paras.map(t => ({ type: '__content_para__', text: t }));
+        _projStanzaIdx   = startFromEnd ? _projStanzas.length - 1 : 0;
+        _projContentMeta = { font_size, text_align, part_font_size, participant, title, part };
+        _activateStripThumb(itemEl, _projStanzaIdx);
+        _sendCurrentContentPara(ch);
+      } else {
+        _activateStripThumb(itemEl, null);
+        const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
+                     item_id: itemEl.dataset.itemId, stanza_idx: null };
+        if (part) sd.part_font_size = part_font_size;
+        if (participant) sd.participants = [{ role: part || '', name: participant }];
+        if (body) { sd.body = body; sd.font_size = font_size; sd.text_align = text_align; }
+        _socket.emit('slide:show', sd);
+        renderLivePreview(sd);
+      }
     }
   }
 
@@ -3726,6 +3786,22 @@
     // Only attach stanza if it's a real stanza (not the title-card sentinel)
     if (stanza && stanza.type !== '__title__') sd.stanza = stanza;
     if (hymn_number) sd.hymn_number = hymn_number;
+    _socket.emit('slide:show', sd);
+    renderLivePreview(sd);
+  }
+
+  function _sendCurrentContentPara(ch) {
+    const para = _projStanzas[_projStanzaIdx];
+    const m    = _projContentMeta || {};
+    const sd   = {
+      type: 'text', title: m.title || '', part: m.part || '', channel: ch,
+      theme_id: _getTheme(), item_id: _projItem?.dataset.itemId || null,
+      stanza_idx: _projStanzaIdx,
+      is_content_para: true, para_idx: _projStanzaIdx,
+      body: para.text, font_size: m.font_size || 'md', text_align: m.text_align || 'center',
+    };
+    if (m.part) sd.part_font_size = m.part_font_size || 'md';
+    if (m.participant) sd.participants = [{ role: m.part || '', name: m.participant }];
     _socket.emit('slide:show', sd);
     renderLivePreview(sd);
   }
@@ -3744,10 +3820,14 @@
     if (_projStanzaIdx >= _projStanzas.length - 1) { _projNextItem(1); return; }
     _projStanzaIdx++;
     _activateStripThumb(_projItem, _projStanzaIdx);
-    _sendCurrentStanza(_getChannel(),
-      _projItem.querySelector('.item-title')?.value || '',
-      _projItem.querySelector('.item-part')?.value  || '',
-      _projItem.querySelector('.item-hymn')?.value  || '');
+    if (_projStanzas[0]?.type === '__content_para__') {
+      _sendCurrentContentPara(_getChannel());
+    } else {
+      _sendCurrentStanza(_getChannel(),
+        _projItem.querySelector('.item-title')?.value || '',
+        _projItem.querySelector('.item-part')?.value  || '',
+        _projItem.querySelector('.item-hymn')?.value  || '');
+    }
   }
 
   function _projPrev() {
@@ -3756,10 +3836,14 @@
     if (_projStanzaIdx > 0) {
       _projStanzaIdx--;
       _activateStripThumb(_projItem, _projStanzaIdx);
-      _sendCurrentStanza(_getChannel(),
-        _projItem.querySelector('.item-title')?.value || '',
-        _projItem.querySelector('.item-part')?.value  || '',
-        _projItem.querySelector('.item-hymn')?.value  || '');
+      if (_projStanzas[0]?.type === '__content_para__') {
+        _sendCurrentContentPara(_getChannel());
+      } else {
+        _sendCurrentStanza(_getChannel(),
+          _projItem.querySelector('.item-title')?.value || '',
+          _projItem.querySelector('.item-part')?.value  || '',
+          _projItem.querySelector('.item-hymn')?.value  || '');
+      }
     } else {
       _projNextItem(-1);  // at first stanza → go to previous item (last stanza)
     }
