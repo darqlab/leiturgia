@@ -57,14 +57,6 @@
       white-space: nowrap;
     }
 
-    /* Pinned to top-left for song title-card and similar slides */
-    .slide-part-label--top {
-      position: absolute;
-      top: clamp(1.2rem, 3.5vh, 3rem);
-      left: clamp(2rem, 5vw, 5rem);
-      text-align: left;
-    }
-
     .slide-part {
       font-family: var(--font-heading);
       font-size: clamp(2.5rem, 10vw, 7.5rem);
@@ -396,16 +388,14 @@
       const hasParticipants = data.participants && data.participants.length;
       const isContent = !!data.body;
 
-      // Part label pinned to top-left, outside the centered flow
-      if (data.part) {
-        const pFsSizes = { sm: 'clamp(1rem,3vw,2.5rem)', md: 'clamp(1.5rem,5vw,4rem)',
-                           lg: 'clamp(2rem,7vw,5.5rem)', xl: 'clamp(2.5rem,9vw,7rem)' };
-        const pFsVal = pFsSizes[data.part_font_size] || pFsSizes.md;
-        html += `<div class="slide-part-label slide-part-label--top" style="font-size:${pFsVal}">${esc(data.part)}</div>`;
-      }
-
-      // Centered title card content
+      // Centered title card content (part label + title + hymn number as a centered group)
       if (!hasParticipants && !isContent && data.title) {
+        if (data.part) {
+          const pFsSizes = { sm: 'clamp(1rem,3vw,2.5rem)', md: 'clamp(1.5rem,5vw,4rem)',
+                             lg: 'clamp(2rem,7vw,5.5rem)', xl: 'clamp(2.5rem,9vw,7rem)' };
+          const pFsVal = pFsSizes[data.part_font_size] || pFsSizes.md;
+          html += `<div class="slide-part-label" style="font-size:${pFsVal}">${esc(data.part)}</div>`;
+        }
         html += `<div class="slide-part">${esc(data.title)}</div>`;
         if (data.hymn_number) {
           html += `<div class="slide-hymn-number">#${esc(String(data.hymn_number))}</div>`;
