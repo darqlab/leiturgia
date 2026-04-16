@@ -3522,7 +3522,7 @@
             const res     = await fetch(`/api/lyrics/${encodeURIComponent(lk)}`);
             if (buildId !== _stripBuildId) return;  // stale — a newer build has started
             const data    = await res.json();
-            const stanzas = _interleaveStanzas(_splitLongStanzas((data.status === 'ok') ? data.stanzas : []));
+            const stanzas = _splitLongStanzas(_interleaveStanzas((data.status === 'ok') ? data.stanzas : []));
             if (stanzas.length) {
               // fullStanzas mirrors _projStanzas: index 0 = title card, 1+ = real stanzas
               const fullStanzas = [{ type: '__title__' }, ...stanzas];
@@ -3731,7 +3731,7 @@
       try {
         const res  = await fetch(`/api/lyrics/${encodeURIComponent(lyricsKey)}`);
         const data = await res.json();
-        const fetched  = _interleaveStanzas(_splitLongStanzas((data.status === 'ok') ? data.stanzas : []));
+        const fetched  = _splitLongStanzas(_interleaveStanzas((data.status === 'ok') ? data.stanzas : []));
         // Index 0 = title card, indices 1+ = stanzas
         _projStanzas   = fetched.length ? [{ type: '__title__' }, ...fetched] : [];
         _projStanzaIdx = (startFromEnd && _projStanzas.length) ? _projStanzas.length - 1 : 0;
