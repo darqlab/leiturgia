@@ -1461,10 +1461,22 @@
               <div class="role-label">Title</div>
               <input type="text" class="item-title" value="{{ item.title }}">
             </div>
-            {% if not _is_content %}
+            {% if not _is_media %}
             <div class="participant" style="margin-top:8px">
               <div class="role-label">Part</div>
+              {% if _is_content %}
+              {% set _pfs = item.get('part_font_size', 'md') %}
+              <div style="display:flex;gap:6px;align-items:center">
+                <input type="text" class="item-part" value="{{ item.get('part', '') }}" style="flex:1;min-width:0">
+                <button type="button" class="ctb-btn part-size-btn {{ 'active' if _pfs == 'sm' }}" data-part-size="sm">S</button>
+                <button type="button" class="ctb-btn part-size-btn {{ 'active' if _pfs == 'md' }}" data-part-size="md">M</button>
+                <button type="button" class="ctb-btn part-size-btn {{ 'active' if _pfs == 'lg' }}" data-part-size="lg">L</button>
+                <button type="button" class="ctb-btn part-size-btn {{ 'active' if _pfs == 'xl' }}" data-part-size="xl">XL</button>
+                <input type="hidden" class="item-part-font-size" value="{{ _pfs }}">
+              </div>
+              {% else %}
               <input type="text" class="item-part" value="{{ item.get('part', '') }}">
+              {% endif %}
             </div>
             {% endif %}
             {% endif %}
@@ -1702,6 +1714,17 @@
         <div class="form-row">
           <div class="field"><label>Title</label><input type="text" class="item-title" value=""></div>
         </div>
+        <div class="participant" style="margin-top:8px">
+          <div class="role-label">Part</div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="text" class="item-part" value="" placeholder="e.g. Opening Remarks" style="flex:1;min-width:0">
+            <button type="button" class="ctb-btn part-size-btn" data-part-size="sm">S</button>
+            <button type="button" class="ctb-btn part-size-btn active" data-part-size="md">M</button>
+            <button type="button" class="ctb-btn part-size-btn" data-part-size="lg">L</button>
+            <button type="button" class="ctb-btn part-size-btn" data-part-size="xl">XL</button>
+            <input type="hidden" class="item-part-font-size" value="md">
+          </div>
+        </div>
         <div class="field" style="margin-top:8px">
           <label>Content</label>
           <div class="content-toolbar">
@@ -1863,17 +1886,20 @@
   // ── Content item formatting toolbar ───────────────────────────────────────
   function _syncContentToolbar(itemEl) {
     if (!itemEl) return;
-    const fs = itemEl.querySelector('.item-font-size')?.value  || 'md';
-    const ta = itemEl.querySelector('.item-text-align')?.value || 'center';
-    itemEl.querySelectorAll('.size-btn').forEach(b  => b.classList.toggle('active', b.dataset.size  === fs));
-    itemEl.querySelectorAll('.align-btn').forEach(b => b.classList.toggle('active', b.dataset.align === ta));
+    const fs  = itemEl.querySelector('.item-font-size')?.value       || 'md';
+    const ta  = itemEl.querySelector('.item-text-align')?.value      || 'center';
+    const pfs = itemEl.querySelector('.item-part-font-size')?.value  || 'md';
+    itemEl.querySelectorAll('.size-btn').forEach(b      => b.classList.toggle('active', b.dataset.size     === fs));
+    itemEl.querySelectorAll('.align-btn').forEach(b     => b.classList.toggle('active', b.dataset.align    === ta));
+    itemEl.querySelectorAll('.part-size-btn').forEach(b => b.classList.toggle('active', b.dataset.partSize === pfs));
   }
 
   document.addEventListener('click', function(e) {
-    const sizeBtn  = e.target.closest('.size-btn');
-    const alignBtn = e.target.closest('.align-btn');
-    if (!sizeBtn && !alignBtn) return;
-    const itemEl = (sizeBtn || alignBtn).closest('.program-item');
+    const sizeBtn     = e.target.closest('.size-btn');
+    const alignBtn    = e.target.closest('.align-btn');
+    const partSizeBtn = e.target.closest('.part-size-btn');
+    if (!sizeBtn && !alignBtn && !partSizeBtn) return;
+    const itemEl = (sizeBtn || alignBtn || partSizeBtn).closest('.program-item');
     if (!itemEl) return;
     if (sizeBtn) {
       itemEl.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
@@ -1886,6 +1912,12 @@
       alignBtn.classList.add('active');
       const inp = itemEl.querySelector('.item-text-align');
       if (inp) inp.value = alignBtn.dataset.align;
+    }
+    if (partSizeBtn) {
+      itemEl.querySelectorAll('.part-size-btn').forEach(b => b.classList.remove('active'));
+      partSizeBtn.classList.add('active');
+      const inp = itemEl.querySelector('.item-part-font-size');
+      if (inp) inp.value = partSizeBtn.dataset.partSize;
     }
   });
 
@@ -1941,7 +1973,7 @@
     // Copy field values from src to dest
     [".item-title", ".item-part", ".item-participant", ".item-hymn",
      ".lyrics-key", ".item-content", ".item-media-url", ".item-media-type",
-     ".item-font-size", ".item-text-align"].forEach(cls => {
+     ".item-font-size", ".item-text-align", ".item-part-font-size"].forEach(cls => {
       const s = src.querySelector(cls), d = dest?.querySelector(cls);
       if (s && d) d.value = s.value;
     });
@@ -1986,10 +2018,13 @@
       if (songPart)  item.part        = songPart;
       return item;
     } else if (type === "content") {
-      const content    = el.querySelector(".item-content")?.value    || "";
-      const font_size  = el.querySelector(".item-font-size")?.value  || "md";
-      const text_align = el.querySelector(".item-text-align")?.value || "center";
+      const content         = el.querySelector(".item-content")?.value         || "";
+      const font_size       = el.querySelector(".item-font-size")?.value       || "md";
+      const text_align      = el.querySelector(".item-text-align")?.value      || "center";
+      const part            = el.querySelector(".item-part")?.value            || "";
+      const part_font_size  = el.querySelector(".item-part-font-size")?.value  || "md";
       const item = { type: "content", title, content, font_size, text_align };
+      if (part) { item.part = part; item.part_font_size = part_font_size; }
       if (id) item.item_id = id;
       return item;
     } else if (type === "media") {
@@ -3667,11 +3702,13 @@
       _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
       _activateStripThumb(itemEl, null);
       const participant = itemEl.querySelector('.item-participant')?.value  || '';
-      const body        = itemEl.querySelector('.item-content')?.value      || '';
-      const font_size   = itemEl.querySelector('.item-font-size')?.value    || 'md';
-      const text_align  = itemEl.querySelector('.item-text-align')?.value   || 'center';
+      const body           = itemEl.querySelector('.item-content')?.value         || '';
+      const font_size      = itemEl.querySelector('.item-font-size')?.value       || 'md';
+      const text_align     = itemEl.querySelector('.item-text-align')?.value      || 'center';
+      const part_font_size = itemEl.querySelector('.item-part-font-size')?.value  || 'md';
       const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
                    item_id: itemEl.dataset.itemId, stanza_idx: null };
+      if (part) sd.part_font_size = part_font_size;
       if (participant) sd.participants = [{ role: part || '', name: participant }];
       if (body) { sd.body = body; sd.font_size = font_size; sd.text_align = text_align; }
       _socket.emit('slide:show', sd);
