@@ -1461,7 +1461,7 @@
               <div class="role-label">Title</div>
               <input type="text" class="item-title" value="{{ item.title }}">
             </div>
-            {% if not _is_content %}
+            {% if not _is_media %}
             <div class="participant" style="margin-top:8px">
               <div class="role-label">Part</div>
               <input type="text" class="item-part" value="{{ item.get('part', '') }}">
@@ -1701,6 +1701,10 @@
       bodyInner = `
         <div class="form-row">
           <div class="field"><label>Title</label><input type="text" class="item-title" value=""></div>
+        </div>
+        <div class="participant" style="margin-top:8px">
+          <div class="role-label">Part</div>
+          <input type="text" class="item-part" value="" placeholder="e.g. Opening Remarks">
         </div>
         <div class="field" style="margin-top:8px">
           <label>Content</label>
@@ -1989,7 +1993,9 @@
       const content    = el.querySelector(".item-content")?.value    || "";
       const font_size  = el.querySelector(".item-font-size")?.value  || "md";
       const text_align = el.querySelector(".item-text-align")?.value || "center";
+      const part       = el.querySelector(".item-part")?.value       || "";
       const item = { type: "content", title, content, font_size, text_align };
+      if (part) item.part = part;
       if (id) item.item_id = id;
       return item;
     } else if (type === "media") {
