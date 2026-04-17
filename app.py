@@ -604,6 +604,13 @@ def api_yt_cache():
     with open(_YT_CACHE_PATH) as f:
         return jsonify(json.load(f))
 
+def _sanitize_filename(name: str) -> str:
+    stem, ext = os.path.splitext(name)
+    stem = stem.replace('-', '_')
+    stem = re.sub(r'_+', '_', stem).strip('_')
+    return stem + ext
+
+
 @app.route("/api/media/upload", methods=["POST"])
 def upload_media():
     from werkzeug.utils import secure_filename
@@ -623,7 +630,7 @@ def upload_media():
     else:
         return jsonify({"status": "error", "message": f"Unsupported file type: {ext}"}), 400
 
-    filename  = secure_filename(f.filename)
+    filename  = _sanitize_filename(secure_filename(f.filename))
     save_dir  = os.path.join(app.root_path, "media", subdir)
     os.makedirs(save_dir, exist_ok=True)
     f.save(os.path.join(save_dir, filename))
@@ -728,7 +735,12 @@ def _yt_download_task(url, quality, item_id, sid):
         'progress_hooks': [lambda d: _yt_progress_hook(d, item_id, sid)],
         'quiet':          True,
         'no_warnings':    True,
+        'geo_bypass':        True,
+        'restrictfilenames': True,
     }
+    _cookies_path = os.path.join(app.root_path, 'data', 'yt_cookies.txt')
+    if os.path.isfile(_cookies_path):
+        ydl_opts['cookiefile'] = _cookies_path
     if _FFMPEG:
         ydl_opts['merge_output_format'] = 'mp4'
     try:
@@ -746,6 +758,13 @@ def _yt_download_task(url, quality, item_id, sid):
                     raw_name
                 )
                 final = found
+            sanitized = _sanitize_filename(final)
+            if sanitized != final:
+                os.rename(
+                    os.path.join(videos_dir, final),
+                    os.path.join(videos_dir, sanitized),
+                )
+                final = sanitized
             final_url = f'/media/videos/{_url_quote(final, safe="")}'
         _yt_cache_write(url, final, final_url)
         socketio.emit('yt:done', {
