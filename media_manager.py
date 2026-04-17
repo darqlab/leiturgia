@@ -5,6 +5,7 @@ Only list_media() is public.
 """
 
 import os
+from urllib.parse import quote as _quote
 
 try:
     from mutagen.mp4 import MP4 as _MP4
@@ -69,7 +70,7 @@ def _scan(directory: str, allowed_exts: set, subdir: str) -> list:
             full_path = os.path.join(directory, name)
             entry = {
                 "name": name,
-                "url":  f"/media/{subdir}/{name}",
+                "url":  f"/media/{subdir}/{_quote(name, safe='')}",
             }
             entry.update(_file_meta(full_path))
             files.append(entry)

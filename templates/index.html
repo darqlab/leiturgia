@@ -647,7 +647,8 @@
     }
     .badge-song    { background: #1a2a4a; color: #7aade8; border: 1px solid #1e3560; }
     .badge-content { background: #1a2a1a; color: #7ab87a; border: 1px solid #1e3a1e; }
-    .badge-media   { background: #2a1a3a; color: #c07ae8; border: 1px solid #3a1e52; }
+    .badge-video   { background: #2a1a3a; color: #c07ae8; border: 1px solid #3a1e52; }
+    .badge-image   { background: #1a2a1a; color: #7ae87a; border: 1px solid #1e3a1e; }
 
     /* ── Content item formatting toolbar ── */
     .content-toolbar {
@@ -1217,7 +1218,8 @@
     .badge-song-s   { background: #1a3a6a; color: #7ba7e0; }
     .badge-part-s   { background: #1a3a2a; color: #7ac09a; }
     .badge-cont-s   { background: #3a2a1a; color: #c09a7a; }
-    .badge-media-s  { background: #2a1a3a; color: #c07ae8; }
+    .badge-video-s  { background: #2a1a3a; color: #c07ae8; }
+    .badge-image-s  { background: #1a2a1a; color: #7ae87a; }
 
     .strip-thumb-title {
       font-size: 11px;
@@ -1367,7 +1369,8 @@
         {% set _type = item.get("type", "participant") %}
         {% set _is_song = _type == "song" %}
         {% set _is_content = _type == "content" %}
-        {% set _is_media = _type == "media" %}
+        {% set _is_video = _type == "video" %}
+        {% set _is_image = _type == "image" %}
         <div class="program-item" data-index="{{ loop.index0 }}" data-item-type="{{ _type }}" data-item-id="{{ item.get('item_id', '') }}" id="{{ sp.id }}-item-{{ sp_idx.n }}">
         {% set sp_idx.n = sp_idx.n + 1 %}
           <div class="item-header" onclick="selectItem(this)">
@@ -1378,13 +1381,15 @@
                 {% if item.get('hymn_number') %}<div class="item-detail-text">#{{ item.hymn_number }}{% if item.get('title') %} — {{ item.title }}{% endif %}</div>{% endif %}
               {% elif _is_content %}
                 <div class="item-detail-text">{{ item.get('content','')[:60] }}</div>
-              {% elif _is_media %}
-                <div class="item-detail-text">{{ item.get('media_type','').capitalize() }}{% if item.get('url') %} — {{ item['url'].split('/')[-1] }}{% endif %}</div>
+              {% elif _is_video %}
+                <div class="item-detail-text">Video{% if item.get('url') %} — {{ item['url'].split('/')[-1] }}{% endif %}</div>
+              {% elif _is_image %}
+                <div class="item-detail-text">Image{% if item.get('url') %} — {{ item['url'].split('/')[-1] }}{% endif %}</div>
               {% else %}
                 {% if item.get('participant') %}<div class="item-detail-text">{{ item.participant }}</div>{% endif %}
               {% endif %}
             </div>
-            <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else ('badge-media' if _is_media else 'badge-participant')) }}">{{ 'Song' if _is_song else ('Content' if _is_content else ('Media' if _is_media else 'Participant')) }}</span>
+            <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else ('badge-video' if _is_video else ('badge-image' if _is_image else 'badge-participant'))) }}">{{ 'Song' if _is_song else ('Content' if _is_content else ('Video' if _is_video else ('Image' if _is_image else 'Participant'))) }}</span>
             <button class="duplicate-hint" onclick="event.stopPropagation();duplicateItem(this.closest('.program-item'))" title="Duplicate item">⧉</button>
             <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
             <div class="item-chevron">▼</div>
@@ -1392,7 +1397,7 @@
             <div class="item-number">{{ loop.index }}</div>
           </div>
           <div class="item-body">
-            {% if _is_media %}
+            {% if _is_video %}
             <div class="form-row single">
               <div class="field">
                 <label>Title</label>
@@ -1401,9 +1406,9 @@
             </div>
             <div class="field" style="margin-top:8px">
               <div class="media-list-header">
-                <label>Media Files</label>
+                <label>Video Files</label>
                 <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
-                        onclick="loadMediaListFor(this.closest('.program-item'))">↺ Refresh</button>
+                        onclick="loadMediaListFor(this.closest('.program-item'), 'video')">↺ Refresh</button>
               </div>
               <input type="text" class="media-search-input" placeholder="Search files…"
                      oninput="filterMediaList(this.closest('.program-item'))">
@@ -1462,6 +1467,40 @@
               </div>
             </div>
             <input type="hidden" class="lyrics-key" value="">
+            {% elif _is_image %}
+            <div class="form-row single">
+              <div class="field">
+                <label>Title</label>
+                <input type="text" class="item-title" value="{{ item.title }}" placeholder="e.g. Background Image">
+              </div>
+            </div>
+            <div class="field" style="margin-top:8px">
+              <div class="media-list-header">
+                <label>Image Files</label>
+                <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
+                        onclick="loadMediaListFor(this.closest('.program-item'), 'image')">↺ Refresh</button>
+              </div>
+              <input type="text" class="media-search-input" placeholder="Search files…"
+                     oninput="filterMediaList(this.closest('.program-item'))">
+              <div class="media-file-list"></div>
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label>Upload new image</label>
+              <input type="file" class="media-upload-input" accept="image/*"
+                     onchange="uploadMediaFor(this.closest('.program-item'), this.files[0])"
+                     style="color:var(--white);font-size:12px;">
+            </div>
+            <div class="field" style="margin-top:8px">
+              <label>Or paste URL</label>
+              <input type="text" class="item-media-url" value="{{ item.get('url','') }}"
+                     placeholder="https://… or /media/images/file.jpg"
+                     onfocus="this.select()"
+                     oninput="onMediaUrlInput(this.closest('.program-item'))">
+            </div>
+            <div class="media-selected-info" style="margin-top:6px;font-size:11px;color:var(--gold)">
+              {% if item.get('url') %}Image: {{ item['url'].split('/')[-1] }}{% endif %}
+            </div>
+            <input type="hidden" class="lyrics-key" value="">
             {% elif _is_song %}
             <div class="field" style="margin-bottom:8px">
               <label>Part</label>
@@ -1474,7 +1513,7 @@
               <div class="role-label">Title</div>
               <input type="text" class="item-title" value="{{ item.title }}">
             </div>
-            {% if not _is_media %}
+            {% if not _is_video and not _is_image %}
             <div class="participant" style="margin-top:8px">
               <div class="role-label">Part</div>
               {% if _is_content %}
@@ -1518,7 +1557,7 @@
               <input type="hidden" class="item-text-align" value="{{ _ta }}">
               <textarea class="item-content" rows="3" placeholder="Free-form text displayed on the slide…" style="width:100%; resize:vertical; min-height:220px;background:var(--card); color:var(--white); border:1px solid var(--border); border-radius:6px; padding:8px; font-family:inherit; font-size:13px;">{{ item.get('content', '') }}</textarea>
             </div>
-            {% elif not _is_song and not _is_media %}
+            {% elif not _is_song and not _is_video and not _is_image %}
             <div class="participants">
               <div class="participant">
                 <div class="role-label">Participant</div>
@@ -1558,7 +1597,8 @@
         <button onclick="addProgramItem('{{ sp.id }}', 'participant')">+ Participant</button>
         <button onclick="addProgramItem('{{ sp.id }}', 'song')">+ Song</button>
         <button onclick="addProgramItem('{{ sp.id }}', 'content')">+ Content</button>
-        <button onclick="addProgramItem('{{ sp.id }}', 'media')">+ Media</button>
+        <button onclick="addProgramItem('{{ sp.id }}', 'video')">+ Video</button>
+        <button onclick="addProgramItem('{{ sp.id }}', 'image')">+ Image</button>
       </div>
   </div>
   {% endfor %}
@@ -1761,8 +1801,8 @@
           <textarea class="item-content" rows="3" placeholder="Free-form text displayed on the slide…" style="width:100%; resize:vertical; min-height:220px;background:var(--card); color:var(--white); border:1px solid var(--border); border-radius:6px; padding:8px; font-family:inherit; font-size:13px;"></textarea>
         </div>
         <input type="hidden" class="lyrics-key" value="">`;
-    } else if (type === "media") {
-      badgeClass = "badge-media"; badgeLabel = "Media";
+    } else if (type === "video") {
+      badgeClass = "badge-video"; badgeLabel = "Video";
       bodyInner = `
         <div class="form-row single">
           <div class="field"><label>Title</label><input type="text" class="item-title" value="" placeholder="e.g. Welcome Slide"></div>
@@ -1771,7 +1811,7 @@
           <div class='media-list-header'>
             <label>Media Files</label>
             <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
-                    onclick='loadMediaListFor(this.closest(".program-item"))'>↺ Refresh</button>
+                    onclick='loadMediaListFor(this.closest(".program-item"), "video")'>↺ Refresh</button>
           </div>
           <input type='text' class='media-search-input' placeholder='Search files…'
                  oninput='filterMediaList(this.closest(".program-item"))'>
@@ -1779,13 +1819,13 @@
         </div>
         <div class="field" style="margin-top:8px">
           <label>Upload new file</label>
-          <input type="file" class="media-upload-input" accept="image/*,video/*"
+          <input type="file" class="media-upload-input" accept="video/*"
                  onchange="uploadMediaFor(this.closest('.program-item'), this.files[0])"
                  style="color:var(--white);font-size:12px;">
         </div>
         <div class="field" style="margin-top:8px">
           <label>Or paste URL</label>
-          <input type="text" class="item-media-url" value="" placeholder="https://… or /media/images/file.jpg"
+          <input type="text" class="item-media-url" value="" placeholder="https://… or /media/videos/file.mp4"
                  onfocus="this.select()"
                  oninput="onMediaUrlInput(this.closest('.program-item'))">
           <div class="yt-download-controls">
@@ -1811,8 +1851,8 @@
           </div>
         </div>
         <div class="media-selected-info" style="margin-top:6px;font-size:11px;color:var(--gold)"></div>
-        <input type="hidden" class="item-media-type" value="">
-        <div class="media-video-options" style="margin-top:10px;display:none">
+        <input type="hidden" class="item-media-type" value="video">
+        <div class="media-video-options" style="margin-top:10px;display:block">
           <label style="margin-bottom:6px">Playback options</label>
           <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:4px">
             <label style="display:flex;align-items:center;gap:6px;font-size:12px;text-transform:none;letter-spacing:0;color:var(--white)">
@@ -1826,6 +1866,36 @@
             </label>
           </div>
         </div>
+        <input type="hidden" class="lyrics-key" value="">`;
+    } else if (type === "image") {
+      badgeClass = "badge-image"; badgeLabel = "Image";
+      bodyInner = `
+        <div class="form-row single">
+          <div class="field"><label>Title</label><input type="text" class="item-title" value="" placeholder="e.g. Background Image"></div>
+        </div>
+        <div class="field" style="margin-top:8px">
+          <div class='media-list-header'>
+            <label>Image Files</label>
+            <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
+                    onclick='loadMediaListFor(this.closest(".program-item"), "image")'>↺ Refresh</button>
+          </div>
+          <input type='text' class='media-search-input' placeholder='Search files…'
+                 oninput='filterMediaList(this.closest(".program-item"))'>
+          <div class='media-file-list'></div>
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label>Upload new image</label>
+          <input type="file" class="media-upload-input" accept="image/*"
+                 onchange="uploadMediaFor(this.closest('.program-item'), this.files[0])"
+                 style="color:var(--white);font-size:12px;">
+        </div>
+        <div class="field" style="margin-top:8px">
+          <label>Or paste URL</label>
+          <input type="text" class="item-media-url" value="" placeholder="https://… or /media/images/file.jpg"
+                 onfocus="this.select()"
+                 oninput="onMediaUrlInput(this.closest('.program-item'))">
+        </div>
+        <div class="media-selected-info" style="margin-top:6px;font-size:11px;color:var(--gold)"></div>
         <input type="hidden" class="lyrics-key" value="">`;
     } else {
       badgeClass = "badge-participant"; badgeLabel = "Participant";
@@ -2040,13 +2110,18 @@
       if (part) { item.part = part; item.part_font_size = part_font_size; }
       if (id) item.item_id = id;
       return item;
-    } else if (type === "media") {
+    } else if (type === "video") {
       const url        = el.querySelector(".item-media-url")?.value.trim()  || "";
-      const media_type = el.querySelector(".item-media-type")?.value        || "image";
+      const media_type = "video";
       const autoplay   = el.querySelector(".media-opt-autoplay")?.checked   ?? true;
       const loop       = el.querySelector(".media-opt-loop")?.checked       ?? false;
       const mute       = el.querySelector(".media-opt-mute")?.checked       ?? false;
-      const item = { type: "media", title, url, media_type, autoplay, loop, mute };
+      const item = { type: "video", title, url, media_type, autoplay, loop, mute };
+      if (id) item.item_id = id;
+      return item;
+    } else if (type === "image") {
+      const url  = el.querySelector(".item-media-url")?.value.trim() || "";
+      const item = { type: "image", title, url };
       if (id) item.item_id = id;
       return item;
     } else {
@@ -2409,12 +2484,14 @@
     el.querySelector(".item-chevron")?.classList.add("open");
     el.classList.add("item-editing");
     loadLyricsDisplay(el);
-    if (el.dataset.itemType === 'media') {
-      loadMediaListFor(el);
-      _checkPlatformUrl(el);      // show download controls if URL is a platform URL
-      _updatePlatformWarning(el); // show warning badge + cache lookup
-      const _openUrl = el.querySelector('.item-media-url')?.value.trim();
-      if (_openUrl) _fetchUrlTitle(el, _openUrl); // check embeddability for pre-saved URLs
+    if (el.dataset.itemType === 'video' || el.dataset.itemType === 'image') {
+      loadMediaListFor(el, el.dataset.itemType);
+      if (el.dataset.itemType === 'video') {
+        _checkPlatformUrl(el);      // show download controls if URL is a platform URL
+        _updatePlatformWarning(el); // show warning badge + cache lookup
+        const _openUrl = el.querySelector('.item-media-url')?.value.trim();
+        if (_openUrl) _fetchUrlTitle(el, _openUrl); // check embeddability for pre-saved URLs
+      }
     }
 
     // Highlight in sidebar
@@ -2485,11 +2562,14 @@
     } else if (type === "content") {
       const txt = el.querySelector(".item-content")?.value || "";
       detailEl.textContent = txt.split("\n")[0].slice(0, 60);
-    } else if (type === "media") {
-      const mtype = el.querySelector(".item-media-type")?.value || "";
-      const url   = el.querySelector(".item-media-url")?.value  || "";
+    } else if (type === "video") {
+      const url   = el.querySelector(".item-media-url")?.value || "";
       const fname = url.split("/").pop();
-      detailEl.textContent = mtype ? `${mtype.charAt(0).toUpperCase() + mtype.slice(1)}${fname ? ' — ' + fname : ''}` : '';
+      detailEl.textContent = fname ? `Video — ${fname}` : '';
+    } else if (type === "image") {
+      const url   = el.querySelector(".item-media-url")?.value || "";
+      const fname = url.split("/").pop();
+      detailEl.textContent = fname ? `Image — ${fname}` : '';
     }
   }
 
@@ -2589,7 +2669,7 @@
   // ── Media item helpers ───────────────────────────────────────────────────
 
   // ── Media file list ──────────────────────────────────────────────────────
-  async function loadMediaListFor(itemEl) {
+  async function loadMediaListFor(itemEl, typeFilter = null) {
     const list = itemEl.querySelector('.media-file-list');
     if (!list) return;
     list.innerHTML = '<div class="media-file-list-empty">Loading…</div>';
@@ -2598,8 +2678,15 @@
     try {
       const res  = await fetch('/api/media');
       const data = await res.json();
-      const files = [...(data.images || []).map(f => ({...f, media_type: 'image'})),
-                     ...(data.videos || []).map(f => ({...f, media_type: 'video'}))];
+      let files;
+      if (typeFilter === 'image') {
+        files = (data.images || []).map(f => ({...f, media_type: 'image'}));
+      } else if (typeFilter === 'video') {
+        files = (data.videos || []).map(f => ({...f, media_type: 'video'}));
+      } else {
+        files = [...(data.images || []).map(f => ({...f, media_type: 'image'})),
+                 ...(data.videos || []).map(f => ({...f, media_type: 'video'}))];
+      }
       list._allFiles = files;
       _renderMediaList(itemEl, files);
     } catch (e) {
@@ -2634,7 +2721,7 @@
         ${dur}
         <span class="media-file-size">${f.size_label}</span>
         <button class="btn-media-use"
-                onclick="_setMediaItem(this.closest('.program-item'),'${f.url}','${f.media_type}');loadMediaListFor(this.closest('.program-item'))">Use</button>
+                onclick="_setMediaItem(this.closest('.program-item'),'${f.url}','${f.media_type}');loadMediaListFor(this.closest('.program-item'),this.closest('.program-item').dataset.itemType)">Use</button>
         <button class="btn-media-remove"
                 onclick="deleteMediaFile('${dirType}','${f.name}',this.closest('.program-item'))">✕</button>
       </div>`;
@@ -2649,7 +2736,7 @@
       const data = await res.json();
       if (data.status === 'ok') {
         toast(`Removed ${filename}`, 'success');
-        loadMediaListFor(itemEl);
+        loadMediaListFor(itemEl, itemEl.dataset.itemType);
       } else {
         toast('Remove failed: ' + data.message, 'error');
       }
@@ -2668,7 +2755,7 @@
       const data = await res.json();
       if (data.status === 'ok') {
         _setMediaItem(itemEl, data.url, data.media_type);
-        loadMediaListFor(itemEl);   // refresh list to show new file
+        loadMediaListFor(itemEl, itemEl.dataset.itemType);   // refresh list to show new file
       } else {
         toast(data.message || 'Upload failed', 'error');
       }
@@ -3396,7 +3483,7 @@
     if (wrap) wrap.classList.remove('visible');
     if (ctrl) ctrl.classList.remove('visible');
     // Refresh list so the new file appears
-    loadMediaListFor(itemEl);
+    loadMediaListFor(itemEl, itemEl.dataset.itemType);
     _updatePlatformWarning(itemEl);
     toast('Download complete: ' + data.filename);
   });
@@ -3678,15 +3765,17 @@
         detail = 'no lyrics';
       } else if (type === 'content') {
         badge  = `<span class="badge badge-cont-s">C</span>`;
-      } else if (type === 'media') {
-        badge  = `<span class="badge badge-media-s">M</span>`;
-        const url   = itemEl.querySelector('.item-media-url')?.value  || '';
-        const mtype = itemEl.querySelector('.item-media-type')?.value || '';
+      } else if (type === 'video') {
+        badge  = `<span class="badge badge-video-s">V</span>`;
+        const url = itemEl.querySelector('.item-media-url')?.value || '';
         detail = url.split('/').pop() || '';
-        if (mtype === 'image' && url) {
+        thumbExtra = `<div style="width:100%;height:36px;display:flex;align-items:center;justify-content:center;background:#0a1628;border-radius:3px;margin-top:3px;font-size:18px;">▶</div>`;
+      } else if (type === 'image') {
+        badge  = `<span class="badge badge-image-s">I</span>`;
+        const url = itemEl.querySelector('.item-media-url')?.value || '';
+        detail = url.split('/').pop() || '';
+        if (url) {
           thumbExtra = `<img src="${url}" alt="" style="width:100%;height:36px;object-fit:cover;border-radius:3px;margin-top:3px;">`;
-        } else if (mtype === 'video') {
-          thumbExtra = `<div style="width:100%;height:36px;display:flex;align-items:center;justify-content:center;background:#0a1628;border-radius:3px;margin-top:3px;font-size:18px;">▶</div>`;
         }
       } else {
         badge  = `<span class="badge badge-part-s">P</span>`;
@@ -3811,20 +3900,27 @@
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
       }
-    } else if (type === 'media') {
+    } else if (type === 'video') {
       _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
       _activateStripThumb(itemEl, null);
-      const url        = itemEl.querySelector('.item-media-url')?.value.trim()  || '';
-      const media_type = itemEl.querySelector('.item-media-type')?.value        || 'image';
-      const autoplay   = itemEl.querySelector('.media-opt-autoplay')?.checked   ?? true;
-      const loop       = itemEl.querySelector('.media-opt-loop')?.checked       ?? false;
-      const mute       = itemEl.querySelector('.media-opt-mute')?.checked       ?? false;
-      if (!url) { toast('No media file selected', 'error'); return; }
-      const event = media_type === 'video' ? 'media:video' : 'media:image';
-      const sd = { channel: ch, type: media_type, url, autoplay, loop, mute, theme_id: _getTheme(),
+      const url      = itemEl.querySelector('.item-media-url')?.value.trim() || '';
+      const autoplay = itemEl.querySelector('.media-opt-autoplay')?.checked  ?? true;
+      const loop     = itemEl.querySelector('.media-opt-loop')?.checked      ?? false;
+      const mute     = itemEl.querySelector('.media-opt-mute')?.checked      ?? false;
+      if (!url) { toast('No video file selected', 'error'); return; }
+      const sd = { channel: ch, type: 'video', url, autoplay, loop, mute, theme_id: _getTheme(),
                    item_id: itemEl.dataset.itemId, stanza_idx: null };
-      _socket.emit(event, sd);
-      renderLivePreview({ type: media_type, data: sd });
+      _socket.emit('media:video', sd);
+      renderLivePreview({ type: 'video', data: sd });
+    } else if (type === 'image') {
+      _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
+      _activateStripThumb(itemEl, null);
+      const url = itemEl.querySelector('.item-media-url')?.value.trim() || '';
+      if (!url) { toast('No image file selected', 'error'); return; }
+      const sd = { channel: ch, type: 'image', url, theme_id: _getTheme(),
+                   item_id: itemEl.dataset.itemId, stanza_idx: null };
+      _socket.emit('media:image', sd);
+      renderLivePreview({ type: 'image', data: sd });
     } else {
       _projItem = itemEl; _projStanzas = []; _projStanzaIdx = 0;
       const participant    = itemEl.querySelector('.item-participant')?.value     || '';
