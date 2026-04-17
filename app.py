@@ -728,7 +728,11 @@ def _yt_download_task(url, quality, item_id, sid):
         'progress_hooks': [lambda d: _yt_progress_hook(d, item_id, sid)],
         'quiet':          True,
         'no_warnings':    True,
+        'geo_bypass':     True,
     }
+    _cookies_path = os.path.join(app.root_path, 'data', 'yt_cookies.txt')
+    if os.path.isfile(_cookies_path):
+        ydl_opts['cookiefile'] = _cookies_path
     if _FFMPEG:
         ydl_opts['merge_output_format'] = 'mp4'
     try:
