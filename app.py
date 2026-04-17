@@ -8,6 +8,7 @@ logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
 from flask import Flask, render_template, request, jsonify, send_file
 from flask_socketio import SocketIO, emit, join_room
 import json, os, copy, re, requests
+from urllib.parse import quote as _url_quote
 from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
@@ -627,7 +628,7 @@ def upload_media():
     os.makedirs(save_dir, exist_ok=True)
     f.save(os.path.join(save_dir, filename))
 
-    url = f"/media/{subdir}/{filename}"
+    url = f"/media/{subdir}/{_url_quote(filename, safe='')}"
     return jsonify({"status": "ok", "url": url, "media_type": media_type})
 
 @app.route("/media/<subdir>/<path:filename>")
@@ -745,7 +746,7 @@ def _yt_download_task(url, quality, item_id, sid):
                     raw_name
                 )
                 final = found
-            final_url = f'/media/videos/{final}'
+            final_url = f'/media/videos/{_url_quote(final, safe="")}'
         _yt_cache_write(url, final, final_url)
         socketio.emit('yt:done', {
             'item_id':  item_id,
