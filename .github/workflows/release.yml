@@ -1,0 +1,76 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Build .deb package
+        run: |
+          VERSION=${{ steps.version.outputs.VERSION }}
+          PKG_DIR="leiturgia_${VERSION}_armhf"
+
+          mkdir -p "${PKG_DIR}/DEBIAN"
+          mkdir -p "${PKG_DIR}/opt/leiturgia/data"
+          mkdir -p "${PKG_DIR}/etc/systemd/system"
+
+          # App source files
+          cp app.py claude_helpers.py hymnal.py media_manager.py \
+             projection.py scraper.py timer.py \
+             requirements.txt config.example.json \
+             "${PKG_DIR}/opt/leiturgia/"
+
+          # Bundled assets
+          cp -r templates static "${PKG_DIR}/opt/leiturgia/"
+          cp data/hymns.db "${PKG_DIR}/opt/leiturgia/data/"
+
+          # systemd unit
+          cat > "${PKG_DIR}/etc/systemd/system/leiturgia.service" <<'EOF'
+[Unit]
+Description=Leiturgia Projection App
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/opt/leiturgia
+ExecStart=/opt/leiturgia/.venv/bin/python app.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+          # Debian control files
+          cp packaging/debian/control "${PKG_DIR}/DEBIAN/control"
+          cp packaging/debian/postinst "${PKG_DIR}/DEBIAN/postinst"
+          cp packaging/debian/prerm    "${PKG_DIR}/DEBIAN/prerm"
+
+          sed -i "s/Version: .*/Version: ${VERSION}/" "${PKG_DIR}/DEBIAN/control"
+
+          chmod 755 "${PKG_DIR}/DEBIAN/postinst"
+          chmod 755 "${PKG_DIR}/DEBIAN/prerm"
+
+          dpkg-deb --build "${PKG_DIR}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: leiturgia_${{ steps.version.outputs.VERSION }}_armhf.deb
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

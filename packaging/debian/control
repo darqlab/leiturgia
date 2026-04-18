@@ -1,0 +1,8 @@
+Package: leiturgia
+Version: 1.0.0
+Architecture: armhf
+Maintainer: Dennis Arquillano <arquillanodennis@gmail.com>
+Depends: python3, python3-pip, python3-venv, git, chromium-browser, openssl
+Description: Live worship projection system for Raspberry Pi
+ Leiturgia is a real-time, multi-channel projection app for church services.
+ It manages hymns, lyrics, media, and program flow with a live operator console.

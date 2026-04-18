@@ -1,0 +1,37 @@
+#!/bin/bash
+set -e
+
+APP_DIR="/opt/leiturgia"
+APP_USER="pi"
+
+cd "${APP_DIR}"
+
+python3 -m venv .venv
+.venv/bin/pip install --upgrade pip -q
+.venv/bin/pip install -r requirements.txt -q
+
+mkdir -p \
+  media/images \
+  media/videos \
+  data/lyrics \
+  output
+
+if [ ! -f config.json ]; then
+  SECRET=$(openssl rand -hex 32)
+  cat > config.json <<EOF
+{
+  "pin": "1234",
+  "session_secret": "${SECRET}",
+  "session_timeout_hours": 8,
+  "max_login_attempts": 5
+}
+EOF
+  chown "${APP_USER}:${APP_USER}" config.json
+  chmod 640 config.json
+fi
+
+chown -R "${APP_USER}:${APP_USER}" "${APP_DIR}"
+
+systemctl daemon-reload
+systemctl enable leiturgia
+systemctl start leiturgia
