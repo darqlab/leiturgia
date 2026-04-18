@@ -5,11 +5,14 @@ eventlet.monkey_patch()
 import logging
 logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
 
-from flask import Flask, render_template, request, jsonify, send_file
-from flask_socketio import SocketIO, emit, join_room
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect
+from flask_socketio import SocketIO, emit, join_room, disconnect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import json, os, copy, re, requests
 from urllib.parse import quote as _url_quote
-from datetime import datetime
+from datetime import datetime, timedelta
+from functools import wraps
 from dotenv import load_dotenv
 load_dotenv()
 from scraper import fetch_hymn_lyrics, fetch_lyrics_by_title
@@ -21,7 +24,14 @@ from timer import TimerManager
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024   # 200 MB upload limit
+
+with open('config.json') as _f:
+    _config = json.load(_f)
+app.secret_key = _config['session_secret']
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=_config.get('session_timeout_hours', 8))
+
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+limiter  = Limiter(get_remote_address, app=app, default_limits=[])
 proj  = ProjectionStateManager()
 timer = TimerManager()
 DATA_FILE    = "data/program.json"
@@ -279,19 +289,56 @@ def _prepare_lyrics(items):
                 pass
 
 
+# ── Auth ─────────────────────────────────────────────────────────────────────
+def operator_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('operator'):
+            if request.is_json or request.path.startswith('/api/'):
+                return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated
+
+
+@app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=["POST"])
+def login():
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        pin  = str(data.get('pin') or '').strip()
+        with open('config.json') as f:
+            cfg = json.load(f)
+        if pin == str(cfg['pin']):
+            session.permanent = True
+            session['operator'] = True
+            return jsonify({'status': 'ok'})
+        return jsonify({'status': 'error', 'message': 'Incorrect PIN'}), 401
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
+
+
 # ── Routes ───────────────────────────────────────────────────────────────────
 @app.route("/")
+@operator_required
 def index():
     program = load_program()
     return render_template("index.html", program=program)
 
 
 @app.route("/api/program", methods=["GET"])
+@operator_required
 def get_program():
     return jsonify(load_program())
 
 
 @app.route("/api/program", methods=["POST"])
+@operator_required
 def save_program_route():
     data = request.get_json()
     save_program(data)
@@ -299,8 +346,8 @@ def save_program_route():
     return jsonify({"status": "saved"})
 
 
-
 @app.route("/api/history")
+@operator_required
 def get_history():
     if not os.path.exists(HISTORY_FILE):
         return jsonify([])
@@ -312,6 +359,7 @@ def get_history():
 
 
 @app.route("/api/fetch-hymn/<int:number>")
+@operator_required
 def fetch_hymn(number):
     try:
         lyrics = fetch_hymn_lyrics(number)
@@ -321,6 +369,7 @@ def fetch_hymn(number):
 
 
 @app.route("/api/fetch-lyrics")
+@operator_required
 def fetch_lyrics_route():
     q = request.args.get("q", "").strip()
     if not q:
@@ -371,6 +420,7 @@ def fetch_lyrics_route():
 
 
 @app.route("/api/lyrics/<key>")
+@operator_required
 def get_lyrics(key):
     path = _lyrics_path(key)
     if not os.path.exists(path):
@@ -382,6 +432,7 @@ def get_lyrics(key):
 
 
 @app.route("/api/hymnal/search")
+@operator_required
 def hymnal_search():
     q = request.args.get("q", "").strip()
     if not q:
@@ -390,6 +441,7 @@ def hymnal_search():
 
 
 @app.route("/api/program/add", methods=["POST"])
+@operator_required
 def add_program():
     data = request.get_json()
     name = (data.get("name") or "").strip()
@@ -406,11 +458,13 @@ def add_program():
 
 
 @app.route("/api/projection-state", methods=["GET"])
+@operator_required
 def get_projection_state():
     return jsonify(proj._state)
 
 
 @app.route("/api/programs/<program_id>", methods=["DELETE"])
+@operator_required
 def delete_program(program_id):
     program = load_program()
     programs = program.get("service_programs", [])
@@ -451,6 +505,7 @@ def serve_theme(filename):
     return send_from_directory(themes_dir, filename)
 
 @app.route("/api/themes")
+@operator_required
 def api_themes():
     return jsonify(_THEMES)
 
@@ -471,6 +526,9 @@ def on_state_restore(data):
 
 @socketio.on('slide:show')
 def on_slide_show(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
     proj.set_state(channel, state)
@@ -478,6 +536,9 @@ def on_slide_show(data):
 
 @socketio.on('slide:blank')
 def on_slide_blank(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'blank', 'data': {}, 'theme_id': 'default'}
     proj.set_state(channel, state)
@@ -485,6 +546,9 @@ def on_slide_blank(data):
 
 @socketio.on('slide:edit')
 def on_slide_edit(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
     proj.set_state(channel, state)
@@ -492,6 +556,9 @@ def on_slide_edit(data):
 
 @socketio.on('media:image')
 def on_media_image(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'image', 'data': data, 'theme_id': 'default'}
     proj.set_state(channel, state)
@@ -499,6 +566,9 @@ def on_media_image(data):
 
 @socketio.on('media:video')
 def on_media_video(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'video', 'data': data, 'theme_id': 'default'}
     proj.set_state(channel, state)
@@ -516,6 +586,9 @@ def on_media_blocked(data):
 
 @socketio.on('announcement')
 def on_announcement(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'announcement', 'data': data, 'theme_id': 'default'}
     proj.set_state(channel, state)
@@ -523,6 +596,9 @@ def on_announcement(data):
 
 @socketio.on('timer:show')
 def on_timer_show(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state_d = timer.show(channel, int(data.get('seconds', 0)), data.get('label', ''))
     state_d.update({'channel': channel, 'type': 'timer'})
@@ -531,6 +607,9 @@ def on_timer_show(data):
 
 @socketio.on('timer:start')
 def on_timer_start(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     secs    = data.get('seconds')
     label   = data.get('label')
@@ -541,6 +620,9 @@ def on_timer_start(data):
 
 @socketio.on('timer:pause')
 def on_timer_pause(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state_d = timer.pause(channel)
     state_d.update({'channel': channel})
@@ -548,6 +630,9 @@ def on_timer_pause(data):
 
 @socketio.on('timer:reset')
 def on_timer_reset(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     secs    = data.get('seconds')
     state_d = timer.reset(channel, int(secs) if secs is not None else None)
@@ -561,10 +646,12 @@ _IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
 _VIDEO_EXTS = {'.mp4', '.webm', '.mov'}
 
 @app.route("/api/media")
+@operator_required
 def api_media():
     return jsonify(list_media())
 
 @app.route("/api/media/<media_type>/<filename>", methods=["DELETE"])
+@operator_required
 def delete_media_file(media_type, filename):
     if media_type not in ("images", "videos"):
         return jsonify({"status": "error", "message": "Invalid media type"}), 400
@@ -581,6 +668,7 @@ def delete_media_file(media_type, filename):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/api/yt-title")
+@operator_required
 def api_yt_title():
     url = request.args.get("url", "").strip()
     if not url:
@@ -598,11 +686,27 @@ def api_yt_title():
     return jsonify({"title": None})
 
 @app.route("/api/yt-cache")
+@operator_required
 def api_yt_cache():
     if not os.path.exists(_YT_CACHE_PATH):
         return jsonify({})
     with open(_YT_CACHE_PATH) as f:
         return jsonify(json.load(f))
+
+@app.route("/api/settings/pin", methods=["POST"])
+@operator_required
+def api_settings_pin():
+    data = request.get_json() or {}
+    pin  = str(data.get('pin') or '').strip()
+    if not pin.isdigit() or not (4 <= len(pin) <= 6):
+        return jsonify({'status': 'error', 'message': 'PIN must be 4–6 digits'}), 400
+    with open('config.json') as f:
+        cfg = json.load(f)
+    cfg['pin'] = pin
+    with open('config.json', 'w') as f:
+        json.dump(cfg, f, indent=2)
+    return jsonify({'status': 'ok'})
+
 
 def _sanitize_filename(name: str) -> str:
     stem, ext = os.path.splitext(name)
@@ -612,6 +716,7 @@ def _sanitize_filename(name: str) -> str:
 
 
 @app.route("/api/media/upload", methods=["POST"])
+@operator_required
 def upload_media():
     from werkzeug.utils import secure_filename
     if 'file' not in request.files:
@@ -780,7 +885,9 @@ def _yt_download_task(url, quality, item_id, sid):
 
 @socketio.on('yt:download:start')
 def on_yt_download_start(data):
-    from flask_socketio import disconnect
+    if not session.get('operator'):
+        disconnect()
+        return
     url     = (data.get('url') or '').strip()
     quality = data.get('quality', 'best')
     item_id = data.get('item_id', '')

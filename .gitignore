@@ -1,5 +1,6 @@
 # Environment variables (secrets)
 .env
+config.json
 
 # Python
 __pycache__/
@@ -24,5 +25,7 @@ media/
 
 # Claude Code memory
 memory/
-deploy.sh
+
+# Data (runtime state — except bundled hymn DB)
 data/
+!data/hymns.db

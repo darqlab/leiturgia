@@ -18,15 +18,29 @@ live-editing UI, real-time projection to external displays via WebSockets, and
 PPTX/ODP slide generation. It runs on a Raspberry Pi and is accessible from any
 device on the same network.
 
+## Directories
+
+| Path | Role |
+|---|---|
+| `/home/dennis/Projects/Leiturgia/` | **Source of truth** — all code changes go here, committed to git |
+| `/opt/yard/leiturgia/` | **Test deployment** — running instance used for manual testing |
+
+**Workflow:** edit files in `/home/dennis/Projects/Leiturgia/`, then `rsync` or `cp` changed files to `/opt/yard/leiturgia/` to test. Never edit `/opt/yard/` directly without syncing back.
+
 ## Running the app
 
 ```bash
+# Development (from project root)
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python app.py
 # Operator UI:      http://<host-ip>:5000
 # Projection display: http://<host-ip>:5000/ch1
+
+# Test deployment (already running)
+# Files at: /opt/yard/leiturgia/
+# Logs:     /tmp/leiturgia.log
 ```
 
 Program state is persisted in `data/program.json`. Generated slides go to `output/{id}.pptx`.
