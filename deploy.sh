@@ -5,8 +5,8 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-#echo "==> Pulling latest changes..."
-#git pull origin main
+echo "==> Pulling latest changes..."
+git pull origin staging
 
 echo "==> Updating Python dependencies..."
 .venv/bin/pip install --quiet --upgrade pip
