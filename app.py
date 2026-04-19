@@ -21,6 +21,8 @@ from hymnal import search_titles, get_by_title, get_by_number
 from projection import ProjectionStateManager
 from media_manager import list_media
 from timer import TimerManager
+from roles import RoleManager
+from rundown import RundownManager
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024   # 200 MB upload limit
@@ -32,8 +34,20 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=_config.get('session_
 
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 limiter  = Limiter(get_remote_address, app=app, default_limits=[])
-proj  = ProjectionStateManager()
-timer = TimerManager()
+proj     = ProjectionStateManager()
+timer    = TimerManager()
+roles    = RoleManager()
+rundown  = RundownManager()
+
+_active_item = {
+    'program_id':       None,
+    'item_id':          None,
+    'allotted_seconds': 0,
+    'title':            '',
+    'participant':      '',
+}
+_announcement_text = ''
+
 DATA_FILE    = "data/program.json"
 HISTORY_FILE = "data/history.json"
 HISTORY_MAX  = 6
@@ -501,10 +515,30 @@ def build_remote_sync() -> dict:
 
 
 # ── Projection routes ────────────────────────────────────────────────────────
+_ROLE_TEMPLATE = {
+    'main':         'projection.html',
+    'rundown':      'rundown.html',
+    'timer':        'timer_display.html',
+    'announcement': 'announcement.html',
+}
+
 @app.route("/ch<int:n>")
 def projection_channel(n):
-    channel = f"ch{n}"
-    return render_template("projection.html", channel=channel)
+    channel  = f"ch{n}"
+    role     = roles.get_role(channel) or 'main'
+    template = _ROLE_TEMPLATE.get(role, 'projection.html')
+    program  = load_program()
+    timer_fs = timer.get_full_state('timer')
+    rundown_data = rundown.get_display(program, timer_fs['state'])
+    return render_template(
+        template,
+        channel=channel,
+        role=role,
+        rundown=rundown_data,
+        timer_state=timer_fs,
+        active_item=_active_item,
+        announcement=_announcement_text,
+    )
 
 
 @app.route("/remote")
@@ -545,6 +579,24 @@ def api_themes():
 def on_join(data):
     channel = data.get('channel', 'ch1')
     join_room(channel)
+    role = roles.get_role(channel)
+    if role == 'rundown':
+        program    = load_program()
+        timer_fs   = timer.get_full_state('timer')
+        payload    = rundown.get_display(program, timer_fs['state'])
+        emit('rundown:update', payload)
+    elif role == 'timer':
+        fs = timer.get_full_state('timer')
+        emit('timer:tick', {
+            'remaining': fs['remaining'],
+            'total':     fs['total'],
+            'state':     fs['state'],
+            'label':     fs['label'],
+            'overtime':  fs['overtime'],
+        })
+    elif role == 'announcement':
+        if _announcement_text:
+            emit('announcement:update', {'text': _announcement_text})
 
 @socketio.on('remote:join')
 def on_remote_join():
@@ -707,6 +759,148 @@ def on_timer_reset(data):
     state_d.update({'channel': channel, 'type': 'timer'})
     proj.set_state(channel, {'type': 'timer', 'data': state_d, 'theme_id': 'default'})
     emit('timer:reset', state_d, to=channel)
+
+
+# ── Role assignment ───────────────────────────────────────────────────────────
+
+_VALID_ROLES    = ('main', 'rundown', 'timer', 'announcement')
+_VALID_CHANNELS = ('ch1', 'ch2', 'ch3', 'ch4', 'ch5')
+
+@socketio.on('roles:assign')
+def on_roles_assign(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    role     = data.get('role', '')
+    channels = data.get('channels', [])
+    if role not in _VALID_ROLES:
+        emit('error', {'message': f'Invalid role: {role}'})
+        return
+    if not channels or not all(ch in _VALID_CHANNELS for ch in channels):
+        emit('error', {'message': 'Invalid or empty channels list'})
+        return
+    assignments = roles.assign(channels, role)
+    socketio.emit('roles:updated', {'assignments': assignments})
+
+@app.route('/api/roles', methods=['GET'])
+@operator_required
+def api_roles_get():
+    return jsonify({'assignments': roles.to_dict()})
+
+@app.route('/api/roles', methods=['POST'])
+@operator_required
+def api_roles_post():
+    data     = request.get_json() or {}
+    role     = data.get('role', '')
+    channels = data.get('channels', [])
+    if role not in _VALID_ROLES:
+        return jsonify({'status': 'error', 'message': f'Invalid role: {role}'}), 400
+    if not channels or not all(ch in _VALID_CHANNELS for ch in channels):
+        return jsonify({'status': 'error', 'message': 'Invalid or empty channels list'}), 400
+    assignments = roles.assign(channels, role)
+    socketio.emit('roles:updated', {'assignments': assignments})
+    return jsonify({'assignments': assignments})
+
+
+# ── Active item control ───────────────────────────────────────────────────────
+
+_DEFAULT_ALLOTTED = {'song': 4, 'prayer': 3, 'content': 5, 'participant': 5, 'media': 5}
+
+@socketio.on('program:item:set')
+def on_program_item_set(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    global _active_item
+    program_id = data.get('program_id', '')
+    item_id    = data.get('item_id', '')
+    program    = load_program()
+
+    item = None
+    for sp in program.get('service_programs', []):
+        if sp['id'] == program_id:
+            for it in sp.get('items', []):
+                if it['item_id'] == item_id:
+                    item = it
+                    break
+    if item is None:
+        emit('error', {'message': 'Item not found'})
+        return
+
+    allotted_mins = data.get('allotted_minutes') or item.get('allotted_minutes') or _DEFAULT_ALLOTTED.get(item.get('type', 'participant'), 10)
+    allotted_secs = int(allotted_mins) * 60
+
+    _active_item = {
+        'program_id':       program_id,
+        'item_id':          item_id,
+        'allotted_seconds': allotted_secs,
+        'title':            item.get('title', ''),
+        'participant':      item.get('participant', ''),
+    }
+
+    timer.reset('timer', allotted_secs)
+    timer.start('timer')
+    rundown.set_active(program_id, item_id)
+
+    timer_state = timer.get_full_state('timer')['state']
+    rundown_payload = rundown.get_display(program, timer_state)
+    for ch in roles.get_channels('rundown'):
+        socketio.emit('rundown:update', rundown_payload, room=ch)
+
+    slide_state = proj.get_state(roles.get_channels('main')[0] if roles.get_channels('main') else 'ch1')
+    for ch in roles.get_channels('main'):
+        socketio.emit('state:update', {'item': _active_item}, room=ch)
+
+    item_update = {'title': _active_item['title'], 'participant': _active_item['participant']}
+    for ch in roles.get_channels('timer'):
+        socketio.emit('active:item:updated', item_update, room=ch)
+
+@app.route('/api/active-item', methods=['GET'])
+@operator_required
+def api_active_item():
+    return jsonify({'item': _active_item if _active_item['item_id'] else None})
+
+
+# ── Announcement ──────────────────────────────────────────────────────────────
+
+@socketio.on('announcement:push')
+def on_announcement_push(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    global _announcement_text
+    _announcement_text = data.get('text', '')
+    for ch in roles.get_channels('announcement'):
+        socketio.emit('announcement:update', {'text': _announcement_text}, room=ch)
+
+@socketio.on('announcement:blank')
+def on_announcement_blank(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    global _announcement_text
+    _announcement_text = ''
+    for ch in roles.get_channels('announcement'):
+        socketio.emit('announcement:blank', {}, room=ch)
+
+@app.route('/api/announcement', methods=['POST'])
+@operator_required
+def api_announcement_push():
+    global _announcement_text
+    data = request.get_json() or {}
+    _announcement_text = data.get('text', '')
+    for ch in roles.get_channels('announcement'):
+        socketio.emit('announcement:update', {'text': _announcement_text}, room=ch)
+    return jsonify({'status': 'pushed'})
+
+@app.route('/api/announcement/blank', methods=['POST'])
+@operator_required
+def api_announcement_blank():
+    global _announcement_text
+    _announcement_text = ''
+    for ch in roles.get_channels('announcement'):
+        socketio.emit('announcement:blank', {}, room=ch)
+    return jsonify({'status': 'blanked'})
 
 
 # ── Media routes ─────────────────────────────────────────────────────────────
@@ -966,6 +1160,27 @@ def on_yt_download_start(data):
         return
 
     socketio.start_background_task(_yt_download_task, url, quality, item_id, sid)
+
+
+def _timer_tick_loop():
+    while True:
+        socketio.sleep(1)
+        fs = timer.get_full_state('timer')
+        if not fs['running'] and not fs['overtime']:
+            continue
+        payload = {
+            'remaining': fs['remaining'],
+            'total':     fs['total'],
+            'state':     fs['state'],
+            'label':     fs['label'],
+            'overtime':  fs['overtime'],
+        }
+        for ch in roles.get_channels('timer'):
+            socketio.emit('timer:tick', payload, room=ch)
+        for ch in roles.get_channels('rundown'):
+            socketio.emit('timer:tick', payload, room=ch)
+
+socketio.start_background_task(_timer_tick_loop)
 
 
 if __name__ == "__main__":

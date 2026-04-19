@@ -1030,6 +1030,20 @@
     }
     .btn-live:hover { background: var(--gold); color: var(--bg); border-color: var(--gold); }
     .btn-live.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+    .allotted-input {
+      flex: 0 0 70px;
+      width: 70px;
+      min-width: 70px;
+      max-width: 70px;
+      padding: 2px 4px;
+      background: transparent;
+      border: 1px solid var(--gold-dim);
+      color: var(--gold);
+      border-radius: 4px;
+      font-size: 11px;
+      text-align: center;
+    }
+    .allotted-input::placeholder { color: var(--gold-dim); }
 
     /* ── Right panel (live control) ── */
     .right-panel {
@@ -1433,6 +1447,8 @@
             </div>
             <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else ('badge-video' if _is_video else ('badge-image' if _is_image else 'badge-participant'))) }}">{{ 'Song' if _is_song else ('Content' if _is_content else ('Video' if _is_video else ('Image' if _is_image else 'Participant'))) }}</span>
             <button class="duplicate-hint" onclick="event.stopPropagation();duplicateItem(this.closest('.program-item'))" title="Duplicate item">⧉</button>
+            {% set _allotted_defaults = {'song': 4, 'prayer': 3, 'content': 5, 'participant': 5, 'media': 5} %}
+            <input type="number" class="allotted-input" min="1" max="120" value="{{ item.get('allotted_minutes') or _allotted_defaults.get(item.get('type', 'participant'), 5) }}" onclick="event.stopPropagation()" title="Override allotted minutes">
             <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
             <div class="item-chevron">▼</div>
             <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -1965,6 +1981,7 @@
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
           <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
           <span class="edit-hint">✎</span>
+          <input type="number" class="allotted-input" min="1" max="120" value="${_DEFAULT_ALLOTTED[type] || 5}" onclick="event.stopPropagation()" title="Override allotted minutes">
           <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
           <div class="item-chevron">▼</div>
           <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -2086,6 +2103,7 @@
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
           <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
           <button class="duplicate-hint" onclick="event.stopPropagation();duplicateItem(this.closest('.program-item'))" title="Duplicate item">⧉</button>
+          <input type="number" class="allotted-input" min="1" max="120" value="${_DEFAULT_ALLOTTED[type] || 5}" onclick="event.stopPropagation()" title="Override allotted minutes">
           <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
           <div class="item-chevron">▼</div>
           <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -3459,6 +3477,7 @@
   // ── Live Projection ────────────────────────────────────────────────────────
 
   const _socket = io({ transports: ['websocket', 'polling'] });
+  const _DEFAULT_ALLOTTED = { song: 4, prayer: 3, content: 5, participant: 5, media: 5 };
 
   _socket.on('connect', function () {
     const el = document.getElementById('live-status');
@@ -3916,6 +3935,17 @@
     document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
     itemEl.querySelector('.btn-live')?.classList.add('active');
     document.activeElement?.blur();
+
+    // Notify output channels (rundown, timer) of the active item
+    const _programId     = itemEl.closest('.service-program')?.dataset.programId || '';
+    const _itemId        = itemEl.dataset.itemId || '';
+    const _allottedRaw   = itemEl.querySelector('.allotted-input')?.value;
+    const _allottedMins  = _allottedRaw ? parseInt(_allottedRaw, 10) : null;
+    if (_programId && _itemId) {
+      const payload = { program_id: _programId, item_id: _itemId };
+      if (_allottedMins) payload.allotted_minutes = _allottedMins;
+      _socket.emit('program:item:set', payload);
+    }
 
     if (type === 'song') {
       const lyricsKey = itemEl.querySelector('.lyrics-key')?.value || '';

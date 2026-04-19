@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Timer — {{ channel }}</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: #080e1a;
+      color: #ffffff;
+      font-family: 'Georgia', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+
+    /* TOP — Part / role label */
+    #zone-top {
+      width: 100%;
+      text-align: center;
+      padding: 4vh 2vw 0;
+    }
+
+    #item-title {
+      font-size: clamp(1.2rem, 8vw, 8rem);
+      letter-spacing: 0.05em;
+      color: #c9a84c;
+      margin-bottom: 2vh;
+    }
+
+    /* MIDDLE — Clock */
+    #zone-middle {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+
+    #clock {
+      font-size: clamp(4rem, 50vh, 50rem);
+      font-variant-numeric: tabular-nums;
+      font-weight: bold;
+      line-height: 1;
+      letter-spacing: -0.02em;
+      transition: color 0.5s;
+    }
+
+    #overtime-label {
+      font-size: clamp(1rem, 3vw, 2.5rem);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-top: 2vh;
+      opacity: 0;
+      transition: opacity 0.5s;
+    }
+
+    #waiting {
+      font-size: clamp(1rem, 2.5vw, 2rem);
+      opacity: 0.3;
+    }
+
+    /* BOTTOM — Participant name */
+    #zone-bottom { display: none; }
+
+    #item-participant {
+      font-size: clamp(1rem, 7vw, 7rem);
+      opacity: 0.8;
+      margin-top: 2vh;
+    }
+
+    /* States */
+    body.normal   #clock { color: #ffffff; }
+    body.warning  #clock { color: #f59e0b; }
+    body.overtime #clock { color: #ef4444; }
+    body.overtime #overtime-label { opacity: 1; color: #ef4444; }
+  </style>
+</head>
+<body class="normal">
+
+<div id="zone-top"></div>
+
+<div id="zone-middle">
+  <div id="item-title">{{ active_item.get('title', '') }}</div>
+  {% set t = timer_state %}
+  {% if t and t.get('remaining', 0) != 0 %}
+    <div id="clock">{{ t.remaining | abs // 60 }}:{{ '%02d' % (t.remaining | abs % 60) }}</div>
+  {% else %}
+    <div id="clock" style="display:none"></div>
+    <div id="waiting">Waiting for timer…</div>
+  {% endif %}
+  <div id="overtime-label">Overtime</div>
+  <div id="item-participant">{{ active_item.get('participant', '') }}</div>
+</div>
+
+<div id="zone-bottom"></div>
+
+<script>
+  const CHANNEL = "{{ channel }}";
+  const socket  = io();
+
+  const body          = document.body;
+  const clockEl       = document.getElementById('clock');
+  const waitingEl     = document.getElementById('waiting');
+  const titleEl       = document.getElementById('item-title');
+  const participantEl = document.getElementById('item-participant');
+
+  socket.on('connect', () => {
+    socket.emit('join', { channel: CHANNEL });
+  });
+
+  socket.on('timer:tick', (data) => {
+    showClock(data.remaining, data.state, data.label);
+  });
+
+  socket.on('active:item:updated', (data) => {
+    titleEl.textContent       = data.title       || '';
+    participantEl.textContent = data.participant  || '';
+  });
+
+  function showClock(remaining, state, label) {
+    const neg = remaining < 0;
+    const abs = Math.abs(remaining);
+    const m   = Math.floor(abs / 60);
+    const s   = String(abs % 60).padStart(2, '0');
+    clockEl.textContent = (neg ? '-' : '') + m + ':' + s;
+    clockEl.style.display = '';
+    if (waitingEl) waitingEl.style.display = 'none';
+    body.className = state || 'normal';
+  }
+</script>
+</body>
+</html>
