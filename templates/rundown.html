@@ -187,7 +187,8 @@
 
     return `<div class="item-row ${item.status} ${colorClass}"
                  data-id="${item.item_id}"
-                 data-allotted="${item.allotted_seconds}">
+                 data-allotted="${item.allotted_seconds}"
+                 data-timed="${item.timed === false ? 'false' : 'true'}">
       <span class="item-check">${check}</span>
       <span class="item-title">${esc(item.title)}</span>
       <span class="item-participant">${esc(item.participant || '')}</span>
@@ -229,9 +230,13 @@
   function refreshBarAndColour(remaining, total) {
     const row = document.querySelector('.item-row.active');
     if (!row) return;
-    const rem   = remaining !== undefined ? remaining : activeRemaining;
-    const tot   = total     !== undefined ? total     : activeAllotted;
-    const pct   = tot > 0 ? Math.min(100, Math.max(0, (1 - rem / tot) * 100)) : 0;
+    if (row.dataset.timed === 'false') {
+      row.style.setProperty('--bar-pct', '0%');
+      return;
+    }
+    const rem = remaining !== undefined ? remaining : activeRemaining;
+    const tot = total     !== undefined ? total     : activeAllotted;
+    const pct = tot > 0 ? Math.min(100, Math.max(0, (1 - rem / tot) * 100)) : 0;
     row.style.setProperty('--bar-pct', pct + '%');
   }
 

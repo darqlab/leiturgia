@@ -124,6 +124,12 @@
     participantEl.textContent = data.participant  || '';
   });
 
+  socket.on('timer:idle', () => {
+    clockEl.style.display = 'none';
+    if (waitingEl) waitingEl.style.display = '';
+    body.className = 'normal';
+  });
+
   function showClock(remaining, state, label) {
     const neg = remaining < 0;
     const abs = Math.abs(remaining);

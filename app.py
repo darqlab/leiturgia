@@ -683,6 +683,8 @@ def on_media_image(data):
     state   = {'type': 'image', 'data': data, 'theme_id': 'default'}
     proj.set_state(channel, state)
     emit('media:image', data, to=channel)
+    if channel == 'ch1':
+        socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('media:video')
 def on_media_video(data):
@@ -693,6 +695,8 @@ def on_media_video(data):
     state   = {'type': 'video', 'data': data, 'theme_id': 'default'}
     proj.set_state(channel, state)
     emit('media:video', data, to=channel)
+    if channel == 'ch1':
+        socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('media:status')
 def on_media_status(data):
@@ -827,22 +831,31 @@ def on_program_item_set(data):
         emit('error', {'message': 'Item not found'})
         return
 
-    allotted_mins = data.get('allotted_minutes') or item.get('allotted_minutes') or _DEFAULT_ALLOTTED.get(item.get('type', 'participant'), 10)
+    is_timed = item.get('timed', True)
+    allotted_mins = item.get('allotted_minutes') or _DEFAULT_ALLOTTED.get(item.get('type', 'participant'), 5)
     allotted_secs = int(allotted_mins) * 60
 
     _active_item = {
         'program_id':       program_id,
         'item_id':          item_id,
-        'allotted_seconds': allotted_secs,
+        'allotted_seconds': allotted_secs if is_timed else 0,
         'title':            item.get('title', ''),
         'participant':      item.get('participant', ''),
+        'timed':            is_timed,
     }
 
-    timer.reset('timer', allotted_secs)
-    timer.start('timer')
     rundown.set_active(program_id, item_id)
 
-    timer_state = timer.get_full_state('timer')['state']
+    if is_timed:
+        timer.reset('timer', allotted_secs)
+        timer.start('timer')
+        timer_state = timer.get_full_state('timer')['state']
+    else:
+        timer.pause('timer')
+        timer_state = 'normal'
+        for ch in roles.get_channels('timer'):
+            socketio.emit('timer:idle', {}, room=ch)
+
     rundown_payload = rundown.get_display(program, timer_state)
     for ch in roles.get_channels('rundown'):
         socketio.emit('rundown:update', rundown_payload, room=ch)

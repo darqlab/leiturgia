@@ -10,7 +10,7 @@ _DEFAULT_MINUTES: dict[str, int] = {
     "song":        4,
     "prayer":      3,
     "content":     5,
-    "participant": 10,   # generic fallback; operator should set allotted_minutes
+    "participant": 5,
     "media":       5,
     "image":       5,
     "video":       5,
@@ -75,8 +75,9 @@ class RundownManager:
             else:
                 status = "upcoming"
 
+            is_timed  = item.get("timed", True)
             row_color = _ROW_COLOR.get((status, timer_state), "none")
-            allotted  = self._allotted_seconds(item)
+            allotted  = self._allotted_seconds(item) if is_timed else 0
 
             display_items.append({
                 "item_id":          item_id,
@@ -85,6 +86,7 @@ class RundownManager:
                 "status":           status,
                 "allotted_seconds": allotted,
                 "row_color":        row_color,
+                "timed":            is_timed,
             })
 
         return {

@@ -1044,6 +1044,35 @@
       text-align: center;
     }
     .allotted-input::placeholder { color: var(--gold-dim); }
+    .timed-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .timed-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .item-allotted {
+      width: 52px;
+      padding: 3px 5px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--white);
+      border-radius: 4px;
+      font-size: 12px;
+      text-align: center;
+    }
+    .item-allotted:disabled { opacity: 0.35; }
+    .timed-unit { font-size: 12px; color: var(--muted); }
 
     /* ── Right panel (live control) ── */
     .right-panel {
@@ -1447,8 +1476,6 @@
             </div>
             <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else ('badge-video' if _is_video else ('badge-image' if _is_image else 'badge-participant'))) }}">{{ 'Song' if _is_song else ('Content' if _is_content else ('Video' if _is_video else ('Image' if _is_image else 'Participant'))) }}</span>
             <button class="duplicate-hint" onclick="event.stopPropagation();duplicateItem(this.closest('.program-item'))" title="Duplicate item">⧉</button>
-            {% set _allotted_defaults = {'song': 4, 'prayer': 3, 'content': 5, 'participant': 5, 'media': 5} %}
-            <input type="number" class="allotted-input" min="1" max="120" value="{{ item.get('allotted_minutes') or _allotted_defaults.get(item.get('type', 'participant'), 5) }}" onclick="event.stopPropagation()" title="Override allotted minutes">
             <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
             <div class="item-chevron">▼</div>
             <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -1647,6 +1674,18 @@
             {% else %}
             <input type="hidden" class="lyrics-key" value="">
             {% endif %}
+            {% set _allotted_defaults = {'song': 4, 'prayer': 3, 'content': 5, 'participant': 5, 'media': 5} %}
+            <div class="timed-row">
+              <label class="timed-label">
+                <input type="checkbox" class="item-timed" {{ 'checked' if item.get('timed', True) else '' }}>
+                Timed
+              </label>
+              <input type="number" class="item-allotted" min="1" max="120"
+                value="{{ item.get('allotted_minutes') or _allotted_defaults.get(item.get('type', 'participant'), 5) }}"
+                title="Allotted minutes"
+                {{ '' if item.get('timed', True) else 'disabled' }}>
+              <span class="timed-unit">min</span>
+            </div>
           </div>
         </div>
         {% endfor %}
@@ -1974,6 +2013,14 @@
         <input type="hidden" class="lyrics-key" value="">`;
     }
 
+    const _defMins = _DEFAULT_ALLOTTED[type] || 5;
+    bodyInner += `
+      <div class="timed-row">
+        <label class="timed-label"><input type="checkbox" class="item-timed" checked> Timed</label>
+        <input type="number" class="item-allotted" min="1" max="120" value="${_defMins}" title="Allotted minutes">
+        <span class="timed-unit">min</span>
+      </div>`;
+
     const newItemHTML = `
       <div class="program-item" data-index="${count}" data-item-type="${type}" data-item-id="${itemId}" data-new="1" id="${domId}">
         <div class="item-header" onclick="selectItem(this)">
@@ -1981,7 +2028,6 @@
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
           <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
           <span class="edit-hint">✎</span>
-          <input type="number" class="allotted-input" min="1" max="120" value="${_DEFAULT_ALLOTTED[type] || 5}" onclick="event.stopPropagation()" title="Override allotted minutes">
           <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
           <div class="item-chevron">▼</div>
           <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -2036,6 +2082,13 @@
     itemEl.querySelectorAll('.align-btn').forEach(b     => b.classList.toggle('active', b.dataset.align    === ta));
     itemEl.querySelectorAll('.part-size-btn').forEach(b => b.classList.toggle('active', b.dataset.partSize === pfs));
   }
+
+  document.addEventListener('change', function(e) {
+    const cb = e.target.closest('.item-timed');
+    if (!cb) return;
+    const allottedEl = cb.closest('.timed-row')?.querySelector('.item-allotted');
+    if (allottedEl) allottedEl.disabled = !cb.checked;
+  });
 
   document.addEventListener('click', function(e) {
     const sizeBtn     = e.target.closest('.size-btn');
@@ -2103,7 +2156,6 @@
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
           <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
           <button class="duplicate-hint" onclick="event.stopPropagation();duplicateItem(this.closest('.program-item'))" title="Duplicate item">⧉</button>
-          <input type="number" class="allotted-input" min="1" max="120" value="${_DEFAULT_ALLOTTED[type] || 5}" onclick="event.stopPropagation()" title="Override allotted minutes">
           <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
           <div class="item-chevron">▼</div>
           <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -2148,19 +2200,30 @@
 
   // ── Collect item from a .program-item element ─────────────────────────────
   function collectItem(el) {
-    const type  = el.dataset.itemType || "participant";
-    const id    = el.dataset.itemId   || "";
-    const title = el.querySelector(".item-title")?.value || "";
+    const type          = el.dataset.itemType || "participant";
+    const id            = el.dataset.itemId   || "";
+    const title         = el.querySelector(".item-title")?.value || "";
+    const timedCb       = el.querySelector(".item-timed");
+    const timed         = timedCb ? timedCb.checked : true;
+    const allottedRaw   = el.querySelector(".item-allotted")?.value;
+    const allotted_minutes = allottedRaw ? parseInt(allottedRaw, 10) || null : null;
+
+    function _base(item) {
+      if (id) item.item_id = id;
+      item.timed = timed;
+      if (allotted_minutes) item.allotted_minutes = allotted_minutes;
+      return item;
+    }
+
     if (type === "song") {
       const hymn_num  = el.querySelector(".item-hymn")?.value  || "";
       const lyricsKey = el.querySelector(".lyrics-key")?.value || "";
-      const songPart = el.querySelector(".item-part")?.value || "";
+      const songPart  = el.querySelector(".item-part")?.value  || "";
       const item = { type: "song", title };
-      if (id)        item.item_id     = id;
       if (hymn_num)  item.hymn_number = hymn_num;
       if (lyricsKey) item.lyrics_key  = lyricsKey;
       if (songPart)  item.part        = songPart;
-      return item;
+      return _base(item);
     } else if (type === "content") {
       const content         = el.querySelector(".item-content")?.value         || "";
       const font_size       = el.querySelector(".item-font-size")?.value       || "md";
@@ -2169,28 +2232,20 @@
       const part_font_size  = el.querySelector(".item-part-font-size")?.value  || "md";
       const item = { type: "content", title, content, font_size, text_align };
       if (part) { item.part = part; item.part_font_size = part_font_size; }
-      if (id) item.item_id = id;
-      return item;
+      return _base(item);
     } else if (type === "video") {
-      const url        = el.querySelector(".item-media-url")?.value.trim()  || "";
-      const media_type = "video";
-      const autoplay   = el.querySelector(".media-opt-autoplay")?.checked   ?? true;
-      const loop       = el.querySelector(".media-opt-loop")?.checked       ?? false;
-      const mute       = el.querySelector(".media-opt-mute")?.checked       ?? false;
-      const item = { type: "video", title, url, media_type, autoplay, loop, mute };
-      if (id) item.item_id = id;
-      return item;
+      const url      = el.querySelector(".item-media-url")?.value.trim() || "";
+      const autoplay = el.querySelector(".media-opt-autoplay")?.checked  ?? true;
+      const loop     = el.querySelector(".media-opt-loop")?.checked      ?? false;
+      const mute     = el.querySelector(".media-opt-mute")?.checked      ?? false;
+      return _base({ type: "video", title, url, media_type: "video", autoplay, loop, mute });
     } else if (type === "image") {
-      const url  = el.querySelector(".item-media-url")?.value.trim() || "";
-      const item = { type: "image", title, url };
-      if (id) item.item_id = id;
-      return item;
+      const url = el.querySelector(".item-media-url")?.value.trim() || "";
+      return _base({ type: "image", title, url });
     } else {
       const part        = el.querySelector(".item-part")?.value        || "";
       const participant = el.querySelector(".item-participant")?.value || "";
-      const item = { type: "participant", title, part, participant };
-      if (id) item.item_id = id;
-      return item;
+      return _base({ type: "participant", title, part, participant });
     }
   }
 
@@ -3937,14 +3992,10 @@
     document.activeElement?.blur();
 
     // Notify output channels (rundown, timer) of the active item
-    const _programId     = itemEl.closest('.service-program')?.dataset.programId || '';
-    const _itemId        = itemEl.dataset.itemId || '';
-    const _allottedRaw   = itemEl.querySelector('.allotted-input')?.value;
-    const _allottedMins  = _allottedRaw ? parseInt(_allottedRaw, 10) : null;
+    const _programId = itemEl.closest('.service-program')?.dataset.programId || '';
+    const _itemId    = itemEl.dataset.itemId || '';
     if (_programId && _itemId) {
-      const payload = { program_id: _programId, item_id: _itemId };
-      if (_allottedMins) payload.allotted_minutes = _allottedMins;
-      _socket.emit('program:item:set', payload);
+      _socket.emit('program:item:set', { program_id: _programId, item_id: _itemId });
     }
 
     if (type === 'song') {
