@@ -296,7 +296,7 @@ def operator_required(f):
         if not session.get('operator'):
             if request.is_json or request.path.startswith('/api/'):
                 return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
-            return redirect('/login')
+            return redirect(f'/login?next={request.path}')
         return f(*args, **kwargs)
     return decorated
 
@@ -324,11 +324,23 @@ def logout():
 
 
 # ── Routes ───────────────────────────────────────────────────────────────────
+def _server_ip() -> str:
+    import socket as _sock
+    try:
+        s = _sock.socket(_sock.AF_INET, _sock.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return '127.0.0.1'
+
+
 @app.route("/")
 @operator_required
 def index():
     program = load_program()
-    return render_template("index.html", program=program)
+    return render_template("index.html", program=program, server_ip=_server_ip())
 
 
 @app.route("/api/program", methods=["GET"])
@@ -476,11 +488,29 @@ def delete_program(program_id):
 
 
 
+# ── Remote sync helper ───────────────────────────────────────────────────────
+def build_remote_sync() -> dict:
+    state = proj.get_state('ch1')
+    data  = state.get('data', {}) if state else {}
+    return {
+        'slide_data':  state or {},
+        'slide_index': data.get('slide_index', 0),
+        'slide_count': data.get('slide_count', 0),
+        'item_title':  data.get('title', ''),
+    }
+
+
 # ── Projection routes ────────────────────────────────────────────────────────
 @app.route("/ch<int:n>")
 def projection_channel(n):
     channel = f"ch{n}"
     return render_template("projection.html", channel=channel)
+
+
+@app.route("/remote")
+@operator_required
+def remote():
+    return render_template("remote.html")
 
 
 # ── Static theme files ───────────────────────────────────────────────────────
@@ -516,6 +546,42 @@ def on_join(data):
     channel = data.get('channel', 'ch1')
     join_room(channel)
 
+@socketio.on('remote:join')
+def on_remote_join():
+    if not session.get('operator'):
+        disconnect()
+        return
+    join_room('remote-clients')
+    emit('remote:sync', build_remote_sync())
+
+@socketio.on('console:join')
+def on_console_join():
+    if not session.get('operator'):
+        disconnect()
+        return
+    join_room('console')
+
+@socketio.on('remote:next')
+def on_remote_next():
+    if not session.get('operator'):
+        disconnect()
+        return
+    socketio.emit('remote:next', {}, room='console')
+
+@socketio.on('remote:prev')
+def on_remote_prev():
+    if not session.get('operator'):
+        disconnect()
+        return
+    socketio.emit('remote:prev', {}, room='console')
+
+@socketio.on('remote:blank')
+def on_remote_blank():
+    if not session.get('operator'):
+        disconnect()
+        return
+    socketio.emit('remote:blank', {}, room='console')
+
 @socketio.on('state:restore')
 def on_state_restore(data):
     channel = data.get('channel', 'ch1')
@@ -533,6 +599,7 @@ def on_slide_show(data):
     state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
     proj.set_state(channel, state)
     emit('slide:show', data, to=channel)
+    socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('slide:blank')
 def on_slide_blank(data):
@@ -543,6 +610,7 @@ def on_slide_blank(data):
     state   = {'type': 'blank', 'data': {}, 'theme_id': 'default'}
     proj.set_state(channel, state)
     emit('slide:blank', state, to=channel)
+    socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('slide:edit')
 def on_slide_edit(data):
