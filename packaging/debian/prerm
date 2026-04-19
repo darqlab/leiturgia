@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+
+systemctl stop leiturgia leiturgia-display 2>/dev/null || true
+systemctl disable leiturgia leiturgia-display 2>/dev/null || true

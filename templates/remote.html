@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Leiturgia Remote</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #0f1b2d;
+      --surface: #1a2a3a;
+      --card:    #223040;
+      --border:  #2a3a4a;
+      --gold:    #c9a84c;
+      --gold-lt: #e0c070;
+      --white:   #f0f4f8;
+      --muted:   #6b7f93;
+      --error:   #e05555;
+      --green:   #16a34a;
+      --blue:    #2563eb;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--navy);
+      color: var(--white);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 52px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      z-index: 10;
+    }
+    .nav-logo {
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+    .nav-tabs {
+      display: flex;
+      flex: 1;
+      height: 100%;
+    }
+    .nav-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color .15s, border-color .15s;
+      letter-spacing: .03em;
+    }
+    .nav-tab.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+    .nav-status {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      margin-right: 14px;
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .nav-status.online { background: #4caf82; box-shadow: 0 0 6px #4caf82; }
+
+    /* ── Modes ── */
+    .mode { display: none; flex-direction: column; position: fixed;
+            top: 52px; left: 0; right: 0; bottom: 0; }
+    .mode.active { display: flex; }
+
+    /* ── Slide Control mode ── */
+    .slide-previews {
+      flex: 1;
+      display: flex;
+      gap: 10px;
+      padding: 14px;
+      min-height: 0;
+    }
+    .slide-box {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .slide-box-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      color: var(--muted);
+      text-transform: uppercase;
+      padding: 8px 12px 4px;
+      flex-shrink: 0;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+    .slide-next { display: none; }
+    @media (min-width: 768px) { .slide-next { display: flex; } }
+
+    /* ── Preview screen (current slide box) ── */
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 0;
+      overflow: hidden;
+      user-select: none;
+      padding: 16px;
+      gap: 0;
+      background: #0D1B3E;
+    }
+    .slide-empty {
+      font-size: 13px;
+      color: var(--muted);
+      font-style: italic;
+    }
+    /* lp-* — projection content styles, sized for the remote preview box */
+    .lp-part {
+      font-size: 11px;
+      color: #D4A843;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      text-align: center;
+      margin-bottom: 6px;
+      width: 100%;
+    }
+    .lp-title {
+      font-family: Georgia, serif;
+      font-size: clamp(14px, 4vw, 28px);
+      font-weight: 700;
+      color: #D4A843;
+      text-align: center;
+      line-height: 1.3;
+      width: 100%;
+      word-break: break-word;
+    }
+    .lp-stanza-label {
+      font-size: 10px;
+      color: #8C9AB5;
+      text-transform: uppercase;
+      text-align: center;
+      margin: 8px 0 5px;
+    }
+    .lp-lines {
+      font-family: Georgia, serif;
+      font-size: clamp(12px, 3vw, 20px);
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.6;
+      width: 100%;
+    }
+    .lp-body {
+      font-size: clamp(12px, 3vw, 18px);
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.4;
+      margin-top: 6px;
+    }
+    .lp-participants {
+      margin-top: 8px;
+      font-size: clamp(11px, 2.5vw, 16px);
+      color: #E8EAF0;
+      text-align: center;
+    }
+    .lp-participant-role { color: #8C9AB5; margin-right: 4px; }
+    .lp-announce-text {
+      font-family: Georgia, serif;
+      font-size: clamp(14px, 4vw, 28px);
+      color: #fff;
+      text-align: center;
+      margin-top: 8px;
+    }
+    .lp-media-icon {
+      font-size: clamp(32px, 10vw, 64px);
+      margin-bottom: 10px;
+      color: #c9a84c;
+    }
+    .lp-media-name {
+      font-size: 12px;
+      color: #8C9AB5;
+      text-align: center;
+      word-break: break-all;
+    }
+    .lp-counter {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 10px;
+    }
+    /* Next box */
+    .slide-next .slide-content {
+      background: var(--card);
+      gap: 6px;
+    }
+    .slide-type-badge {
+      font-size: 10px;
+      color: var(--gold);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .slide-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    /* ── Control buttons ── */
+    .ctrl-buttons {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 14px 14px;
+    }
+    .btn-blank {
+      width: 100%;
+      min-height: 56px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-blank:active { background: var(--surface); color: var(--white); }
+
+    .btn-row { display: flex; gap: 8px; }
+    .btn-prev, .btn-next {
+      flex: 1;
+      min-height: 72px;
+      border: none;
+      border-radius: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-prev:active, .btn-next:active { opacity: .8; transform: scale(.97); }
+    .btn-prev { background: var(--card); color: var(--white); border: 1px solid var(--border); }
+    .btn-next { background: var(--gold); color: var(--navy); }
+
+    /* ── Channel Switch mode ── */
+    #mode-channels {
+      padding: 16px;
+      gap: 16px;
+      overflow-y: auto;
+    }
+    .ch-section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .ch-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn-ch {
+      flex: 1;
+      min-width: 52px;
+      min-height: 52px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-ch.selected { background: var(--blue); border-color: var(--blue); }
+    .btn-ch.assigned { background: var(--green); border-color: var(--green); }
+
+    .role-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    @media (max-width: 479px) {
+      .role-buttons { grid-template-columns: 1fr; }
+    }
+    .btn-role {
+      min-height: 52px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-role:active { background: var(--surface); }
+
+    .status-list {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .status-row:last-child { border-bottom: none; }
+    .status-ch { font-weight: 700; color: var(--white); }
+    .status-role { color: var(--gold); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+    .status-none { color: var(--muted); font-style: italic; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">✦ Remote</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchMode('slides')">Slides</button>
+    <button class="nav-tab" onclick="switchMode('channels')">Channels</button>
+  </div>
+  <div class="nav-status" id="navStatus"></div>
+</nav>
+
+<!-- Slide Control mode -->
+<div class="mode active" id="mode-slides">
+  <div class="slide-previews" id="slidePreviewArea">
+    <div class="slide-box slide-current" id="boxCurrent">
+      <div class="slide-box-label">Current</div>
+      <div class="slide-content" id="slideCurrent">
+        <div class="slide-empty">Waiting for content…</div>
+      </div>
+    </div>
+    <div class="slide-box slide-next" id="boxNext">
+      <div class="slide-box-label">Next</div>
+      <div class="slide-content" id="slideNext">
+        <div class="slide-empty">—</div>
+      </div>
+    </div>
+  </div>
+  <div class="ctrl-buttons">
+    <button class="btn-blank" id="btnBlank" onclick="doBlank()">BLANK</button>
+    <div class="btn-row">
+      <button class="btn-prev" id="btnPrev" onclick="doPrev()">‹ PREV</button>
+      <button class="btn-next" id="btnNext" onclick="doNext()">NEXT ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- Channel Switch mode -->
+<div class="mode" id="mode-channels">
+  <div>
+    <div class="ch-section-label">Select channel(s)</div>
+    <div class="ch-buttons" id="chButtons">
+      <button class="btn-ch" data-ch="ch1" onclick="toggleCh(this)">CH 1</button>
+      <button class="btn-ch" data-ch="ch2" onclick="toggleCh(this)">CH 2</button>
+      <button class="btn-ch" data-ch="ch3" onclick="toggleCh(this)">CH 3</button>
+      <button class="btn-ch" data-ch="ch4" onclick="toggleCh(this)">CH 4</button>
+      <button class="btn-ch" data-ch="ch5" onclick="toggleCh(this)">CH 5</button>
+    </div>
+  </div>
+  <div>
+    <div class="ch-section-label">Assign role</div>
+    <div class="role-buttons" id="roleButtons">
+      <button class="btn-role" data-role="main"         onclick="assignRole(this)">MAIN</button>
+      <button class="btn-role" data-role="rundown"      onclick="assignRole(this)">RUNDOWN</button>
+      <button class="btn-role" data-role="timer"        onclick="assignRole(this)">TIMER</button>
+      <button class="btn-role" data-role="announcement" onclick="assignRole(this)">ANNOUNCEMENT</button>
+    </div>
+  </div>
+  <div>
+    <div class="ch-section-label">Current assignments</div>
+    <div class="status-list" id="statusList">
+      <div class="status-row"><span class="status-none">No assignments yet</span></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  const socket = io();
+  let selectedChannels = [];
+  let currentSync = null;
+
+  // ── Connection ───────────────────────────────────────────────────────────────
+  socket.on('connect', () => {
+    document.getElementById('navStatus').className = 'nav-status online';
+    socket.emit('remote:join');
+  });
+  socket.on('disconnect', () => {
+    document.getElementById('navStatus').className = 'nav-status';
+  });
+
+  // ── Mode switching ────────────────────────────────────────────────────────────
+  function switchMode(name) {
+    document.querySelectorAll('.mode').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+    document.getElementById('mode-' + name).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
+
+  // ── remote:sync ──────────────────────────────────────────────────────────────
+  socket.on('remote:sync', data => {
+    currentSync = data;
+    renderCurrentSlide(data);
+    renderNextSlide(data);
+  });
+
+  function renderCurrentSlide(data) {
+    const el   = document.getElementById('slideCurrent');
+    const sd   = data.slide_data || {};
+    const type = sd.type || '';
+    const d    = sd.data || {};
+    let html   = '';
+
+    if (!type || type === 'blank') {
+      el.style.background = '#000';
+      el.innerHTML = '<div style="font-size:16px;color:#333;letter-spacing:.1em;">BLANK</div>';
+      return;
+    }
+
+    el.style.background = '#0D1B3E';
+
+    if (type === 'announcement') {
+      el.style.background = '#091428';
+      html = `<div class="lp-part">Announcement</div>
+              <div class="lp-announce-text">${escHtml(d.text || '')}</div>`;
+    } else if (type === 'image') {
+      html = `<div class="lp-media-icon">🖼</div>
+              <div class="lp-media-name">${escHtml(d.filename || 'Image')}</div>`;
+    } else if (type === 'video') {
+      html = `<div class="lp-media-icon">▶</div>
+              <div class="lp-media-name">${escHtml(d.filename || 'Video')}</div>`;
+    } else if (type === 'timer') {
+      el.style.background = '#091428';
+      const secs = d.seconds || 0;
+      const m = Math.floor(secs / 60), s = String(secs % 60).padStart(2, '0');
+      html = `<div style="font-family:Georgia,serif;font-size:clamp(28px,12vw,72px);color:#F0C96A;font-weight:700;line-height:1;">${m}:${s}</div>
+              ${d.label ? `<div class="lp-stanza-label">${escHtml(d.label)}</div>` : ''}`;
+    } else {
+      // text — mirrors console renderLivePreview
+      if (d.is_content_para) {
+        if (d.part) html += `<div class="lp-part">${escHtml(d.part)}</div>`;
+        html += `<div class="lp-lines">${escHtml(d.body || '').replace(/\n/g, '<br>')}</div>`;
+      } else {
+        if (d.part)  html += `<div class="lp-part">${escHtml(d.part)}</div>`;
+        if (d.title) html += `<div class="lp-title">${escHtml(d.title)}</div>`;
+        if (d.stanza) {
+          const t = (d.stanza.type || 'verse').toLowerCase();
+          const label = t === 'chorus' ? 'Chorus' : t === 'refrain' ? 'Refrain' : `Verse ${d.stanza.number}`;
+          html += `<div class="lp-stanza-label">${label}</div>`;
+          html += `<div class="lp-lines">${(d.stanza.lines || []).map(escHtml).join('<br>')}</div>`;
+        }
+        if (d.body) {
+          const sizes = { sm: '12px', md: '15px', lg: '19px', xl: '24px' };
+          const fs = sizes[d.font_size] || sizes.md;
+          const ta = ['left','center','right'].includes(d.text_align) ? d.text_align : 'center';
+          html += `<div class="lp-body" style="font-size:${fs};text-align:${ta};white-space:pre-wrap">${escHtml(d.body)}</div>`;
+        }
+      }
+      if (d.participants?.length) {
+        html += `<div class="lp-participants">${d.participants.map(p =>
+          `<div>${p.role ? `<span class="lp-participant-role">${escHtml(p.role)}</span>` : ''}${escHtml(p.name || '')}</div>`
+        ).join('')}</div>`;
+      }
+      if (data.slide_count > 1) {
+        html += `<div class="lp-counter">${data.slide_index + 1} / ${data.slide_count}</div>`;
+      }
+    }
+
+    el.innerHTML = html || '<div class="slide-empty">Waiting for content…</div>';
+  }
+
+  function renderNextSlide(data) {
+    const el = document.getElementById('slideNext');
+    const idx   = data.slide_index ?? 0;
+    const count = data.slide_count ?? 0;
+    if (count > 0 && idx + 1 < count) {
+      el.innerHTML = `
+        <div class="slide-type-badge">Stanza ${idx + 2}</div>
+        <div class="slide-title">${escHtml(data.item_title || '')}</div>
+      `;
+    } else if (count > 0) {
+      el.innerHTML = '<div class="slide-empty">End of item</div>';
+    } else {
+      el.innerHTML = '<div class="slide-empty">—</div>';
+    }
+  }
+
+  // ── Slide controls ────────────────────────────────────────────────────────────
+  function doNext()  { socket.emit('remote:next'); }
+  function doPrev()  { socket.emit('remote:prev'); }
+  function doBlank() { socket.emit('remote:blank'); }
+
+  // ── Swipe gesture ─────────────────────────────────────────────────────────────
+  let touchStartX = 0;
+  const previewArea = document.getElementById('slidePreviewArea');
+  previewArea.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  previewArea.addEventListener('touchend', e => {
+    const delta = e.changedTouches[0].clientX - touchStartX;
+    if (delta < -50) doNext();
+    else if (delta > 50) doPrev();
+  });
+
+  // ── Channel assignment ────────────────────────────────────────────────────────
+  function toggleCh(btn) {
+    const ch = btn.dataset.ch;
+    if (selectedChannels.includes(ch)) {
+      selectedChannels = selectedChannels.filter(c => c !== ch);
+      btn.classList.remove('selected');
+    } else {
+      selectedChannels.push(ch);
+      btn.classList.add('selected');
+    }
+  }
+
+  function assignRole(btn) {
+    if (!selectedChannels.length) return;
+    socket.emit('roles:assign', { channels: selectedChannels, role: btn.dataset.role });
+    selectedChannels = [];
+    document.querySelectorAll('.btn-ch').forEach(b => b.classList.remove('selected'));
+  }
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#chButtons, #roleButtons')) {
+      selectedChannels = [];
+      document.querySelectorAll('.btn-ch').forEach(b => b.classList.remove('selected'));
+    }
+  });
+
+  socket.on('roles:updated', data => {
+    rebuildRoleGrid(data.assignments || {});
+    rebuildStatusList(data.assignments || {});
+  });
+
+  function rebuildRoleGrid(assignments) {
+    const chBtns = document.querySelectorAll('.btn-ch');
+    chBtns.forEach(btn => {
+      const ch = btn.dataset.ch;
+      btn.classList.remove('assigned');
+      if (assignments[ch]) btn.classList.add('assigned');
+    });
+  }
+
+  function rebuildStatusList(assignments) {
+    const list = document.getElementById('statusList');
+    const entries = Object.entries(assignments);
+    if (!entries.length) {
+      list.innerHTML = '<div class="status-row"><span class="status-none">No assignments yet</span></div>';
+      return;
+    }
+    list.innerHTML = entries.map(([ch, role]) => `
+      <div class="status-row">
+        <span class="status-ch">${escHtml(ch.toUpperCase())}</span>
+        <span class="status-role">${escHtml(role)}</span>
+      </div>
+    `).join('');
+  }
+
+  // ── Util ──────────────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+</script>
+</body>
+</html>

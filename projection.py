@@ -36,6 +36,10 @@ class ProjectionStateManager:
         self._state[channel] = dict(_BLANK_STATE)
         self._save()
 
+    def set_state_for_role(self, role: str, state: dict, roles) -> None:
+        for ch in roles.get_channels(role):
+            self.set_state(ch, state)
+
     # ── Persistence ────────────────────────────────────────────────────────────
 
     def _save(self) -> None:

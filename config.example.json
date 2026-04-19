@@ -1,0 +1,6 @@
+{
+  "pin": "1234",
+  "session_secret": "replace-this-with-a-random-string",
+  "session_timeout_hours": 8,
+  "max_login_attempts": 5
+}

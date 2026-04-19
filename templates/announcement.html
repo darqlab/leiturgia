@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Announcements — {{ channel }}</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: #0a1628;
+      color: #ffffff;
+      font-family: 'Georgia', serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #content {
+      max-width: 85vw;
+      text-align: center;
+    }
+
+    #text {
+      font-size: clamp(2rem, 5.5vw, 7rem);
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+      transition: opacity 0.4s;
+    }
+
+    #text.blank {
+      font-size: clamp(1rem, 2vw, 2rem);
+      opacity: 0.25;
+      color: #c9a84c;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+
+<div id="content">
+  {% if announcement %}
+    <div id="text">{{ announcement }}</div>
+  {% else %}
+    <div id="text" class="blank">Leiturgia</div>
+  {% endif %}
+</div>
+
+<script>
+  const CHANNEL = "{{ channel }}";
+  const socket  = io();
+
+  const textEl = document.getElementById('text');
+
+  socket.on('connect', () => {
+    socket.emit('join', { channel: CHANNEL });
+  });
+
+  socket.on('announcement:update', (data) => {
+    textEl.textContent = data.text || '';
+    textEl.classList.remove('blank');
+  });
+
+  socket.on('announcement:blank', () => {
+    textEl.textContent = 'Leiturgia';
+    textEl.classList.add('blank');
+  });
+</script>
+</body>
+</html>

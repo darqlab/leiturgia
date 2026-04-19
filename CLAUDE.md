@@ -18,15 +18,45 @@ live-editing UI, real-time projection to external displays via WebSockets, and
 PPTX/ODP slide generation. It runs on a Raspberry Pi and is accessible from any
 device on the same network.
 
+## Directories
+
+| Path | Role |
+|---|---|
+| `/home/dennis/Projects/Leiturgia/` | **Source of truth** — all code changes go here, committed to git |
+| `/opt/yard/leiturgia/` | **Test deployment** — running instance used for manual testing |
+
+**Workflow:** edit files in `/home/dennis/Projects/Leiturgia/`, sync changed files to `/opt/yard/leiturgia/`, then run and test from there. Never edit `/opt/yard/` directly without syncing back.
+
+### Sync and test
+
+After editing source files, sync them and run tests from the deployment directory:
+
+```bash
+# Sync individual files
+cp /home/dennis/Projects/Leiturgia/<file> /opt/yard/leiturgia/<file>
+
+# Sync multiple files at once
+cp /home/dennis/Projects/Leiturgia/{roles.py,timer.py,app.py} /opt/yard/leiturgia/
+
+# Run verification or ad-hoc tests from the deployment dir
+cd /opt/yard/leiturgia && source .venv/bin/activate && python3 -c "..."
+```
+
 ## Running the app
 
 ```bash
+# Development (from project root)
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python app.py
 # Operator UI:      http://<host-ip>:5000
 # Projection display: http://<host-ip>:5000/ch1
+
+# Test deployment (already running)
+# Files at: /opt/yard/leiturgia/
+# Logs:     /tmp/leiturgia.log
+# Run from: cd /opt/yard/leiturgia && source .venv/bin/activate
 ```
 
 Program state is persisted in `data/program.json`. Generated slides go to `output/{id}.pptx`.

@@ -5,11 +5,14 @@ eventlet.monkey_patch()
 import logging
 logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
 
-from flask import Flask, render_template, request, jsonify, send_file
-from flask_socketio import SocketIO, emit, join_room
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect
+from flask_socketio import SocketIO, emit, join_room, disconnect
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import json, os, copy, re, requests
 from urllib.parse import quote as _url_quote
-from datetime import datetime
+from datetime import datetime, timedelta
+from functools import wraps
 from dotenv import load_dotenv
 load_dotenv()
 from scraper import fetch_hymn_lyrics, fetch_lyrics_by_title
@@ -18,12 +21,33 @@ from hymnal import search_titles, get_by_title, get_by_number
 from projection import ProjectionStateManager
 from media_manager import list_media
 from timer import TimerManager
+from roles import RoleManager
+from rundown import RundownManager
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024   # 200 MB upload limit
+
+with open('config.json') as _f:
+    _config = json.load(_f)
+app.secret_key = _config['session_secret']
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=_config.get('session_timeout_hours', 8))
+
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
-proj  = ProjectionStateManager()
-timer = TimerManager()
+limiter  = Limiter(get_remote_address, app=app, default_limits=[])
+proj     = ProjectionStateManager()
+timer    = TimerManager()
+roles    = RoleManager()
+rundown  = RundownManager()
+
+_active_item = {
+    'program_id':       None,
+    'item_id':          None,
+    'allotted_seconds': 0,
+    'title':            '',
+    'participant':      '',
+}
+_announcement_text = ''
+
 DATA_FILE    = "data/program.json"
 HISTORY_FILE = "data/history.json"
 HISTORY_MAX  = 6
@@ -279,19 +303,68 @@ def _prepare_lyrics(items):
                 pass
 
 
+# ── Auth ─────────────────────────────────────────────────────────────────────
+def operator_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('operator'):
+            if request.is_json or request.path.startswith('/api/'):
+                return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+            return redirect(f'/login?next={request.path}')
+        return f(*args, **kwargs)
+    return decorated
+
+
+@app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=["POST"])
+def login():
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        pin  = str(data.get('pin') or '').strip()
+        with open('config.json') as f:
+            cfg = json.load(f)
+        if pin == str(cfg['pin']):
+            session.permanent = True
+            session['operator'] = True
+            return jsonify({'status': 'ok'})
+        return jsonify({'status': 'error', 'message': 'Incorrect PIN'}), 401
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
+
+
 # ── Routes ───────────────────────────────────────────────────────────────────
+def _server_ip() -> str:
+    import socket as _sock
+    try:
+        s = _sock.socket(_sock.AF_INET, _sock.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return '127.0.0.1'
+
+
 @app.route("/")
+@operator_required
 def index():
     program = load_program()
-    return render_template("index.html", program=program)
+    return render_template("index.html", program=program, server_ip=_server_ip())
 
 
 @app.route("/api/program", methods=["GET"])
+@operator_required
 def get_program():
     return jsonify(load_program())
 
 
 @app.route("/api/program", methods=["POST"])
+@operator_required
 def save_program_route():
     data = request.get_json()
     save_program(data)
@@ -299,8 +372,8 @@ def save_program_route():
     return jsonify({"status": "saved"})
 
 
-
 @app.route("/api/history")
+@operator_required
 def get_history():
     if not os.path.exists(HISTORY_FILE):
         return jsonify([])
@@ -312,6 +385,7 @@ def get_history():
 
 
 @app.route("/api/fetch-hymn/<int:number>")
+@operator_required
 def fetch_hymn(number):
     try:
         lyrics = fetch_hymn_lyrics(number)
@@ -321,6 +395,7 @@ def fetch_hymn(number):
 
 
 @app.route("/api/fetch-lyrics")
+@operator_required
 def fetch_lyrics_route():
     q = request.args.get("q", "").strip()
     if not q:
@@ -371,6 +446,7 @@ def fetch_lyrics_route():
 
 
 @app.route("/api/lyrics/<key>")
+@operator_required
 def get_lyrics(key):
     path = _lyrics_path(key)
     if not os.path.exists(path):
@@ -382,6 +458,7 @@ def get_lyrics(key):
 
 
 @app.route("/api/hymnal/search")
+@operator_required
 def hymnal_search():
     q = request.args.get("q", "").strip()
     if not q:
@@ -390,6 +467,7 @@ def hymnal_search():
 
 
 @app.route("/api/program/add", methods=["POST"])
+@operator_required
 def add_program():
     data = request.get_json()
     name = (data.get("name") or "").strip()
@@ -406,11 +484,13 @@ def add_program():
 
 
 @app.route("/api/projection-state", methods=["GET"])
+@operator_required
 def get_projection_state():
     return jsonify(proj._state)
 
 
 @app.route("/api/programs/<program_id>", methods=["DELETE"])
+@operator_required
 def delete_program(program_id):
     program = load_program()
     programs = program.get("service_programs", [])
@@ -422,11 +502,49 @@ def delete_program(program_id):
 
 
 
+# ── Remote sync helper ───────────────────────────────────────────────────────
+def build_remote_sync() -> dict:
+    state = proj.get_state('ch1')
+    data  = state.get('data', {}) if state else {}
+    return {
+        'slide_data':  state or {},
+        'slide_index': data.get('slide_index', 0),
+        'slide_count': data.get('slide_count', 0),
+        'item_title':  data.get('title', ''),
+    }
+
+
 # ── Projection routes ────────────────────────────────────────────────────────
+_ROLE_TEMPLATE = {
+    'main':         'projection.html',
+    'rundown':      'rundown.html',
+    'timer':        'timer_display.html',
+    'announcement': 'announcement.html',
+}
+
 @app.route("/ch<int:n>")
 def projection_channel(n):
-    channel = f"ch{n}"
-    return render_template("projection.html", channel=channel)
+    channel  = f"ch{n}"
+    role     = roles.get_role(channel) or 'main'
+    template = _ROLE_TEMPLATE.get(role, 'projection.html')
+    program  = load_program()
+    timer_fs = timer.get_full_state('timer')
+    rundown_data = rundown.get_display(program, timer_fs['state'])
+    return render_template(
+        template,
+        channel=channel,
+        role=role,
+        rundown=rundown_data,
+        timer_state=timer_fs,
+        active_item=_active_item,
+        announcement=_announcement_text,
+    )
+
+
+@app.route("/remote")
+@operator_required
+def remote():
+    return render_template("remote.html")
 
 
 # ── Static theme files ───────────────────────────────────────────────────────
@@ -451,6 +569,7 @@ def serve_theme(filename):
     return send_from_directory(themes_dir, filename)
 
 @app.route("/api/themes")
+@operator_required
 def api_themes():
     return jsonify(_THEMES)
 
@@ -460,6 +579,60 @@ def api_themes():
 def on_join(data):
     channel = data.get('channel', 'ch1')
     join_room(channel)
+    role = roles.get_role(channel)
+    if role == 'rundown':
+        program    = load_program()
+        timer_fs   = timer.get_full_state('timer')
+        payload    = rundown.get_display(program, timer_fs['state'])
+        emit('rundown:update', payload)
+    elif role == 'timer':
+        fs = timer.get_full_state('timer')
+        emit('timer:tick', {
+            'remaining': fs['remaining'],
+            'total':     fs['total'],
+            'state':     fs['state'],
+            'label':     fs['label'],
+            'overtime':  fs['overtime'],
+        })
+    elif role == 'announcement':
+        if _announcement_text:
+            emit('announcement:update', {'text': _announcement_text})
+
+@socketio.on('remote:join')
+def on_remote_join():
+    if not session.get('operator'):
+        disconnect()
+        return
+    join_room('remote-clients')
+    emit('remote:sync', build_remote_sync())
+
+@socketio.on('console:join')
+def on_console_join():
+    if not session.get('operator'):
+        disconnect()
+        return
+    join_room('console')
+
+@socketio.on('remote:next')
+def on_remote_next():
+    if not session.get('operator'):
+        disconnect()
+        return
+    socketio.emit('remote:next', {}, room='console')
+
+@socketio.on('remote:prev')
+def on_remote_prev():
+    if not session.get('operator'):
+        disconnect()
+        return
+    socketio.emit('remote:prev', {}, room='console')
+
+@socketio.on('remote:blank')
+def on_remote_blank():
+    if not session.get('operator'):
+        disconnect()
+        return
+    socketio.emit('remote:blank', {}, room='console')
 
 @socketio.on('state:restore')
 def on_state_restore(data):
@@ -471,20 +644,31 @@ def on_state_restore(data):
 
 @socketio.on('slide:show')
 def on_slide_show(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
     proj.set_state(channel, state)
     emit('slide:show', data, to=channel)
+    socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('slide:blank')
 def on_slide_blank(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'blank', 'data': {}, 'theme_id': 'default'}
     proj.set_state(channel, state)
     emit('slide:blank', state, to=channel)
+    socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('slide:edit')
 def on_slide_edit(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
     proj.set_state(channel, state)
@@ -492,17 +676,27 @@ def on_slide_edit(data):
 
 @socketio.on('media:image')
 def on_media_image(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'image', 'data': data, 'theme_id': 'default'}
     proj.set_state(channel, state)
     emit('media:image', data, to=channel)
+    if channel == 'ch1':
+        socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('media:video')
 def on_media_video(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'video', 'data': data, 'theme_id': 'default'}
     proj.set_state(channel, state)
     emit('media:video', data, to=channel)
+    if channel == 'ch1':
+        socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('media:status')
 def on_media_status(data):
@@ -516,6 +710,9 @@ def on_media_blocked(data):
 
 @socketio.on('announcement')
 def on_announcement(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'announcement', 'data': data, 'theme_id': 'default'}
     proj.set_state(channel, state)
@@ -523,6 +720,9 @@ def on_announcement(data):
 
 @socketio.on('timer:show')
 def on_timer_show(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state_d = timer.show(channel, int(data.get('seconds', 0)), data.get('label', ''))
     state_d.update({'channel': channel, 'type': 'timer'})
@@ -531,6 +731,9 @@ def on_timer_show(data):
 
 @socketio.on('timer:start')
 def on_timer_start(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     secs    = data.get('seconds')
     label   = data.get('label')
@@ -541,6 +744,9 @@ def on_timer_start(data):
 
 @socketio.on('timer:pause')
 def on_timer_pause(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     state_d = timer.pause(channel)
     state_d.update({'channel': channel})
@@ -548,6 +754,9 @@ def on_timer_pause(data):
 
 @socketio.on('timer:reset')
 def on_timer_reset(data):
+    if not session.get('operator'):
+        disconnect()
+        return
     channel = data.get('channel', 'ch1')
     secs    = data.get('seconds')
     state_d = timer.reset(channel, int(secs) if secs is not None else None)
@@ -556,15 +765,168 @@ def on_timer_reset(data):
     emit('timer:reset', state_d, to=channel)
 
 
+# ── Role assignment ───────────────────────────────────────────────────────────
+
+_VALID_ROLES    = ('main', 'rundown', 'timer', 'announcement')
+_VALID_CHANNELS = ('ch1', 'ch2', 'ch3', 'ch4', 'ch5')
+
+@socketio.on('roles:assign')
+def on_roles_assign(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    role     = data.get('role', '')
+    channels = data.get('channels', [])
+    if role not in _VALID_ROLES:
+        emit('error', {'message': f'Invalid role: {role}'})
+        return
+    if not channels or not all(ch in _VALID_CHANNELS for ch in channels):
+        emit('error', {'message': 'Invalid or empty channels list'})
+        return
+    assignments = roles.assign(channels, role)
+    socketio.emit('roles:updated', {'assignments': assignments})
+
+@app.route('/api/roles', methods=['GET'])
+@operator_required
+def api_roles_get():
+    return jsonify({'assignments': roles.to_dict()})
+
+@app.route('/api/roles', methods=['POST'])
+@operator_required
+def api_roles_post():
+    data     = request.get_json() or {}
+    role     = data.get('role', '')
+    channels = data.get('channels', [])
+    if role not in _VALID_ROLES:
+        return jsonify({'status': 'error', 'message': f'Invalid role: {role}'}), 400
+    if not channels or not all(ch in _VALID_CHANNELS for ch in channels):
+        return jsonify({'status': 'error', 'message': 'Invalid or empty channels list'}), 400
+    assignments = roles.assign(channels, role)
+    socketio.emit('roles:updated', {'assignments': assignments})
+    return jsonify({'assignments': assignments})
+
+
+# ── Active item control ───────────────────────────────────────────────────────
+
+_DEFAULT_ALLOTTED = {'song': 4, 'prayer': 3, 'content': 5, 'participant': 5, 'media': 5}
+
+@socketio.on('program:item:set')
+def on_program_item_set(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    global _active_item
+    program_id = data.get('program_id', '')
+    item_id    = data.get('item_id', '')
+    program    = load_program()
+
+    item = None
+    for sp in program.get('service_programs', []):
+        if sp['id'] == program_id:
+            for it in sp.get('items', []):
+                if it['item_id'] == item_id:
+                    item = it
+                    break
+    if item is None:
+        emit('error', {'message': 'Item not found'})
+        return
+
+    is_timed = item.get('timed', True)
+    allotted_mins = item.get('allotted_minutes') or _DEFAULT_ALLOTTED.get(item.get('type', 'participant'), 5)
+    allotted_secs = int(allotted_mins) * 60
+
+    _active_item = {
+        'program_id':       program_id,
+        'item_id':          item_id,
+        'allotted_seconds': allotted_secs if is_timed else 0,
+        'title':            item.get('title', ''),
+        'participant':      item.get('participant', ''),
+        'timed':            is_timed,
+    }
+
+    rundown.set_active(program_id, item_id)
+
+    if is_timed:
+        timer.reset('timer', allotted_secs)
+        timer.start('timer')
+        timer_state = timer.get_full_state('timer')['state']
+    else:
+        timer.pause('timer')
+        timer_state = 'normal'
+        for ch in roles.get_channels('timer'):
+            socketio.emit('timer:idle', {}, room=ch)
+
+    rundown_payload = rundown.get_display(program, timer_state)
+    for ch in roles.get_channels('rundown'):
+        socketio.emit('rundown:update', rundown_payload, room=ch)
+
+    slide_state = proj.get_state(roles.get_channels('main')[0] if roles.get_channels('main') else 'ch1')
+    for ch in roles.get_channels('main'):
+        socketio.emit('state:update', {'item': _active_item}, room=ch)
+
+    item_update = {'title': _active_item['title'], 'participant': _active_item['participant']}
+    for ch in roles.get_channels('timer'):
+        socketio.emit('active:item:updated', item_update, room=ch)
+
+@app.route('/api/active-item', methods=['GET'])
+@operator_required
+def api_active_item():
+    return jsonify({'item': _active_item if _active_item['item_id'] else None})
+
+
+# ── Announcement ──────────────────────────────────────────────────────────────
+
+@socketio.on('announcement:push')
+def on_announcement_push(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    global _announcement_text
+    _announcement_text = data.get('text', '')
+    for ch in roles.get_channels('announcement'):
+        socketio.emit('announcement:update', {'text': _announcement_text}, room=ch)
+
+@socketio.on('announcement:blank')
+def on_announcement_blank(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    global _announcement_text
+    _announcement_text = ''
+    for ch in roles.get_channels('announcement'):
+        socketio.emit('announcement:blank', {}, room=ch)
+
+@app.route('/api/announcement', methods=['POST'])
+@operator_required
+def api_announcement_push():
+    global _announcement_text
+    data = request.get_json() or {}
+    _announcement_text = data.get('text', '')
+    for ch in roles.get_channels('announcement'):
+        socketio.emit('announcement:update', {'text': _announcement_text}, room=ch)
+    return jsonify({'status': 'pushed'})
+
+@app.route('/api/announcement/blank', methods=['POST'])
+@operator_required
+def api_announcement_blank():
+    global _announcement_text
+    _announcement_text = ''
+    for ch in roles.get_channels('announcement'):
+        socketio.emit('announcement:blank', {}, room=ch)
+    return jsonify({'status': 'blanked'})
+
+
 # ── Media routes ─────────────────────────────────────────────────────────────
 _IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
 _VIDEO_EXTS = {'.mp4', '.webm', '.mov'}
 
 @app.route("/api/media")
+@operator_required
 def api_media():
     return jsonify(list_media())
 
 @app.route("/api/media/<media_type>/<filename>", methods=["DELETE"])
+@operator_required
 def delete_media_file(media_type, filename):
     if media_type not in ("images", "videos"):
         return jsonify({"status": "error", "message": "Invalid media type"}), 400
@@ -581,6 +943,7 @@ def delete_media_file(media_type, filename):
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/api/yt-title")
+@operator_required
 def api_yt_title():
     url = request.args.get("url", "").strip()
     if not url:
@@ -598,11 +961,27 @@ def api_yt_title():
     return jsonify({"title": None})
 
 @app.route("/api/yt-cache")
+@operator_required
 def api_yt_cache():
     if not os.path.exists(_YT_CACHE_PATH):
         return jsonify({})
     with open(_YT_CACHE_PATH) as f:
         return jsonify(json.load(f))
+
+@app.route("/api/settings/pin", methods=["POST"])
+@operator_required
+def api_settings_pin():
+    data = request.get_json() or {}
+    pin  = str(data.get('pin') or '').strip()
+    if not pin.isdigit() or not (4 <= len(pin) <= 6):
+        return jsonify({'status': 'error', 'message': 'PIN must be 4–6 digits'}), 400
+    with open('config.json') as f:
+        cfg = json.load(f)
+    cfg['pin'] = pin
+    with open('config.json', 'w') as f:
+        json.dump(cfg, f, indent=2)
+    return jsonify({'status': 'ok'})
+
 
 def _sanitize_filename(name: str) -> str:
     stem, ext = os.path.splitext(name)
@@ -612,6 +991,7 @@ def _sanitize_filename(name: str) -> str:
 
 
 @app.route("/api/media/upload", methods=["POST"])
+@operator_required
 def upload_media():
     from werkzeug.utils import secure_filename
     if 'file' not in request.files:
@@ -780,7 +1160,9 @@ def _yt_download_task(url, quality, item_id, sid):
 
 @socketio.on('yt:download:start')
 def on_yt_download_start(data):
-    from flask_socketio import disconnect
+    if not session.get('operator'):
+        disconnect()
+        return
     url     = (data.get('url') or '').strip()
     quality = data.get('quality', 'best')
     item_id = data.get('item_id', '')
@@ -791,6 +1173,27 @@ def on_yt_download_start(data):
         return
 
     socketio.start_background_task(_yt_download_task, url, quality, item_id, sid)
+
+
+def _timer_tick_loop():
+    while True:
+        socketio.sleep(1)
+        fs = timer.get_full_state('timer')
+        if not fs['running'] and not fs['overtime']:
+            continue
+        payload = {
+            'remaining': fs['remaining'],
+            'total':     fs['total'],
+            'state':     fs['state'],
+            'label':     fs['label'],
+            'overtime':  fs['overtime'],
+        }
+        for ch in roles.get_channels('timer'):
+            socketio.emit('timer:tick', payload, room=ch)
+        for ch in roles.get_channels('rundown'):
+            socketio.emit('timer:tick', payload, room=ch)
+
+socketio.start_background_task(_timer_tick_loop)
 
 
 if __name__ == "__main__":
