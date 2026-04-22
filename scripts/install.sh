@@ -43,8 +43,9 @@ apt-get install -y \
   python3-pip \
   python3-venv \
   git \
-  chromium-browser \
   openssl
+
+info "Note: Chromium is pre-installed on Raspberry Pi OS. If missing, run: sudo apt-get install -y chromium"
 
 # -----------------------------------------------------------------------------
 # 2. Create app directory
