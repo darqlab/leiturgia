@@ -78,8 +78,8 @@ sudo -u "${APP_USER}" "${APP_DIR}/.venv/bin/pip" install -r "${APP_DIR}/requirem
 # -----------------------------------------------------------------------------
 info "Creating data and media directories..."
 sudo -u "${APP_USER}" mkdir -p \
-  "${APP_DIR}/media/images" \
-  "${APP_DIR}/media/videos" \
+  "${APP_DIR}/data/media/images" \
+  "${APP_DIR}/data/media/videos" \
   "${APP_DIR}/data/lyrics" \
   "${APP_DIR}/output"
 
