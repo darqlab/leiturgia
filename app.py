@@ -102,66 +102,27 @@ def _load_lyrics(path, hint_number=None, hint_title=None):
 
 # ── Default program template ─────────────────────────────────────────────────
 DEFAULT_PROGRAM = {
-    "church":      "SSD GOB",
+    "church":      "",
     "date":        "",
-    "pianist":     "Claudine Cabañero",
-    "song_leader": "Ana Marie Jaman",
+    "pianist":     "",
+    "song_leader": "",
 
     "service_programs": [
         {
-            "id":          "sabbath-school",
-            "name":        "Sabbath School",
-            "time":        "9:00 a.m.",
+            "id":    "sample-program",
+            "name":  "Sample Program",
+            "time":  "",
             "items": [
-                {"item_id": "ss-001", "type": "participant", "title": "Praise Worship",    "part": "Praise Worship",    "participant": "Congregation"},
-                {"item_id": "ss-002", "type": "participant", "title": "Welcome Remarks",   "part": "Welcome Remarks",   "participant": "Dainee Rose Jabla"},
-                {"item_id": "ss-003", "type": "song",    "title": "Opening Song",      "hymn_number": ""},
-                {"item_id": "ss-004", "type": "participant", "title": "Opening Prayer",    "part": "Opening Prayer",    "participant": "Ailene Joy Mutsahuni"},
-                {"item_id": "ss-005", "type": "participant", "title": "Special Music",     "part": "Special Music",     "participant": "Quartet"},
-                {"item_id": "ss-006", "type": "participant", "title": "Mission Story",     "part": "The Church We Build Together", "participant": "Video"},
-                {"item_id": "ss-007", "type": "participant", "title": "Intermission Song", "part": "Intermission Song", "participant": "Tubuan Ukerists"},
-                {"item_id": "ss-008", "type": "participant", "title": "Promotional Talk",  "part": "Promotional Talk",  "participant": "Caroline Oliveira"},
-                {"item_id": "ss-009", "type": "song",    "title": "Closing Song",      "hymn_number": ""},
-                {"item_id": "ss-010", "type": "participant", "title": "Closing Prayer",    "part": "Closing Prayer",    "participant": "Eliezer John Jabla"},
-            ],
-        },
-        {
-            "id":          "divine-service",
-            "name":        "Divine Service",
-            "time":        "10:30 a.m.",
-            "items": [
-                {"item_id": "ds-001", "type": "participant", "title": "Praise Songs",            "part": "Praise Songs",            "participant": "Congregation"},
-                {"item_id": "ds-002", "type": "participant", "title": "Call to Worship",          "part": "Call to Worship",          "participant": "Edward Rodriguez"},
-                {"item_id": "ds-003", "type": "song",    "title": "Introit *",                "hymn_number": ""},
-                {"item_id": "ds-004", "type": "song",    "title": "Hymn of Celebration",      "hymn_number": ""},
-                {"item_id": "ds-005", "type": "participant", "title": "Invocation",               "part": "Invocation",               "participant": ""},
-                {"item_id": "ds-006", "type": "song",    "title": "Hymn of Adoration",        "hymn_number": ""},
-                {"item_id": "ds-007", "type": "participant", "title": "Scripture Reading",        "part": "Scripture Reading",        "participant": "Jedidiah Klyde Macaraeg"},
-                {"item_id": "ds-008", "type": "song",    "title": "Prayer Hymn *",            "hymn_number": ""},
-                {"item_id": "ds-009", "type": "participant", "title": "Pastoral Prayer",          "part": "Pastoral Prayer",          "participant": "Jedidiah Klyde Macaraeg"},
-                {"item_id": "ds-010", "type": "song",    "title": "Hymn of Response *",       "hymn_number": ""},
-                {"item_id": "ds-011", "type": "participant", "title": "Thoughts on Stewardship",  "part": "Thoughts on Stewardship",  "participant": "Exavier Jovaughn Olasiman"},
-                {"item_id": "ds-012", "type": "participant", "title": "Offertory Music",          "part": "Offertory Music",          "participant": "Tubuan Ukerists"},
-                {"item_id": "ds-013", "type": "song",    "title": "Hymn of Gratitude",        "hymn_number": ""},
-                {"item_id": "ds-014", "type": "participant", "title": "Offertory Prayer",         "part": "Offertory Prayer",         "participant": "Exavier Jovaughn Olasiman"},
-                {"item_id": "ds-015", "type": "participant", "title": "Children Homily",          "part": "Children Homily",          "participant": "Keen Spenser Gilo"},
-                {"item_id": "ds-016", "type": "participant", "title": "Ministry in Song",         "part": "Ministry in Song",         "participant": "Pauleen Angeli Baloyo"},
-                {"item_id": "ds-017", "type": "participant", "title": "The Spoken Word",          "part": "The Spoken Word",          "participant": "Sis. Sweetie Ritchil — Associate Treasurer, SSD"},
-                {"item_id": "ds-018", "type": "song",    "title": "Hymn of Consecration",     "hymn_number": ""},
-                {"item_id": "ds-019", "type": "song",    "title": "Hymn of Hope",             "hymn_number": ""},
-                {"item_id": "ds-020", "type": "participant", "title": "Benediction",              "part": "Benediction",              "participant": ""},
+                {"item_id": "sp-001", "type": "participant", "title": "Opening Prayer", "part": "Opening Prayer", "participant": ""},
+                {"item_id": "sp-002", "type": "song",        "title": "Opening Song",   "hymn_number": ""},
+                {"item_id": "sp-003", "type": "media",       "title": "Welcome",        "media_type": "image",    "url": "/media/images/leiturgia-welcome.png"},
+                {"item_id": "sp-004", "type": "media",       "title": "Sample Video",   "media_type": "video",    "url": "", "autoplay": True, "loop": False, "mute": False},
+                {"item_id": "sp-005", "type": "content",     "title": "Announcements",  "content": ""},
             ],
         },
     ],
 
-    "service_team": [
-        {"role": "Presider",             "name": "Edward Rodriguez"},
-        {"role": "Choristers",           "name": "Joy Olasiman & Exzser Joveil Olasiman"},
-        {"role": "Pianist",              "name": "Claudine Cabañero"},
-        {"role": "Deacons",              "name": "Joven Agno & Ruel Tagolgol"},
-        {"role": "Program Coordinator",  "name": "Amor Maestre & Joy Olasiman"},
-        {"role": "Song Leader",          "name": "Ana Marie Jaman"},
-    ],
+    "service_team": [],
 }
 
 

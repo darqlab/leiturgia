@@ -16,6 +16,33 @@ mkdir -p \
   data/lyrics \
   output
 
+if [ ! -f data/program.json ]; then
+  cat > data/program.json <<'EOF'
+{
+  "church": "",
+  "date": "",
+  "pianist": "",
+  "song_leader": "",
+  "service_programs": [
+    {
+      "id": "sample-program",
+      "name": "Sample Program",
+      "time": "",
+      "items": [
+        {"item_id": "sp-001", "type": "participant", "title": "Opening Prayer", "part": "Opening Prayer", "participant": ""},
+        {"item_id": "sp-002", "type": "song",        "title": "Opening Song",   "hymn_number": ""},
+        {"item_id": "sp-003", "type": "media",       "title": "Welcome",        "media_type": "image",    "url": "/media/images/leiturgia-welcome.png"},
+        {"item_id": "sp-004", "type": "media",       "title": "Sample Video",   "media_type": "video",    "url": "", "autoplay": true, "loop": false, "mute": false},
+        {"item_id": "sp-005", "type": "content",     "title": "Announcements",  "content": ""}
+      ]
+    }
+  ],
+  "service_team": []
+}
+EOF
+  chown "${APP_USER}:${APP_USER}" data/program.json
+fi
+
 if [ ! -f config.json ]; then
   SECRET=$(openssl rand -hex 32)
   cat > config.json <<EOF

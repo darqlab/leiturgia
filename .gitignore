@@ -20,8 +20,10 @@ output/
 # OS
 .DS_Store
 
-# Media uploads (large binaries)
-media/
+# Media uploads (large binaries — ignore contents, allow bundled assets)
+media/images/*
+media/videos/*
+!media/images/leiturgia-welcome.png
 
 # Claude Code memory
 memory/
