@@ -1,0 +1,15 @@
+[Unit]
+Description=Leiturgia Projection App
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/opt/leiturgia
+ExecStart=/opt/leiturgia/.venv/bin/python app.py
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
