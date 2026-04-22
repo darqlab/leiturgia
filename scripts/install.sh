@@ -84,7 +84,41 @@ sudo -u "${APP_USER}" mkdir -p \
   "${APP_DIR}/output"
 
 # -----------------------------------------------------------------------------
-# 6. config.json — generate on first install only
+# 6. program.json — seed on first install only
+# -----------------------------------------------------------------------------
+PROGRAM_FILE="${APP_DIR}/data/program.json"
+if [ ! -f "${PROGRAM_FILE}" ]; then
+  info "Creating default program.json..."
+  cat > "${PROGRAM_FILE}" <<'EOF'
+{
+  "church": "",
+  "date": "",
+  "pianist": "",
+  "song_leader": "",
+  "service_programs": [
+    {
+      "id": "sample-program",
+      "name": "Sample Program",
+      "time": "",
+      "items": [
+        {"item_id": "sp-001", "type": "participant", "title": "Opening Prayer", "part": "Opening Prayer", "participant": ""},
+        {"item_id": "sp-002", "type": "song",        "title": "Opening Song",   "hymn_number": ""},
+        {"item_id": "sp-003", "type": "media",       "title": "Welcome",        "media_type": "image",    "url": "/media/images/leiturgia-welcome.png"},
+        {"item_id": "sp-004", "type": "media",       "title": "Sample Video",   "media_type": "video",    "url": "", "autoplay": true, "loop": false, "mute": false},
+        {"item_id": "sp-005", "type": "content",     "title": "Announcements",  "content": ""}
+      ]
+    }
+  ],
+  "service_team": []
+}
+EOF
+  chown "${APP_USER}:${APP_USER}" "${PROGRAM_FILE}"
+else
+  info "program.json already exists — skipping."
+fi
+
+# -----------------------------------------------------------------------------
+# 7. config.json — generate on first install only
 # -----------------------------------------------------------------------------
 CONFIG_FILE="${APP_DIR}/config.json"
 if [ ! -f "${CONFIG_FILE}" ]; then
@@ -106,7 +140,7 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 7. systemd services
+# 8. systemd services
 # -----------------------------------------------------------------------------
 info "Installing systemd services..."
 
@@ -132,7 +166,7 @@ systemctl daemon-reload
 systemctl enable leiturgia
 
 # -----------------------------------------------------------------------------
-# 8. Start the app
+# 9. Start the app
 # -----------------------------------------------------------------------------
 info "Starting Leiturgia service..."
 systemctl start leiturgia
