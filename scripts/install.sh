@@ -140,7 +140,31 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 8. systemd services
+# 8. Desktop shortcut
+# -----------------------------------------------------------------------------
+DESKTOP_DIR="/home/${APP_USER}/Desktop"
+SHORTCUT="${DESKTOP_DIR}/Leiturgia.desktop"
+if [ -d "${DESKTOP_DIR}" ]; then
+  info "Creating desktop shortcut..."
+  cat > "${SHORTCUT}" <<EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Leiturgia
+Comment=Open Leiturgia operator console
+Exec=sh -c 'chromium-browser http://localhost:5000 || chromium http://localhost:5000 || xdg-open http://localhost:5000'
+Icon=${APP_DIR}/media/images/leiturgia-welcome.png
+Terminal=false
+Categories=Application;
+EOF
+  chmod +x "${SHORTCUT}"
+  chown "${APP_USER}:${APP_USER}" "${SHORTCUT}"
+else
+  info "No Desktop directory found — skipping shortcut (headless install)."
+fi
+
+# -----------------------------------------------------------------------------
+# 9. systemd services
 # -----------------------------------------------------------------------------
 info "Installing systemd services..."
 
@@ -166,7 +190,7 @@ systemctl daemon-reload
 systemctl enable leiturgia
 
 # -----------------------------------------------------------------------------
-# 9. Start the app
+# 10. Start the app
 # -----------------------------------------------------------------------------
 info "Starting Leiturgia service..."
 systemctl start leiturgia

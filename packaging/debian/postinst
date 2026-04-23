@@ -59,6 +59,24 @@ fi
 
 chown -R "${APP_USER}:${APP_USER}" "${APP_DIR}"
 
+DESKTOP_DIR="/home/${APP_USER}/Desktop"
+SHORTCUT="${DESKTOP_DIR}/Leiturgia.desktop"
+if [ -d "${DESKTOP_DIR}" ]; then
+  cat > "${SHORTCUT}" <<EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Leiturgia
+Comment=Open Leiturgia operator console
+Exec=sh -c 'chromium-browser http://localhost:5000 || chromium http://localhost:5000 || xdg-open http://localhost:5000'
+Icon=${APP_DIR}/media/images/leiturgia-welcome.png
+Terminal=false
+Categories=Application;
+EOF
+  chmod +x "${SHORTCUT}"
+  chown "${APP_USER}:${APP_USER}" "${SHORTCUT}"
+fi
+
 systemctl daemon-reload
 systemctl enable leiturgia
 systemctl start leiturgia
