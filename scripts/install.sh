@@ -37,7 +37,7 @@ info "Starting Leiturgia installation (user: ${APP_USER})..."
 # 1. System dependencies
 # -----------------------------------------------------------------------------
 info "Installing system dependencies..."
-apt-get update -qq
+apt-get update -qq || true
 apt-get install -y \
   python3 \
   python3-pip \
