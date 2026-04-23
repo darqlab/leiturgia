@@ -27,8 +27,8 @@ jobs:
           mkdir -p "${PKG_DIR}/etc/systemd/system"
 
           # App source files
-          cp app.py claude_helpers.py hymnal.py media_manager.py \
-             projection.py scraper.py timer.py \
+          cp app.py hymnal.py media_manager.py projection.py \
+             roles.py rundown.py timer.py \
              requirements.txt config.example.json \
              "${PKG_DIR}/opt/leiturgia/"
 
