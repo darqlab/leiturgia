@@ -15,8 +15,6 @@ from datetime import datetime, timedelta
 from functools import wraps
 from dotenv import load_dotenv
 load_dotenv()
-from scraper import fetch_hymn_lyrics, fetch_lyrics_by_title
-from claude_helpers import clean_stanzas
 from hymnal import search_titles, get_by_title, get_by_number
 from projection import ProjectionStateManager
 from media_manager import list_media
@@ -258,10 +256,9 @@ def _prepare_lyrics(items):
                                     hint_title=item.get("title"))
                 item["lyrics"] = data["stanzas"]
         elif item.get("hymn_number") and not item.get("lyrics"):
-            try:
-                item["lyrics"] = fetch_hymn_lyrics(int(item["hymn_number"]))
-            except Exception:
-                pass
+            result = get_by_number(int(item["hymn_number"]))
+            if result:
+                item["lyrics"] = result["stanzas"]
 
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
@@ -348,11 +345,10 @@ def get_history():
 @app.route("/api/fetch-hymn/<int:number>")
 @operator_required
 def fetch_hymn(number):
-    try:
-        lyrics = fetch_hymn_lyrics(number)
-        return jsonify({"status": "ok", "stanzas": lyrics})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+    result = get_by_number(number)
+    if not result:
+        return jsonify({"status": "error", "message": "Hymn not found"}), 404
+    return jsonify({"status": "ok", "stanzas": result["stanzas"]})
 
 
 @app.route("/api/fetch-lyrics")
@@ -389,16 +385,18 @@ def fetch_lyrics_route():
             if hymn_title:  resp["title"]       = hymn_title
             return jsonify(resp)
 
-        stanzas = fetch_hymn_lyrics(hymn_number) if hymn_number else fetch_lyrics_by_title(q)
-        if not stanzas:
+        result = get_by_number(hymn_number) if hymn_number else get_by_title(q)
+        if not result or not result.get("stanzas"):
             return jsonify({"status": "error", "message": "No lyrics found"})
-        stanzas = clean_stanzas(stanzas, title=hymn_title or q)
+        stanzas     = result["stanzas"]
+        hymn_number = hymn_number or result.get("number")
+        hymn_title  = hymn_title  or result.get("title")
         lyrics_data = {"stanzas": stanzas}
         if hymn_number: lyrics_data["hymn_number"] = hymn_number
         if hymn_title:  lyrics_data["title"]       = hymn_title
         with open(path, "w") as f:
             json.dump(lyrics_data, f, indent=2)
-        resp = {"status": "ok", "key": key, "count": len(stanzas), "source": "web"}
+        resp = {"status": "ok", "key": key, "count": len(stanzas), "source": "db"}
         if hymn_number: resp["hymn_number"] = hymn_number
         if hymn_title:  resp["title"]       = hymn_title
         return jsonify(resp)
