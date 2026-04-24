@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leiturgia — Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:      #0a1628;
+      --surface: #111f3a;
+      --card:    #162240;
+      --border:  #1e2f52;
+      --gold:    #d4a843;
+      --white:   #f0f2f8;
+      --muted:   #6b7fa0;
+      --success: #4caf82;
+      --error:   #e05252;
+      --warn:    #e09652;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      height: 60px;
+    }
+    .back-btn {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 1.3rem;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .back-btn:hover { color: var(--white); }
+    header h1 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: var(--white);
+    }
+
+    /* ── Layout ── */
+    main {
+      max-width: 600px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .card-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.25rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .card-body { padding: 1.25rem; }
+
+    /* ── Form fields ── */
+    .field { margin-bottom: 1rem; }
+    .field:last-child { margin-bottom: 0; }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--white);
+      font-size: 0.9rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus { border-color: var(--gold); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.25rem;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:disabled { opacity: 0.45; cursor: default; }
+    .btn:not(:disabled):hover { opacity: 0.85; }
+    .btn-gold { background: var(--gold); color: #0a1628; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--white);
+    }
+    .btn-danger {
+      background: transparent;
+      border: 1px solid #55223a;
+      color: var(--error);
+    }
+    .btn-danger:not(:disabled):hover { background: rgba(224,82,82,0.08); }
+
+    /* ── Status dot ── */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding-top: 1rem;
+      font-size: 0.85rem;
+    }
+    .dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-green   { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .dot-orange  { background: var(--warn);    box-shadow: 0 0 6px var(--warn); }
+    .dot-grey    { background: #3a4a5a; }
+
+    /* ── Message banner ── */
+    .msg {
+      font-size: 0.82rem;
+      padding: 0.5rem 0.8rem;
+      border-radius: 6px;
+      margin-top: 0.75rem;
+      display: none;
+    }
+    .msg.show { display: block; }
+    .msg-ok   { background: rgba(76,175,130,0.12); color: var(--success); border: 1px solid rgba(76,175,130,0.25); }
+    .msg-err  { background: rgba(224,82,82,0.12);  color: var(--error);   border: 1px solid rgba(224,82,82,0.25); }
+
+    /* ── Separator ── */
+    .separator {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 1rem 0;
+    }
+
+    .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="back-btn" title="Back to console">&#8592;</a>
+  <h1>Settings</h1>
+</header>
+
+<main>
+
+  <!-- ── Cloud Link ─────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">Cloud Link</div>
+    <div class="card-body">
+
+      <div class="field">
+        <label for="cloud-url">Cloud URL</label>
+        <input type="text" id="cloud-url" placeholder="ssdgob.leiturgia.cc"
+               autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="field">
+        <label for="cloud-token">Token</label>
+        <input type="text" id="cloud-token" placeholder="ltrg_..."
+               autocomplete="off" spellcheck="false">
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-gold" id="connect-btn" onclick="connectCloud()">Connect</button>
+        <button class="btn btn-danger" id="unlink-btn" onclick="unlinkCloud()" style="display:none">Unlink</button>
+      </div>
+
+      <div class="msg" id="cloud-msg"></div>
+
+      <div class="status-row">
+        <span class="dot" id="status-dot"></span>
+        <span id="status-label">Checking…</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── PIN ────────────────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-header">Operator PIN</div>
+    <div class="card-body">
+      <div class="field">
+        <label for="new-pin">New PIN (4–6 digits)</label>
+        <input type="password" id="new-pin" maxlength="6" placeholder="••••"
+               inputmode="numeric">
+      </div>
+      <button class="btn btn-outline" onclick="changePin()">Update PIN</button>
+      <div class="msg" id="pin-msg"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const $url   = document.getElementById('cloud-url');
+  const $token = document.getElementById('cloud-token');
+  const $dot   = document.getElementById('status-dot');
+  const $label = document.getElementById('status-label');
+  const $connectBtn = document.getElementById('connect-btn');
+  const $unlinkBtn  = document.getElementById('unlink-btn');
+
+  function showMsg(id, text, ok) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = 'msg show ' + (ok ? 'msg-ok' : 'msg-err');
+  }
+
+  function applyStatus(s) {
+    $dot.className = 'dot';
+    if (s === 'connected') {
+      $dot.classList.add('dot-green');
+      $label.textContent = 'Connected';
+      $unlinkBtn.style.display = 'inline-flex';
+      $connectBtn.textContent = 'Reconnect';
+    } else if (s === 'reconnecting' || s === 'connecting') {
+      $dot.classList.add('dot-orange');
+      $label.textContent = s === 'connecting' ? 'Connecting…' : 'Reconnecting…';
+      $unlinkBtn.style.display = 'inline-flex';
+      $connectBtn.textContent = 'Reconnect';
+    } else if (s === 'not_linked') {
+      $dot.classList.add('dot-grey');
+      $label.textContent = 'Not linked';
+      $unlinkBtn.style.display = 'none';
+      $connectBtn.textContent = 'Connect';
+    } else {
+      $dot.classList.add('dot-grey');
+      $label.textContent = '—';
+    }
+  }
+
+  async function loadStatus() {
+    try {
+      const r = await fetch('/api/cloud/status');
+      const d = await r.json();
+      if (d.cloud_url)   $url.value   = d.cloud_url;
+      if (d.cloud_token) $token.value = d.cloud_token;
+      applyStatus(d.status);
+    } catch (_) {
+      applyStatus('not_linked');
+    }
+  }
+
+  async function connectCloud() {
+    const url   = $url.value.trim().replace(/^https?:\/\//i, '').replace(/\/$/, '');
+    const token = $token.value.trim();
+    if (!url || !token) {
+      showMsg('cloud-msg', 'Both Cloud URL and Token are required.', false);
+      return;
+    }
+    $connectBtn.disabled = true;
+    $connectBtn.textContent = 'Connecting…';
+    try {
+      const r = await fetch('/api/cloud/link', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cloud_url: url, cloud_token: token }),
+      });
+      const d = await r.json();
+      if (d.status === 'linked') {
+        showMsg('cloud-msg', `Linked to ${d.church_name || 'cloud'} successfully.`, true);
+      } else {
+        showMsg('cloud-msg', d.message || 'Failed to connect.', false);
+      }
+    } catch (_) {
+      showMsg('cloud-msg', 'Network error — could not reach the server.', false);
+    } finally {
+      $connectBtn.disabled = false;
+      loadStatus();
+    }
+  }
+
+  async function unlinkCloud() {
+    if (!confirm('Unlink this Pi from the cloud?')) return;
+    try {
+      const r = await fetch('/api/cloud/unlink', { method: 'POST' });
+      const d = await r.json();
+      if (d.status === 'ok') {
+        $url.value = '';
+        $token.value = '';
+        showMsg('cloud-msg', 'Unlinked successfully.', true);
+      }
+    } catch (_) {
+      showMsg('cloud-msg', 'Network error.', false);
+    }
+    loadStatus();
+  }
+
+  async function changePin() {
+    const pin = document.getElementById('new-pin').value.trim();
+    if (!/^\d{4,6}$/.test(pin)) {
+      showMsg('pin-msg', 'PIN must be 4–6 digits.', false);
+      return;
+    }
+    try {
+      const r = await fetch('/api/settings/pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin }),
+      });
+      if (r.ok) {
+        showMsg('pin-msg', 'PIN updated.', true);
+        document.getElementById('new-pin').value = '';
+      } else {
+        const d = await r.json();
+        showMsg('pin-msg', d.message || 'Failed to update PIN.', false);
+      }
+    } catch (_) {
+      showMsg('pin-msg', 'Network error.', false);
+    }
+  }
+
+  // Poll status every 5 seconds
+  loadStatus();
+  setInterval(loadStatus, 5000);
+</script>
+</body>
+</html>

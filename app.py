@@ -21,6 +21,7 @@ from media_manager import list_media
 from timer import TimerManager
 from roles import RoleManager
 from rundown import RundownManager
+from cloud_agent import agent as cloud_agent
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024   # 200 MB upload limit
@@ -327,6 +328,7 @@ def save_program_route():
     data = request.get_json()
     save_program(data)
     save_history(data)
+    cloud_agent.notify_program_saved(data)
     return jsonify({"status": "saved"})
 
 
@@ -942,6 +944,77 @@ def api_settings_pin():
     return jsonify({'status': 'ok'})
 
 
+@app.route('/settings')
+@operator_required
+def settings():
+    return render_template('settings.html')
+
+
+@app.route('/api/cloud/status')
+@operator_required
+def api_cloud_status():
+    with open('config.json') as f:
+        cfg = json.load(f)
+    return jsonify({
+        'status':      cloud_agent.status,
+        'linked':      cloud_agent.linked,
+        'cloud_url':   cfg.get('cloud_url', ''),
+        'cloud_token': cfg.get('cloud_token', ''),
+    })
+
+
+@app.route('/api/cloud/link', methods=['POST'])
+@operator_required
+def api_cloud_link():
+    data = request.get_json() or {}
+    cloud_url   = (data.get('cloud_url') or '').strip().rstrip('/')
+    cloud_token = (data.get('cloud_token') or '').strip()
+    if not cloud_url or not cloud_token:
+        return jsonify({'status': 'error', 'message': 'cloud_url and cloud_token are required'}), 400
+
+    try:
+        resp = requests.post(
+            f'https://{cloud_url}/api/v1/devices/register',
+            headers={'Authorization': f'Bearer {cloud_token}'},
+            timeout=10,
+        )
+    except requests.exceptions.RequestException as exc:
+        return jsonify({'status': 'error', 'message': f'Could not reach cloud: {exc}'}), 502
+
+    if resp.status_code == 200:
+        church_name = resp.json().get('church_name', '')
+        with open('config.json') as f:
+            cfg = json.load(f)
+        cfg['cloud_enabled'] = True
+        cfg['cloud_url']     = cloud_url
+        cfg['cloud_token']   = cloud_token
+        with open('config.json', 'w') as f:
+            json.dump(cfg, f, indent=2)
+        cloud_agent.restart()
+        return jsonify({'status': 'linked', 'church_name': church_name})
+
+    if resp.status_code == 401:
+        msg = 'Invalid token — not recognised by the cloud.'
+    elif resp.status_code == 403:
+        msg = 'Device limit reached on the cloud account.'
+    else:
+        msg = f'Cloud returned {resp.status_code}.'
+    return jsonify({'status': 'error', 'message': msg}), 400
+
+
+@app.route('/api/cloud/unlink', methods=['POST'])
+@operator_required
+def api_cloud_unlink():
+    with open('config.json') as f:
+        cfg = json.load(f)
+    cfg['cloud_enabled'] = False
+    cfg['cloud_token']   = ''
+    cfg['cloud_url']     = ''
+    with open('config.json', 'w') as f:
+        json.dump(cfg, f, indent=2)
+    return jsonify({'status': 'ok'})
+
+
 def _sanitize_filename(name: str) -> str:
     stem, ext = os.path.splitext(name)
     stem = stem.replace('-', '_')
@@ -1153,6 +1226,15 @@ def _timer_tick_loop():
             socketio.emit('timer:tick', payload, room=ch)
 
 socketio.start_background_task(_timer_tick_loop)
+
+
+def _on_cloud_program_update(data):
+    """Called by cloud_agent when cloud pushes a new program. Notify operator console."""
+    socketio.emit('program:cloud:update', {}, namespace='/')
+
+
+cloud_agent.set_program_update_callback(_on_cloud_program_update)
+cloud_agent.start()
 
 
 if __name__ == "__main__":
