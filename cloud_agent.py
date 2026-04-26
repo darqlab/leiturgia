@@ -23,6 +23,7 @@ class CloudAgent:
         self._ws = None
         self._pending_sync = None     # asyncio.Task for debounced program sync
         self._on_program_update = None  # callback(data) when cloud pushes sync:program
+        self._cloud_version = 0       # last known cloud program version
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -161,19 +162,20 @@ class CloudAgent:
         event = msg.get("event")
         data = msg.get("data", {})
         if event == "sync:program":
-            await self._apply_program(data)
+            await self._apply_program(data, msg.get("version", 0))
         elif event == "sync:media:add":
             asyncio.get_event_loop().run_in_executor(None, self._download_media, data)
         elif event == "sync:media:delete":
             self._delete_media(data)
 
-    async def _apply_program(self, data):
+    async def _apply_program(self, data, version: int = 0):
         try:
             with open(DATA_FILE, "w") as f:
                 json.dump(data, f, indent=2)
+            self._cloud_version = version
             if self._on_program_update:
                 self._on_program_update(data)
-            logger.info("sync:program applied from cloud")
+            logger.info("sync:program applied from cloud (version %s)", version)
         except Exception as exc:
             logger.error("Failed to apply sync:program: %s", exc)
 
@@ -182,7 +184,11 @@ class CloudAgent:
     async def _send_program(self, data):
         if self._ws:
             try:
-                await self._ws.send(json.dumps({"event": "sync:program", "data": data}))
+                await self._ws.send(json.dumps({
+                    "event": "sync:program",
+                    "data": data,
+                    "version": self._cloud_version,
+                }))
             except Exception as exc:
                 logger.warning("Failed to force-send sync:program: %s", exc)
         else:
@@ -199,7 +205,11 @@ class CloudAgent:
         await asyncio.sleep(0.8)
         if self._ws:
             try:
-                await self._ws.send(json.dumps({"event": "sync:program", "data": data}))
+                await self._ws.send(json.dumps({
+                    "event": "sync:program",
+                    "data": data,
+                    "version": self._cloud_version,
+                }))
             except Exception as exc:
                 logger.warning("Failed to send sync:program: %s", exc)
 
