@@ -3646,6 +3646,11 @@
     toast(`⛔ YouTube blocked: ${msg}. Use the Download button to play locally.`, 'error');
   });
 
+  _socket.on('program:cloud:update', function () {
+    toast('Program updated from cloud — reloading…', 'success');
+    setTimeout(() => window.location.reload(), 1200);
+  });
+
   function _updateAudioBadge(ch, audioState) {
     const tile = document.querySelector(`.ch-tile[data-ch="${ch}"]`);
     if (!tile) return;
@@ -4293,10 +4298,7 @@
 <script>
   // Settings modal
   function openSettings() {
-    document.getElementById('settingsPinError').textContent = '';
-    document.getElementById('settingsNewPin').value = '';
-    document.getElementById('settingsConfirmPin').value = '';
-    document.getElementById('settingsModal').classList.add('open');
+    window.location.href = '/settings';
   }
   function closeSettings() {
     document.getElementById('settingsModal').classList.remove('open');
