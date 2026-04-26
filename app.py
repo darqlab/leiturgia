@@ -1015,6 +1015,80 @@ def api_cloud_unlink():
     return jsonify({'status': 'ok'})
 
 
+@app.route('/api/cloud/sync-status')
+@operator_required
+def api_cloud_sync_status():
+    try:
+        with open(DATA_FILE) as f:
+            local = json.load(f)
+        sps = local.get('service_programs', [])
+        pi_info = {'has_data': len(sps) > 0, 'count': len(sps)}
+    except Exception:
+        pi_info = {'has_data': False, 'count': 0}
+
+    cfg = cloud_agent._load_config()
+    if not cfg.get('cloud_enabled') or not cfg.get('cloud_url') or not cfg.get('cloud_token'):
+        return jsonify({'linked': False, 'pi': pi_info, 'cloud': None})
+
+    cloud_url   = cfg['cloud_url'].strip().rstrip('/')
+    cloud_token = cfg['cloud_token'].strip()
+    try:
+        resp = requests.get(
+            f'https://{cloud_url}/api/v1/programs/device-meta',
+            headers={'Authorization': f'Bearer {cloud_token}'},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        cloud_info = resp.json()
+    except Exception as exc:
+        return jsonify({'linked': True, 'pi': pi_info, 'cloud': None, 'error': str(exc)})
+
+    return jsonify({'linked': True, 'pi': pi_info, 'cloud': cloud_info})
+
+
+@app.route('/api/cloud/sync', methods=['POST'])
+@operator_required
+def api_cloud_sync():
+    data      = request.get_json() or {}
+    direction = data.get('direction')
+    if direction not in ('pi_to_cloud', 'cloud_to_pi'):
+        return jsonify({'ok': False, 'error': 'invalid direction'}), 400
+
+    cfg         = cloud_agent._load_config()
+    cloud_url   = cfg.get('cloud_url', '').strip().rstrip('/')
+    cloud_token = cfg.get('cloud_token', '').strip()
+
+    if direction == 'pi_to_cloud':
+        try:
+            with open(DATA_FILE) as f:
+                local = json.load(f)
+        except Exception as exc:
+            return jsonify({'ok': False, 'error': str(exc)}), 500
+        cloud_agent.force_push_program(local)
+        return jsonify({'ok': True})
+
+    # cloud_to_pi
+    try:
+        resp = requests.get(
+            f'https://{cloud_url}/api/v1/programs/device-current',
+            headers={'Authorization': f'Bearer {cloud_token}'},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        program_data = resp.json()
+    except Exception as exc:
+        return jsonify({'ok': False, 'error': str(exc)}), 502
+
+    try:
+        with open(DATA_FILE, 'w') as f:
+            json.dump(program_data, f, indent=2)
+        _on_cloud_program_update(program_data)
+    except Exception as exc:
+        return jsonify({'ok': False, 'error': str(exc)}), 500
+
+    return jsonify({'ok': True})
+
+
 def _sanitize_filename(name: str) -> str:
     stem, ext = os.path.splitext(name)
     stem = stem.replace('-', '_')

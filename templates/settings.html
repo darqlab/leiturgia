@@ -230,6 +230,16 @@
 
 </main>
 
+<!-- ── Sync Direction Modal ─────────────────────────────────────────────── -->
+<div id="sync-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:100; align-items:center; justify-content:center;">
+  <div style="background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.75rem; max-width:400px; width:90%; margin:1rem;">
+    <p style="font-size:1rem; font-weight:500; margin-bottom:0.4rem; color:var(--white);">Programs found on both sides</p>
+    <p style="font-size:0.82rem; color:var(--muted); margin-bottom:1.4rem;">Choose which set to keep. The other side will be replaced.</p>
+    <div id="sync-options" style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.5rem;"></div>
+    <button class="btn btn-gold" style="width:100%;" onclick="confirmSync()">Confirm</button>
+  </div>
+</div>
+
 <script>
   const $url   = document.getElementById('cloud-url');
   const $token = document.getElementById('cloud-token');
@@ -297,6 +307,7 @@
       const d = await r.json();
       if (d.status === 'linked') {
         showMsg('cloud-msg', `Linked to ${d.church_name || 'cloud'} successfully.`, true);
+        runSyncCheck();
       } else {
         showMsg('cloud-msg', d.message || 'Failed to connect.', false);
       }
@@ -345,6 +356,95 @@
       }
     } catch (_) {
       showMsg('pin-msg', 'Network error.', false);
+    }
+  }
+
+  // ── Sync dialog ──────────────────────────────────────────────────────────
+
+  let _syncChoice = null;
+
+  function showSyncModal(status) {
+    const cloud = status.cloud;
+    const pi    = status.pi;
+    const fmt   = d => d ? new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
+    const pl    = n => n === 1 ? 'program' : 'programs';
+
+    const opts = [
+      { value: 'cloud_to_pi', label: `Use Cloud &nbsp;(${cloud.program_count} ${pl(cloud.program_count)} · ${fmt(cloud.updated_at)})` },
+      { value: 'pi_to_cloud', label: `Use Pi &nbsp;(${pi.count} ${pl(pi.count)})` },
+      { value: 'skip',        label: 'Skip — decide later' },
+    ];
+
+    const container = document.getElementById('sync-options');
+    container.innerHTML = opts.map((o, i) => `
+      <label style="display:flex; align-items:center; gap:0.7rem; cursor:pointer; color:var(--white); font-size:0.88rem; padding:0.5rem 0.6rem; border-radius:8px; border:1px solid var(--border);">
+        <input type="radio" name="sync-dir" value="${o.value}" ${i === 0 ? 'checked' : ''} style="accent-color:var(--gold); flex-shrink:0;">
+        ${o.label}
+      </label>
+    `).join('');
+
+    _syncChoice = opts[0].value;
+    container.querySelectorAll('input[name="sync-dir"]').forEach(r => {
+      r.addEventListener('change', () => { _syncChoice = r.value; });
+    });
+
+    document.getElementById('sync-modal').style.display = 'flex';
+  }
+
+  async function confirmSync() {
+    document.getElementById('sync-modal').style.display = 'none';
+    if (_syncChoice === 'skip') {
+      showMsg('cloud-msg', 'Sync skipped — programs unchanged.', true);
+      return;
+    }
+    try {
+      const r = await fetch('/api/cloud/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ direction: _syncChoice }),
+      });
+      const d = await r.json();
+      const label = _syncChoice === 'cloud_to_pi'
+        ? 'Cloud programs synced to Pi.'
+        : 'Pi programs uploaded to cloud.';
+      showMsg('cloud-msg', d.ok ? label : (d.error || 'Sync failed.'), d.ok);
+    } catch (_) {
+      showMsg('cloud-msg', 'Network error during sync.', false);
+    }
+  }
+
+  async function runSyncCheck() {
+    try {
+      const r = await fetch('/api/cloud/sync-status');
+      const s = await r.json();
+      if (!s.linked) return;
+      if (s.error || !s.cloud) {
+        showMsg('cloud-msg', 'Connected — could not reach cloud for sync check.', true);
+        return;
+      }
+      const piEmpty    = !s.pi.has_data;
+      const cloudEmpty = !s.cloud.has_data;
+      if (piEmpty && cloudEmpty) {
+        showMsg('cloud-msg', 'Connected — no programs to sync yet.', true);
+      } else if (cloudEmpty) {
+        const r2 = await fetch('/api/cloud/sync', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ direction: 'pi_to_cloud' }),
+        });
+        const d2 = await r2.json();
+        showMsg('cloud-msg', d2.ok ? 'Connected — Pi programs uploaded to cloud.' : (d2.error || 'Auto-sync failed.'), d2.ok);
+      } else if (piEmpty) {
+        const r2 = await fetch('/api/cloud/sync', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ direction: 'cloud_to_pi' }),
+        });
+        const d2 = await r2.json();
+        showMsg('cloud-msg', d2.ok ? 'Connected — Cloud programs synced to Pi.' : (d2.error || 'Auto-sync failed.'), d2.ok);
+      } else {
+        showSyncModal(s);
+      }
+    } catch (_) {
+      showMsg('cloud-msg', 'Connected — sync check unavailable.', true);
     }
   }
 

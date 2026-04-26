@@ -43,6 +43,13 @@ class CloudAgent:
         if self._loop:
             asyncio.run_coroutine_threadsafe(self._schedule_sync(data), self._loop)
 
+    def force_push_program(self, data):
+        """Send sync:program immediately, bypassing the debounce — used by manual sync."""
+        if self._loop:
+            asyncio.run_coroutine_threadsafe(self._send_program(data), self._loop)
+        else:
+            logger.warning("force_push_program: agent not running, sync skipped")
+
     def start(self):
         """Start the agent in a real OS thread (asyncio loop inside)."""
         cfg = self._load_config()
@@ -169,6 +176,17 @@ class CloudAgent:
             logger.info("sync:program applied from cloud")
         except Exception as exc:
             logger.error("Failed to apply sync:program: %s", exc)
+
+    # ── Outbound sync ────────────────────────────────────────────────────────
+
+    async def _send_program(self, data):
+        if self._ws:
+            try:
+                await self._ws.send(json.dumps({"event": "sync:program", "data": data}))
+            except Exception as exc:
+                logger.warning("Failed to force-send sync:program: %s", exc)
+        else:
+            logger.warning("force_push_program: no WebSocket connection")
 
     # ── Debounced outbound sync ───────────────────────────────────────────────
 
