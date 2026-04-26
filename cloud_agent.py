@@ -2,6 +2,8 @@ import asyncio
 import json
 import logging
 import os
+import threading
+import time
 
 import websockets
 
@@ -12,6 +14,7 @@ DATA_FILE = "data/program.json"
 
 _BACKOFF = [2, 4, 8, 16, 30]
 _HEARTBEAT_INTERVAL = 30
+_SYNC_DEBOUNCE = 0.8  # seconds
 
 
 class CloudAgent:
@@ -21,9 +24,17 @@ class CloudAgent:
         self._status = "not_linked"   # not_linked | connecting | connected | reconnecting
         self._loop = None
         self._ws = None
-        self._pending_sync = None     # asyncio.Task for debounced program sync
         self._on_program_update = None  # callback(data) when cloud pushes sync:program
-        self._cloud_version = 0       # last known cloud program version
+        self._cloud_version = 0         # last known cloud program version
+
+        # Outbound sync state — written by Flask thread, read by asyncio loop.
+        # Plain attribute assignment is GIL-safe; no asyncio.run_coroutine_threadsafe needed.
+        self._notify_data = None   # latest data queued by notify_program_saved()
+        self._notify_time = 0.0    # monotonic timestamp of last notify
+        self._force_data = None    # set by force_push_program(); sent on next poll tick
+
+        # Restart signal — set() from Flask thread, checked by heartbeat task.
+        self._restart_event = threading.Event()
 
     # ── Public API ────────────────────────────────────────────────────────────
 
@@ -40,16 +51,13 @@ class CloudAgent:
         self._on_program_update = cb
 
     def notify_program_saved(self, data):
-        """App calls this after saving program.json locally (debounced 800ms)."""
-        if self._loop:
-            asyncio.run_coroutine_threadsafe(self._schedule_sync(data), self._loop)
+        """Called by Flask thread after saving program.json; debounced 800ms before push."""
+        self._notify_data = data
+        self._notify_time = time.monotonic()
 
     def force_push_program(self, data):
-        """Send sync:program immediately, bypassing the debounce — used by manual sync."""
-        if self._loop:
-            asyncio.run_coroutine_threadsafe(self._send_program(data), self._loop)
-        else:
-            logger.warning("force_push_program: agent not running, sync skipped")
+        """Send sync:program immediately, bypassing debounce — used by manual sync."""
+        self._force_data = data
 
     def start(self):
         """Start the agent in a real OS thread (asyncio loop inside)."""
@@ -62,16 +70,15 @@ class CloudAgent:
             from eventlet.patcher import original as _orig
             _Thread = _orig("threading").Thread
         except ImportError:
-            import threading
-            _Thread = threading.Thread
+            import threading as _threading
+            _Thread = _threading.Thread
 
         t = _Thread(target=self._run_loop, daemon=True)
         t.start()
 
     def restart(self):
         """Reload config and reconnect — called after successful /api/cloud/link."""
-        if self._loop:
-            asyncio.run_coroutine_threadsafe(self._stop_ws(), self._loop)
+        self._restart_event.set()
         self.start()
 
     # ── Internal ──────────────────────────────────────────────────────────────
@@ -92,10 +99,6 @@ class CloudAgent:
             self._loop.close()
             self._loop = None
             self._status = "not_linked"
-
-    async def _stop_ws(self):
-        if self._ws:
-            await self._ws.close()
 
     async def _connect_loop(self):
         backoff_idx = 0
@@ -127,6 +130,12 @@ class CloudAgent:
             finally:
                 self._ws = None
 
+            if self._restart_event.is_set():
+                self._restart_event.clear()
+                backoff_idx = 0
+                await asyncio.sleep(0.5)
+                continue
+
             self._status = "reconnecting"
             delay = _BACKOFF[min(backoff_idx, len(_BACKOFF) - 1)]
             backoff_idx = min(backoff_idx + 1, len(_BACKOFF) - 1)
@@ -136,6 +145,7 @@ class CloudAgent:
 
     async def _session(self, ws):
         heartbeat = asyncio.create_task(self._heartbeat(ws))
+        poller = asyncio.create_task(self._sync_poller(ws))
         try:
             async for raw in ws:
                 try:
@@ -145,18 +155,57 @@ class CloudAgent:
                 await self._handle_event(msg)
         finally:
             heartbeat.cancel()
-            try:
-                await heartbeat
-            except asyncio.CancelledError:
-                pass
+            poller.cancel()
+            for t in (heartbeat, poller):
+                try:
+                    await t
+                except asyncio.CancelledError:
+                    pass
 
     async def _heartbeat(self, ws):
+        elapsed = 0.0
         while True:
-            await asyncio.sleep(_HEARTBEAT_INTERVAL)
-            try:
-                await ws.send(json.dumps({"event": "device:status"}))
-            except Exception:
-                break
+            await asyncio.sleep(1.0)
+            elapsed += 1.0
+            if self._restart_event.is_set():
+                await ws.close()
+                return
+            if elapsed >= _HEARTBEAT_INTERVAL:
+                elapsed = 0.0
+                try:
+                    await ws.send(json.dumps({"event": "device:status"}))
+                except Exception:
+                    break
+
+    async def _sync_poller(self, ws):
+        """Poll for outbound sync requests every 100ms; implements debounce for notify."""
+        while True:
+            await asyncio.sleep(0.1)
+
+            # Force push — send immediately
+            if self._force_data is not None:
+                data = self._force_data
+                self._force_data = None
+                self._notify_data = None  # discard any pending notify for same data
+                await self._send_payload(ws, data)
+                continue
+
+            # Debounced notify push
+            if self._notify_data is not None:
+                if time.monotonic() - self._notify_time >= _SYNC_DEBOUNCE:
+                    data = self._notify_data
+                    self._notify_data = None
+                    await self._send_payload(ws, data)
+
+    async def _send_payload(self, ws, data):
+        try:
+            await ws.send(json.dumps({
+                "event": "sync:program",
+                "data": data,
+                "version": self._cloud_version,
+            }))
+        except Exception as exc:
+            logger.warning("Failed to send sync:program: %s", exc)
 
     async def _handle_event(self, msg):
         event = msg.get("event")
@@ -173,45 +222,15 @@ class CloudAgent:
             with open(DATA_FILE, "w") as f:
                 json.dump(data, f, indent=2)
             self._cloud_version = version
-            if self._on_program_update:
-                self._on_program_update(data)
             logger.info("sync:program applied from cloud (version %s)", version)
         except Exception as exc:
             logger.error("Failed to apply sync:program: %s", exc)
-
-    # ── Outbound sync ────────────────────────────────────────────────────────
-
-    async def _send_program(self, data):
-        if self._ws:
+            return
+        if self._on_program_update:
             try:
-                await self._ws.send(json.dumps({
-                    "event": "sync:program",
-                    "data": data,
-                    "version": self._cloud_version,
-                }))
+                self._on_program_update(data)
             except Exception as exc:
-                logger.warning("Failed to force-send sync:program: %s", exc)
-        else:
-            logger.warning("force_push_program: no WebSocket connection")
-
-    # ── Debounced outbound sync ───────────────────────────────────────────────
-
-    async def _schedule_sync(self, data):
-        if self._pending_sync and not self._pending_sync.done():
-            self._pending_sync.cancel()
-        self._pending_sync = asyncio.create_task(self._delayed_sync(data))
-
-    async def _delayed_sync(self, data):
-        await asyncio.sleep(0.8)
-        if self._ws:
-            try:
-                await self._ws.send(json.dumps({
-                    "event": "sync:program",
-                    "data": data,
-                    "version": self._cloud_version,
-                }))
-            except Exception as exc:
-                logger.warning("Failed to send sync:program: %s", exc)
+                logger.warning("on_program_update callback failed: %s", exc)
 
     # ── Media helpers (run in executor) ──────────────────────────────────────
 
