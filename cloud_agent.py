@@ -33,6 +33,9 @@ class CloudAgent:
         self._notify_time = 0.0    # monotonic timestamp of last notify
         self._force_data = None    # set by force_push_program(); sent on next poll tick
 
+        # Set True by _apply_program (asyncio thread); cleared by app.py pump (eventlet thread).
+        self._pending_ui_notify = False
+
         # Restart signal — set() from Flask thread, checked by heartbeat task.
         self._restart_event = threading.Event()
 
@@ -226,11 +229,9 @@ class CloudAgent:
         except Exception as exc:
             logger.error("Failed to apply sync:program: %s", exc)
             return
-        if self._on_program_update:
-            try:
-                self._on_program_update(data)
-            except Exception as exc:
-                logger.warning("on_program_update callback failed: %s", exc)
+        # Signal the app.py eventlet background pump instead of calling socketio.emit
+        # directly — calling it from this asyncio OS thread causes greenlet cross-thread crash.
+        self._pending_ui_notify = True
 
     # ── Media helpers (run in executor) ──────────────────────────────────────
 

@@ -1302,12 +1302,16 @@ def _timer_tick_loop():
 socketio.start_background_task(_timer_tick_loop)
 
 
-def _on_cloud_program_update(data):
-    """Called by cloud_agent when cloud pushes a new program. Notify operator console."""
-    socketio.emit('program:cloud:update', {}, namespace='/')
+def _cloud_update_pump():
+    """Poll cloud_agent flag from eventlet green thread — safe to call socketio.emit here."""
+    while True:
+        if cloud_agent._pending_ui_notify:
+            cloud_agent._pending_ui_notify = False
+            socketio.emit('program:cloud:update', {}, namespace='/')
+        socketio.sleep(0.2)
 
 
-cloud_agent.set_program_update_callback(_on_cloud_program_update)
+socketio.start_background_task(_cloud_update_pump)
 cloud_agent.start()
 
 
