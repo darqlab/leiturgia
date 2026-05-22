@@ -29,6 +29,6 @@ media/videos/*
 memory/
 
 # Data (runtime state — except bundled hymn DB)
-data/
+data/*
 !data/hymns.db
 CLAUDE.md
