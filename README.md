@@ -79,6 +79,23 @@ dependencies, and restarts the service. Config and data are preserved.
 curl -fsSL https://raw.githubusercontent.com/darqlab/leiturgia/main/scripts/install.sh | sudo bash
 ```
 
+Or, on a development install, use `deploy.sh`:
+
+```bash
+bash deploy.sh
+```
+
+### Updating the hymns database
+
+`data/hymns.db` is bundled in the repo and updated via `git pull`. After pulling a new
+version of the DB, the lyrics cache must be cleared so hymns are re-read from the updated
+database rather than served from stale cached files:
+
+```bash
+rm -f data/lyrics/*.json
+sudo systemctl restart leiturgia
+```
+
 ---
 
 ## Uninstall
