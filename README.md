@@ -1,8 +1,8 @@
 # Leiturgia
 
 A Flask web app for managing church service programs — live editing, real-time projection
-to external displays, mobile remote control, and PowerPoint/LibreOffice slide generation.
-Runs on a Raspberry Pi and is accessible from any device on the same network.
+to external displays, and mobile remote control. Runs on a Raspberry Pi and is accessible
+from any device on the same network.
 
 ---
 
@@ -14,7 +14,6 @@ Runs on a Raspberry Pi and is accessible from any device on the same network.
 - **Timer display** — dedicated countdown/elapsed timer view for service flow
 - **Rundown view** — at-a-glance program order for worship leaders
 - **Announcement display** — full-screen announcement channel
-- **Slide generation** — export programs as `.pptx` (PowerPoint) or `.odp` (LibreOffice) files
 - **Hymn lyrics** — fetch and cache lyrics by hymn number or title; offline SQLite fallback (695 hymns)
 - **10 projection themes** — switchable color themes for the projection display
 - **Media support** — upload images/videos or paste URLs; send directly to projection
@@ -172,7 +171,6 @@ leiturgia/
 ├── media/
 │   ├── images/             # Uploaded images
 │   └── videos/             # Uploaded videos
-├── output/                 # Generated .pptx and .odp files
 ├── packaging/
 │   ├── leiturgia.service   # systemd unit file
 │   └── debian/
