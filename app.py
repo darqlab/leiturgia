@@ -6,7 +6,7 @@ import logging
 logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
 
 from flask import Flask, render_template, request, jsonify, send_file, session, redirect
-from flask_socketio import SocketIO, emit, join_room, disconnect
+from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import json, os, copy, re, requests
@@ -573,6 +573,20 @@ def on_console_join():
         disconnect()
         return
     join_room('console')
+    join_room('ch1')  # default channel; switched via console:watch
+
+@socketio.on('console:watch')
+def on_console_watch(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    old_ch = data.get('old', 'ch1')
+    new_ch = data.get('new', 'ch1')
+    valid  = ('ch1', 'ch2', 'ch3', 'ch4', 'ch5')
+    if old_ch in valid:
+        leave_room(old_ch)
+    if new_ch in valid:
+        join_room(new_ch)
 
 @socketio.on('remote:next')
 def on_remote_next():

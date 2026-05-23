@@ -3534,11 +3534,36 @@
     el.className = 'live-status online';
     el.title = 'Projection: connected';
     _socket.emit('console:join');
+    _socket.emit('state:restore', { channel: _getChannel() });
   });
 
   _socket.on('remote:next',  () => _projNext());
   _socket.on('remote:prev',  () => _projPrev());
   _socket.on('remote:blank', () => _projBlank());
+
+  // ── Drive the preview iframe from every projection event ──────────────────
+  function _lpFrameRender(data) {
+    _updateChTile(data.channel || _getChannel(), data);
+    const frame = document.getElementById('livePreviewFrame');
+    if (!frame || !frame.contentWindow) return;
+    try {
+      if (typeof frame.contentWindow.renderState === 'function') {
+        frame.contentWindow.renderState(data);
+      }
+    } catch (e) {}
+  }
+
+  _socket.on('slide:show',   function (d) { _lpFrameRender(d); });
+  _socket.on('slide:blank',  function (d) { _lpFrameRender(d); });
+  _socket.on('slide:edit',   function (d) { _lpFrameRender(d); });
+  _socket.on('announcement', function (d) { _lpFrameRender(Object.assign({}, d, { type: 'announcement' })); });
+  _socket.on('media:image',  function (d) { _lpFrameRender(Object.assign({}, d, { type: 'image' })); });
+  _socket.on('media:video',  function (d) { _lpFrameRender(Object.assign({}, d, { type: 'video' })); });
+  _socket.on('timer:show',   function (d) { _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
+  _socket.on('timer:start',  function (d) { _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
+  _socket.on('timer:pause',  function (d) { if (d) _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
+  _socket.on('timer:reset',  function (d) { _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
+
   _socket.on('disconnect', function () {
     const el = document.getElementById('live-status');
     el.className = 'live-status offline';
@@ -3691,6 +3716,7 @@
 
   // ── Channel tile selection ─────────────────────────────────────────────────
   function selectChannel(ch) {
+    const old = _getChannel();
     // Update dropdown
     const sel = document.getElementById('channelSelect');
     if (sel) sel.value = ch;
@@ -3702,6 +3728,11 @@
     // Point the preview iframe at the new channel
     const frame = document.getElementById('livePreviewFrame');
     if (frame) frame.src = '/' + ch;
+    // Switch server-side channel room subscription
+    if (old !== ch) {
+      _socket.emit('console:watch', { old, new: ch });
+      _socket.emit('state:restore', { channel: ch });
+    }
   }
 
   function _updateChTile(ch, data) {
