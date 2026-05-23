@@ -3750,60 +3750,8 @@
 
   // ── Live preview (mini screen in right panel) ──────────────────────────────
   function renderLivePreview(data) {
-    const screen = document.getElementById('livePreviewScreen');
-    if (!screen) return;
-    const type = data.type || 'text';
-    // Update the channel tile state label
+    // Visual rendering is handled by the scaled iframe — only update channel tile labels.
     _updateChTile(data.channel || _getChannel(), data);
-    let html = '';
-
-    if (type === 'blank') {
-      html = `<span class="lp-blank-label">BLANK</span>`;
-      screen.style.background = '#000';
-    } else if (type === 'announcement') {
-      screen.style.background = '#091428';
-      const txt = data.text || data.data?.text || '';
-      html = `<div class="lp-announce-label">Announcement</div>
-              <div class="lp-announce-text">${_lpEsc(txt)}</div>`;
-    } else if (type === 'image') {
-      const url = data.url || data.data?.url || '';
-      screen.style.background = '#000';
-      html = `<img src="${_lpEsc(url)}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
-    } else if (type === 'timer') {
-      screen.style.background = '#091428';
-      const secs = data.seconds || data.data?.seconds || 0;
-      const m = Math.floor(secs / 60), s = secs % 60;
-      html = `<div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#F0C96A;font-weight:700;">${m}:${String(s).padStart(2,'0')}</div>
-              <div style="font-size:7px;color:#8C9AB5;margin-top:3px;">${_lpEsc(data.label || data.data?.label || '')}</div>`;
-    } else {
-      // text
-      screen.style.background = '#0D1B3E';
-      const d = data.data || data;
-      if (d.is_content_para) {
-        // Content paragraph preview: part only on first para, then lines like a stanza
-        if (d.part) html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
-        html += `<div class="lp-lines">${_lpEsc(d.body || '').replace(/\n/g, '<br>')}</div>`;
-      } else if (d.stanza) {
-        // Stanza slide: lyrics only — mirrors what the projection shows
-        html = `<div class="lp-lines">${(d.stanza.lines || []).map(_lpEsc).join('<br>')}</div>`;
-      } else {
-        if (d.part)  html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
-        if (d.title) html += `<div class="lp-title">${_lpEsc(d.title)}</div>`;
-        if (d.body) {
-          const lpSizes = { sm: '5.5px', md: '7.5px', lg: '9.5px', xl: '12px' };
-          const lpFs = lpSizes[d.font_size] || lpSizes.md;
-          const lpTa = ['left','center','right'].includes(d.text_align) ? d.text_align : 'center';
-          html += `<div class="lp-body" style="font-size:${lpFs};text-align:${lpTa};white-space:pre-wrap">${_lpEsc(d.body)}</div>`;
-        }
-      }
-      if (d.participants?.length) {
-        html += `<div class="lp-participants">${d.participants.map(p =>
-          `<div>${p.role ? `<span class="lp-participant-role">${_lpEsc(p.role)}</span>` : ''}${_lpEsc(p.name || '')}</div>`
-        ).join('')}</div>`;
-      }
-    }
-
-    screen.innerHTML = html || `<span class="lp-waiting">Waiting…</span>`;
   }
 
   function _lpEsc(s) {
