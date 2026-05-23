@@ -3783,15 +3783,12 @@
         // Content paragraph preview: part only on first para, then lines like a stanza
         if (d.part) html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
         html += `<div class="lp-lines">${_lpEsc(d.body || '').replace(/\n/g, '<br>')}</div>`;
+      } else if (d.stanza) {
+        // Stanza slide: lyrics only — mirrors what the projection shows
+        html = `<div class="lp-lines">${(d.stanza.lines || []).map(_lpEsc).join('<br>')}</div>`;
       } else {
         if (d.part)  html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
         if (d.title) html += `<div class="lp-title">${_lpEsc(d.title)}</div>`;
-        if (d.stanza) {
-          const t = (d.stanza.type || 'verse').toLowerCase();
-          const label = t === 'chorus' ? 'Chorus' : t === 'refrain' ? 'Refrain' : `Verse ${d.stanza.number}`;
-          html += `<div class="lp-stanza-label">${label}</div>`;
-          html += `<div class="lp-lines">${(d.stanza.lines || []).map(_lpEsc).join('<br>')}</div>`;
-        }
         if (d.body) {
           const lpSizes = { sm: '5.5px', md: '7.5px', lg: '9.5px', xl: '12px' };
           const lpFs = lpSizes[d.font_size] || lpSizes.md;
