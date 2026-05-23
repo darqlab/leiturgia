@@ -467,11 +467,24 @@ def delete_program(program_id):
 def build_remote_sync() -> dict:
     state = proj.get_state('ch1')
     data  = state.get('data', {}) if state else {}
+    next_stanza = data.get('next_stanza')
+    next_slide_data = None
+    if next_stanza:
+        next_slide_data = {
+            'type':     'text',
+            'data':     {
+                'stanza': next_stanza,
+                'title':  data.get('title', ''),
+                'part':   data.get('part', ''),
+            },
+            'theme_id': state.get('theme_id', 'default'),
+        }
     return {
-        'slide_data':  state or {},
-        'slide_index': data.get('slide_index', 0),
-        'slide_count': data.get('slide_count', 0),
-        'item_title':  data.get('title', ''),
+        'slide_data':      state or {},
+        'slide_index':     data.get('slide_index', 0),
+        'slide_count':     data.get('slide_count', 0),
+        'item_title':      data.get('title', ''),
+        'next_slide_data': next_slide_data,
     }
 
 
