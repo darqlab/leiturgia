@@ -1110,13 +1110,7 @@
       border-radius: 6px;
       border: 1px solid #1e2f52;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
       position: relative;
-      min-height: 0;
     }
 
     .lp-part {
@@ -1252,20 +1246,149 @@
       flex-shrink: 0;
       width: 160px;
       height: 110px;
-      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 5px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      padding: 6px 8px;
-      transition: border-color 0.15s, background 0.15s;
+      transition: border-color 0.15s;
       overflow: hidden;
       position: relative;
+      background: #000;
     }
-    .strip-thumb:hover { border-color: var(--gold-dim); background: #1a2b5c22; }
-    .strip-thumb.active { border-color: var(--gold); background: #1a2b5c44; }
+    .strip-thumb-preview {
+      flex: 1;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+    /* ── Slide-strip thumbnail renderer (480×270 scaled to tile) ── */
+    .stp-render {
+      position: absolute;
+      top: 0; left: 0;
+      width: 480px;
+      height: 270px;
+      background: #0D1B3E;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 30px;
+      box-sizing: border-box;
+      transform-origin: top left;
+      transform: scale(0.3333);
+      overflow: hidden;
+    }
+    .stp-render.stp-dark  { background: #091428; }
+    .stp-render.stp-black { background: #000; padding: 0; }
+    .stp-song-title {
+      font-family: Calibri, 'DM Sans', sans-serif;
+      font-size: 13px;
+      color: #D4A843;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      width: 100%;
+    }
+    .stp-stanza-label {
+      font-size: 11px;
+      color: #8C9AB5;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .stp-title {
+      font-family: Georgia, serif;
+      font-size: 42px;
+      font-weight: 700;
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.15;
+      overflow: hidden;
+    }
+    .stp-part-label {
+      font-family: Calibri, 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #D4A843;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .stp-lines {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      width: 100%;
+    }
+    .stp-line {
+      font-family: Georgia, serif;
+      font-size: 28px;
+      color: #E8EAF0;
+      text-align: center;
+      line-height: 1.35;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .stp-body {
+      font-family: Georgia, serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: #E8EAF0;
+      text-align: center;
+      overflow: hidden;
+    }
+    .stp-announce-label {
+      font-family: Calibri, 'DM Sans', sans-serif;
+      font-size: 12px;
+      color: #D4A843;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .stp-announce-text {
+      font-family: Georgia, serif;
+      font-size: 28px;
+      color: #FFFFFF;
+      text-align: center;
+      line-height: 1.4;
+      overflow: hidden;
+    }
+    .stp-participant {
+      font-family: Georgia, serif;
+      font-size: 52px;
+      font-weight: 700;
+      color: #E8EAF0;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+    .strip-thumb-footer {
+      flex-shrink: 0;
+      padding: 2px 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #0a1628;
+      border-top: 1px solid #0e1a30;
+      min-height: 20px;
+    }
+    .strip-thumb-footer .strip-thumb-num { margin-bottom: 0; }
+    .strip-thumb:hover { border-color: var(--gold-dim); }
+    .strip-thumb.active { border-color: var(--gold); }
 
     .strip-thumb-num {
       font-size: 9px;
@@ -1771,7 +1894,8 @@
   <div>
     <div class="rp-section-label">Live Preview</div>
     <div class="live-preview-screen" id="livePreviewScreen">
-      <span class="lp-waiting">Waiting…</span>
+      <iframe id="livePreviewFrame" src="/ch1" scrolling="no" tabindex="-1"
+              style="position:absolute;top:0;left:0;width:1920px;height:1080px;border:none;pointer-events:none;transform-origin:top left;"></iframe>
     </div>
   </div>
 
@@ -3539,11 +3663,65 @@
     el.className = 'live-status online';
     el.title = 'Projection: connected';
     _socket.emit('console:join');
+    _socket.emit('state:restore', { channel: _getChannel() });
   });
 
   _socket.on('remote:next',  () => _projNext());
   _socket.on('remote:prev',  () => _projPrev());
   _socket.on('remote:blank', () => _projBlank());
+
+  // ── Drive the preview iframe from every projection event ──────────────────
+  function _lpFrameRender(data) {
+    _updateChTile(data.channel || _getChannel(), data);
+    const frame = document.getElementById('livePreviewFrame');
+    if (!frame || !frame.contentWindow) return;
+    try {
+      if (typeof frame.contentWindow.renderState === 'function') {
+        frame.contentWindow.renderState(data);
+      }
+    } catch (e) {}
+  }
+
+  _socket.on('slide:show',   function (d) { _lpFrameRender(d); });
+  _socket.on('slide:blank',  function (d) { _lpFrameRender(d); });
+  _socket.on('slide:edit',   function (d) { _lpFrameRender(d); });
+  _socket.on('announcement', function (d) { _lpFrameRender(Object.assign({}, d, { type: 'announcement' })); });
+  _socket.on('media:image',  function (d) { _lpFrameRender(Object.assign({}, d, { type: 'image' })); });
+  function _renderVideoPreview(slide, data) {
+    const url     = data.url || data.src || '';
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    if (ytMatch) {
+      const thumb = 'https://img.youtube.com/vi/' + ytMatch[1] + '/hqdefault.jpg';
+      slide.innerHTML = '<img src="' + thumb + '" style="width:100%;height:100%;object-fit:cover;display:block;">';
+    } else {
+      const filename = url.split('/').pop().replace(/%20/g, ' ') || 'Video';
+      slide.innerHTML =
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+        'width:100%;height:100%;background:#000;color:#8C9AB5;gap:40px;">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 24 24" fill="#8C9AB5">' +
+        '<path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" opacity=".3"/>' +
+        '<path d="M18 4H6L4 6h16l-2-2zM4 18h16v-1H4v1zM20 7H4v9h16V7zM9 8h1v1H9V8zm-2 0h1v1H7V8zm-2 0h1v1H5V8zm14 0h1v1h-1V8zm-2 0h1v1h-1V8zm-2 0h1v1h-1V8zM5 16h1v1H5v-1zm2 0h1v1H7v-1zm2 0h1v1H9v-1zm8 0h1v1h-1v-1zm-2 0h1v1h-1v-1zm-2 0h1v1h-1v-1z"/>' +
+        '</svg>' +
+        '<span style="font-size:72px;font-family:sans-serif;text-align:center;max-width:1800px;' +
+        'overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 60px;">' + filename + '</span>' +
+        '</div>';
+    }
+  }
+
+  _socket.on('media:video',  function (d) {
+    _updateChTile(d.channel || _getChannel(), Object.assign({}, d, { type: 'video' }));
+    const frame = document.getElementById('livePreviewFrame');
+    if (!frame || !frame.contentWindow) return;
+    try {
+      const slide = frame.contentWindow.document.getElementById('slide');
+      if (slide) _renderVideoPreview(slide, d);
+    } catch(e) {}
+  });
+  _socket.on('timer:show',   function (d) { _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
+  _socket.on('timer:start',  function (d) { _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
+  _socket.on('timer:pause',  function (d) { if (d) _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
+  _socket.on('timer:reset',  function (d) { _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
+
   _socket.on('disconnect', function () {
     const el = document.getElementById('live-status');
     el.className = 'live-status offline';
@@ -3646,6 +3824,11 @@
     toast(`⛔ YouTube blocked: ${msg}. Use the Download button to play locally.`, 'error');
   });
 
+  _socket.on('program:cloud:update', function () {
+    toast('Program updated from cloud — reloading…', 'success');
+    setTimeout(() => window.location.reload(), 1200);
+  });
+
   function _updateAudioBadge(ch, audioState) {
     const tile = document.querySelector(`.ch-tile[data-ch="${ch}"]`);
     if (!tile) return;
@@ -3679,8 +3862,32 @@
     if (btn) btn.href = '/' + ch;
   }
 
+  // ── Live preview iframe scaling ────────────────────────────────────────────
+  function _scalePreviewFrame() {
+    const screen = document.getElementById('livePreviewScreen');
+    const frame  = document.getElementById('livePreviewFrame');
+    if (!screen || !frame) return;
+    frame.style.transform = `scale(${screen.offsetWidth / 1920})`;
+  }
+  window.addEventListener('resize', _scalePreviewFrame);
+  _scalePreviewFrame();
+
+  // Patch the iframe's renderVideo so it never plays — shows thumbnail only.
+  function _patchPreviewFrameVideo() {
+    const frame = document.getElementById('livePreviewFrame');
+    if (!frame || !frame.contentWindow) return;
+    try {
+      frame.contentWindow.renderVideo = function (data) {
+        const slide = frame.contentWindow.document.getElementById('slide');
+        if (slide) _renderVideoPreview(slide, data);
+      };
+    } catch(e) {}
+  }
+  document.getElementById('livePreviewFrame').addEventListener('load', _patchPreviewFrameVideo);
+
   // ── Channel tile selection ─────────────────────────────────────────────────
   function selectChannel(ch) {
+    const old = _getChannel();
     // Update dropdown
     const sel = document.getElementById('channelSelect');
     if (sel) sel.value = ch;
@@ -3689,6 +3896,14 @@
     document.querySelectorAll('.ch-tile').forEach(t => {
       t.classList.toggle('selected', t.dataset.ch === ch);
     });
+    // Point the preview iframe at the new channel
+    const frame = document.getElementById('livePreviewFrame');
+    if (frame) frame.src = '/' + ch;
+    // Switch server-side channel room subscription
+    if (old !== ch) {
+      _socket.emit('console:watch', { old, new: ch });
+      _socket.emit('state:restore', { channel: ch });
+    }
   }
 
   function _updateChTile(ch, data) {
@@ -3706,67 +3921,21 @@
 
   // ── Live preview (mini screen in right panel) ──────────────────────────────
   function renderLivePreview(data) {
-    const screen = document.getElementById('livePreviewScreen');
-    if (!screen) return;
-    const type = data.type || 'text';
-    // Update the channel tile state label
+    // Visual rendering is handled by the scaled iframe — only update channel tile labels.
     _updateChTile(data.channel || _getChannel(), data);
-    let html = '';
-
-    if (type === 'blank') {
-      html = `<span class="lp-blank-label">BLANK</span>`;
-      screen.style.background = '#000';
-    } else if (type === 'announcement') {
-      screen.style.background = '#091428';
-      const txt = data.text || data.data?.text || '';
-      html = `<div class="lp-announce-label">Announcement</div>
-              <div class="lp-announce-text">${_lpEsc(txt)}</div>`;
-    } else if (type === 'image') {
-      const url = data.url || data.data?.url || '';
-      screen.style.background = '#000';
-      html = `<img src="${_lpEsc(url)}" style="max-width:100%;max-height:100%;object-fit:contain;">`;
-    } else if (type === 'timer') {
-      screen.style.background = '#091428';
-      const secs = data.seconds || data.data?.seconds || 0;
-      const m = Math.floor(secs / 60), s = secs % 60;
-      html = `<div style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#F0C96A;font-weight:700;">${m}:${String(s).padStart(2,'0')}</div>
-              <div style="font-size:7px;color:#8C9AB5;margin-top:3px;">${_lpEsc(data.label || data.data?.label || '')}</div>`;
-    } else {
-      // text
-      screen.style.background = '#0D1B3E';
-      const d = data.data || data;
-      if (d.is_content_para) {
-        // Content paragraph preview: part only on first para, then lines like a stanza
-        if (d.part) html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
-        html += `<div class="lp-lines">${_lpEsc(d.body || '').replace(/\n/g, '<br>')}</div>`;
-      } else {
-        if (d.part)  html += `<div class="lp-part">${_lpEsc(d.part)}</div>`;
-        if (d.title) html += `<div class="lp-title">${_lpEsc(d.title)}</div>`;
-        if (d.stanza) {
-          const t = (d.stanza.type || 'verse').toLowerCase();
-          const label = t === 'chorus' ? 'Chorus' : t === 'refrain' ? 'Refrain' : `Verse ${d.stanza.number}`;
-          html += `<div class="lp-stanza-label">${label}</div>`;
-          html += `<div class="lp-lines">${(d.stanza.lines || []).map(_lpEsc).join('<br>')}</div>`;
-        }
-        if (d.body) {
-          const lpSizes = { sm: '5.5px', md: '7.5px', lg: '9.5px', xl: '12px' };
-          const lpFs = lpSizes[d.font_size] || lpSizes.md;
-          const lpTa = ['left','center','right'].includes(d.text_align) ? d.text_align : 'center';
-          html += `<div class="lp-body" style="font-size:${lpFs};text-align:${lpTa};white-space:pre-wrap">${_lpEsc(d.body)}</div>`;
-        }
-      }
-      if (d.participants?.length) {
-        html += `<div class="lp-participants">${d.participants.map(p =>
-          `<div>${p.role ? `<span class="lp-participant-role">${_lpEsc(p.role)}</span>` : ''}${_lpEsc(p.name || '')}</div>`
-        ).join('')}</div>`;
-      }
-    }
-
-    screen.innerHTML = html || `<span class="lp-waiting">Waiting…</span>`;
   }
 
   function _lpEsc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function _makeThumbHTML(renderInner, badge, slideNum, extraClass) {
+    const cls = extraClass ? 'stp-render ' + extraClass : 'stp-render';
+    return `
+    <div class="strip-thumb-preview"><div class="${cls}">${renderInner}</div></div>
+    <div class="strip-thumb-footer">
+      <span class="strip-thumb-num">${slideNum} ${badge}</span>
+    </div>`;
   }
 
   // ── Slide strip ────────────────────────────────────────────────────────────
@@ -3807,10 +3976,11 @@
               titleThumb.className        = 'strip-thumb' + (titleActive ? ' active' : '');
               titleThumb.dataset.itemId   = itemEl.id;
               titleThumb.dataset.stanzaIdx = 0;
-              titleThumb.innerHTML = `
-                <div class="strip-thumb-num">${slideNum} <span class="badge badge-song-s">♪</span></div>
-                <div class="strip-thumb-title">${_lpEsc(part || title)}</div>
-                <div class="strip-thumb-detail">Title</div>`;
+              const tcPartHtml = part ? `<div class="stp-part-label">${_lpEsc(part)}</div>` : '';
+              titleThumb.innerHTML = _makeThumbHTML(
+                `${tcPartHtml}<div class="stp-title">${_lpEsc(title)}</div>`,
+                `<span class="badge badge-song-s">♪</span>`, slideNum
+              );
               titleThumb.addEventListener('click', () => _jumpToStanza(itemEl, fullStanzas, 0, title, part));
               strip.appendChild(titleThumb);
 
@@ -3826,10 +3996,11 @@
                 thumb.className        = 'strip-thumb' + (isActive ? ' active' : '');
                 thumb.dataset.itemId   = itemEl.id;
                 thumb.dataset.stanzaIdx = projIdx;
-                thumb.innerHTML = `
-                  <div class="strip-thumb-num">${slideNum} <span class="badge badge-song-s">♪</span></div>
-                  <div class="strip-thumb-title">${_lpEsc(part || title)}</div>
-                  <div class="strip-thumb-detail">${label}: ${_lpEsc((stanza.lines || [])[0] || '')}</div>`;
+                const stanzaLinesHtml = (stanza.lines || []).map(l => `<div class="stp-line">${_lpEsc(l)}</div>`).join('');
+                thumb.innerHTML = _makeThumbHTML(
+                  `<div class="stp-lines">${stanzaLinesHtml}</div>`,
+                  `<span class="badge badge-song-s">♪</span>`, slideNum
+                );
                 thumb.addEventListener('click', () => _jumpToStanza(itemEl, fullStanzas, projIdx, title, part));
                 strip.appendChild(thumb);
               });
@@ -3851,10 +4022,11 @@
             thumb.className          = 'strip-thumb' + (isActive ? ' active' : '');
             thumb.dataset.itemId     = itemEl.id;
             thumb.dataset.stanzaIdx  = pi;
-            thumb.innerHTML = `
-              <div class="strip-thumb-num">${slideNum} <span class="badge badge-cont-s">C</span></div>
-              <div class="strip-thumb-title">${_lpEsc(title)}</div>
-              <div class="strip-thumb-detail">§${pi + 1}: ${_lpEsc(para.split('\n')[0])}</div>`;
+            const paraBodyHtml = para.split('\n').map(l => _lpEsc(l)).join('<br>');
+            thumb.innerHTML = _makeThumbHTML(
+              `<div class="stp-body">${paraBodyHtml}</div>`,
+              `<span class="badge badge-cont-s">C</span>`, slideNum
+            );
             thumb.addEventListener('click', () => {
               _projItem        = itemEl;
               _projStanzas     = paras.map(t => ({ type: '__content_para__', text: t }));
@@ -3881,37 +4053,56 @@
 
       // Single thumb (non-song, or song with no lyrics, or single-para content)
       slideNum++;
-      let badge = '', detail = '', thumbExtra = '';
+      let badge = '';
       if (type === 'song') {
         badge  = `<span class="badge badge-song-s">♪</span>`;
-        detail = 'no lyrics';
       } else if (type === 'content') {
         badge  = `<span class="badge badge-cont-s">C</span>`;
       } else if (type === 'video') {
         badge  = `<span class="badge badge-video-s">V</span>`;
-        const url = itemEl.querySelector('.item-media-url')?.value || '';
-        detail = url.split('/').pop() || '';
-        thumbExtra = `<div style="width:100%;height:36px;display:flex;align-items:center;justify-content:center;background:#0a1628;border-radius:3px;margin-top:3px;font-size:18px;">▶</div>`;
       } else if (type === 'image') {
         badge  = `<span class="badge badge-image-s">I</span>`;
-        const url = itemEl.querySelector('.item-media-url')?.value || '';
-        detail = url.split('/').pop() || '';
-        if (url) {
-          thumbExtra = `<img src="${url}" alt="" style="width:100%;height:36px;object-fit:cover;border-radius:3px;margin-top:3px;">`;
-        }
       } else {
         badge  = `<span class="badge badge-part-s">P</span>`;
-        detail = itemEl.querySelector('.item-participant')?.value || '';
+      }
+      let stpInner = '';
+      let stpClass = '';
+      if (type === 'video') {
+        const vUrl  = itemEl.querySelector('.item-media-url')?.value || '';
+        const vName = vUrl.split('/').pop().replace(/%20/g, ' ') || 'Video';
+        stpClass = 'stp-black';
+        stpInner =
+          '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+          'width:100%;height:100%;color:#8C9AB5;gap:16px;">' +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="#8C9AB5">' +
+          '<path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" opacity=".3"/>' +
+          '<path d="M18 4H6L4 6h16l-2-2zM4 18h16v-1H4v1zM20 7H4v9h16V7zM9 8h1v1H9V8zm-2 0h1v1H7V8zm-2 0h1v1H5V8zm14 0h1v1h-1V8zm-2 0h1v1h-1V8zm-2 0h1v1h-1V8zM5 16h1v1H5v-1zm2 0h1v1H7v-1zm2 0h1v1H9v-1zm8 0h1v1h-1v-1zm-2 0h1v1h-1v-1zm-2 0h1v1h-1v-1z"/>' +
+          '</svg>' +
+          '<span style="font-size:22px;text-align:center;max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:Calibri,sans-serif;color:#8C9AB5;">' + _lpEsc(vName) + '</span>' +
+          '</div>';
+      } else if (type === 'image') {
+        const iUrl = itemEl.querySelector('.item-media-url')?.value || '';
+        stpClass = 'stp-black';
+        stpInner = iUrl
+          ? `<img src="${iUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">`
+          : '<div style="color:#8C9AB5;font-family:Calibri,sans-serif;font-size:22px;">Image</div>';
+      } else if (type === 'content') {
+        const bodyVal = itemEl.querySelector('.item-content')?.value || '';
+        stpInner = `<div class="stp-body">${_lpEsc(bodyVal.split('\n')[0] || title)}</div>`;
+      } else if (type === 'song') {
+        stpInner = `<div class="stp-title" style="color:#8C9AB5;font-size:22px;">no lyrics</div>`;
+      } else {
+        // participant
+        const partTitle = itemEl.querySelector('.item-title')?.value || title;
+        const partName  = itemEl.querySelector('.item-participant')?.value || '';
+        const partTitleHtml = partTitle ? `<div class="stp-part-label">${_lpEsc(partTitle)}</div>` : '';
+        stpInner = `${partTitleHtml}<div class="stp-participant">${_lpEsc(partName)}</div>`;
       }
       const isActive = itemEl.id === _activeThumbItemId && _activeThumbStanzaIdx === null;
       const thumb = document.createElement('div');
       thumb.className      = 'strip-thumb' + (isActive ? ' active' : '');
       thumb.dataset.itemId = itemEl.id;
-      thumb.innerHTML = `
-        <div class="strip-thumb-num">${slideNum} ${badge}</div>
-        <div class="strip-thumb-title">${_lpEsc(type === 'song' ? (part || title) : title)}</div>
-        ${detail ? `<div class="strip-thumb-detail">${_lpEsc(detail)}</div>` : ''}
-        ${thumbExtra}`;
+      thumb.innerHTML = _makeThumbHTML(stpInner, badge, slideNum, stpClass);
       thumb.addEventListener('click', () => sendLive(itemEl));
       strip.appendChild(thumb);
     }
@@ -4082,14 +4273,16 @@
   }
 
   function _sendCurrentStanza(ch, title, part, hymn_number) {
-    const stanza = _projStanzas[_projStanzaIdx] || null;
-    const sd     = {
+    const stanza     = _projStanzas[_projStanzaIdx] || null;
+    const nextStanza = _projStanzas[_projStanzaIdx + 1] || null;
+    const sd         = {
       type: 'text', title, part, channel: ch, theme_id: _getTheme(),
       item_id: _projItem?.dataset.itemId || null,
       stanza_idx: _projStanzaIdx,
     };
     // Only attach stanza if it's a real stanza (not the title-card sentinel)
     if (stanza && stanza.type !== '__title__') sd.stanza = stanza;
+    if (nextStanza && nextStanza.type !== '__title__') sd.next_stanza = nextStanza;
     if (hymn_number) sd.hymn_number = hymn_number;
     _socket.emit('slide:show', sd);
     renderLivePreview(sd);
@@ -4293,10 +4486,7 @@
 <script>
   // Settings modal
   function openSettings() {
-    document.getElementById('settingsPinError').textContent = '';
-    document.getElementById('settingsNewPin').value = '';
-    document.getElementById('settingsConfirmPin').value = '';
-    document.getElementById('settingsModal').classList.add('open');
+    window.location.href = '/settings';
   }
   function closeSettings() {
     document.getElementById('settingsModal').classList.remove('open');
