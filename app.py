@@ -522,12 +522,24 @@ def _item_to_slide_state(item: dict) -> dict:
     }
 
 
-def _next_sequence_slide(program: dict, item_id: str) -> dict | None:
-    """Return the first-slide state for the sequence item immediately after item_id."""
+def _next_sequence_slide(program: dict, item_id: str,
+                          slide_url: str | None = None,
+                          program_id: str | None = None) -> dict | None:
+    """Return the first-slide state for the sequence item immediately after item_id.
+
+    slide_url and program_id disambiguate when multiple items share the same item_id.
+    """
     for sp in program.get('service_programs', []):
+        if program_id and sp.get('id') != program_id:
+            continue
         items = sp.get('items', [])
         for i, it in enumerate(items):
-            if it['item_id'] == item_id and i + 1 < len(items):
+            if it['item_id'] != item_id:
+                continue
+            # Skip duplicate item_ids that don't match by URL
+            if slide_url and it.get('url') and it['url'] != slide_url:
+                continue
+            if i + 1 < len(items):
                 return _item_to_slide_state(items[i + 1])
     return None
 
@@ -550,10 +562,14 @@ def build_remote_sync() -> dict:
         }
     else:
         # Non-song or last stanza: show first slide of the next sequence item
-        item_id = data.get('item_id') or _active_item.get('item_id')
+        item_id   = data.get('item_id') or _active_item.get('item_id')
+        slide_url = data.get('url') or data.get('src')
+        program_id = _active_item.get('program_id')
         if item_id:
             program = load_program()
-            next_slide_data = _next_sequence_slide(program, item_id)
+            next_slide_data = _next_sequence_slide(
+                program, item_id, slide_url=slide_url, program_id=program_id
+            )
     return {
         'slide_data':      state or {},
         'slide_index':     data.get('slide_index', 0),
