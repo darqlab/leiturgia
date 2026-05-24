@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from dotenv import load_dotenv
 load_dotenv()
-from hymnal import search_titles, get_by_title, get_by_number
+from hymnal import search_titles, get_by_title, get_by_number, search_by_number_prefix
 from projection import ProjectionStateManager
 from media_manager import list_media
 from timer import TimerManager
@@ -424,6 +424,8 @@ def hymnal_search():
     q = request.args.get("q", "").strip()
     if not q:
         return jsonify([])
+    if q.isdigit():
+        return jsonify(search_by_number_prefix(q, limit=8))
     return jsonify(search_titles(q, limit=8))
 
 

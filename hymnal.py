@@ -105,3 +105,13 @@ def search_titles(query: str, limit: int = 10) -> list[dict]:
             (q, limit)
         ).fetchall()
     return [{"number": r["number"], "title": r["title"]} for r in rows]
+
+
+def search_by_number_prefix(prefix: str, limit: int = 8) -> list[dict]:
+    pattern = f"{prefix}%"
+    with _connect() as con:
+        rows = con.execute(
+            "SELECT number, title FROM Hymns WHERE CAST(number AS TEXT) LIKE ? ORDER BY number LIMIT ?",
+            (pattern, limit)
+        ).fetchall()
+    return [{"number": r["number"], "title": r["title"]} for r in rows]

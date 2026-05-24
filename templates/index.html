@@ -1780,7 +1780,7 @@
                 <input type="text" class="lyrics-query"
                        placeholder="Hymn # or song title…"
                        value="{{ ('#' ~ item.hymn_number|string ~ ' — ' ~ item.title) if (item.get('hymn_number') and item.get('title') and 'lyrics_key' in item) else (item.get('hymn_number', '') or item.get('lyrics_key', '')) }}"
-                       oninput="hymnalSuggest(this)" onblur="closeSuggest(this)">
+                       oninput="hymnalSuggest(this)" onblur="closeSuggest(this)" onkeydown="hymnalSuggestKeydown(event, this)">
                 <div class="hymnal-suggest"></div>
                 <button class="btn btn-outline" onclick="searchLyrics(this)" style="height:38px; white-space:nowrap">Search Lyrics</button>
                 <button class="btn btn-ghost"   onclick="clearLyrics(this)"  style="height:38px; font-size:12px">Clear</button>
@@ -1974,7 +1974,7 @@
         <div class="rule" style="margin:10px 0 8px;"></div>
         <div class="lyrics-section">
           <div class="lyrics-search-row">
-            <input type="text" class="lyrics-query" placeholder="Hymn # or song title…" value="" oninput="hymnalSuggest(this)" onblur="closeSuggest(this)">
+            <input type="text" class="lyrics-query" placeholder="Hymn # or song title…" value="" oninput="hymnalSuggest(this)" onblur="closeSuggest(this)" onkeydown="hymnalSuggestKeydown(event, this)">
             <div class="hymnal-suggest"></div>
             <button class="btn btn-outline" onclick="searchLyrics(this)" style="height:38px; white-space:nowrap">Search Lyrics</button>
             <button class="btn btn-ghost" onclick="clearLyrics(this)" style="height:38px; font-size:12px">Clear</button>
@@ -3565,7 +3565,7 @@
     const q    = input.value.trim();
 
     clearTimeout(_suggestTimer);
-    if (!q || q.match(/^\d+$/)) { drop.classList.remove("open"); return; }
+    if (!q) { drop.classList.remove("open"); return; }
 
     _suggestTimer = setTimeout(async () => {
       const res  = await fetch(`/api/hymnal/search?q=${encodeURIComponent(q)}`);
@@ -3616,6 +3616,16 @@
       const drop = input.closest(".lyrics-search-row").querySelector(".hymnal-suggest");
       drop.classList.remove("open");
     }, 200);
+  }
+
+  function hymnalSuggestKeydown(e, input) {
+    if (e.key !== "Enter") return;
+    const drop  = input.closest(".lyrics-search-row").querySelector(".hymnal-suggest");
+    const first = drop.querySelector(".hymnal-suggest-item");
+    if (drop.classList.contains("open") && first) {
+      e.preventDefault();
+      pickSuggest(first);
+    }
   }
 
   // ── Lyrics preview modal ──────────────────────────────────────────────────
