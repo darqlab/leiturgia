@@ -112,15 +112,15 @@
       background: var(--card);
       border-bottom: 1px solid var(--border);
     }
-    /* Phone: vertical stack — current constrained, next fills gap */
+    /* Phone: vertical stack — 60% current / 40% next */
     .slide-previews  { flex-direction: column; }
-    .slide-current   { flex: 0 1 auto; min-height: 25vh; max-height: 55vh; }
-    .slide-next      { display: flex; flex: 1 1 auto; min-height: 18vh; background: #0a1628; }
+    .slide-current   { flex: 3 1 0; min-height: 0; }
+    .slide-next      { display: flex; flex: 2 1 0; min-height: 0; background: #0a1628; }
 
     /* Tablet+: side by side (restore defaults) */
     @media (min-width: 768px) {
       .slide-previews { flex-direction: row; }
-      .slide-current  { flex: 1; min-height: 0; max-height: none; }
+      .slide-current  { flex: 1; background: var(--card); }
       .slide-next     { flex: 1; background: var(--card); }
     }
 
