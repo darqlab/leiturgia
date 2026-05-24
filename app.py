@@ -494,9 +494,12 @@ def _item_to_slide_state(item: dict) -> dict:
             'theme_id': 'default',
         }
     if t == 'content':
+        full = item.get('content', '')
+        paras = [p.strip() for p in full.split('\n\n') if p.strip()]
+        first_para = paras[0] if paras else full
         return {
             'type': 'text',
-            'data': {'title': item.get('title', ''), 'body': item.get('content', ''), 'part': item.get('part', '')},
+            'data': {'title': item.get('title', ''), 'body': first_para, 'part': item.get('part', ''), 'is_content_para': True},
             'theme_id': 'default',
         }
     # participant (default)
