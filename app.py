@@ -488,20 +488,9 @@ def _item_to_slide_state(item: dict) -> dict:
             'theme_id': 'default',
         }
     if t == 'song':
-        key  = item.get('lyrics_key') or _lyrics_key(item.get('title', ''))
-        path = _lyrics_path(key)
-        stanza = None
-        if os.path.exists(path):
-            try:
-                lyr    = _load_lyrics(path, hint_number=item.get('hymn_number'), hint_title=item.get('title'))
-                stanzas = lyr.get('stanzas', [])
-                if stanzas:
-                    stanza = stanzas[0]
-            except Exception:
-                pass
         return {
             'type': 'text',
-            'data': {'title': item.get('title', ''), 'part': '', 'stanza': stanza or ''},
+            'data': {'title': item.get('title', ''), 'part': item.get('part', ''), 'stanza': ''},
             'theme_id': 'default',
         }
     if t == 'content':
