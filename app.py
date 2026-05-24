@@ -464,12 +464,81 @@ def delete_program(program_id):
 
 
 # ── Remote sync helper ───────────────────────────────────────────────────────
+def _item_to_slide_state(item: dict) -> dict:
+    """Build the first-slide projection state for a program item."""
+    t = item.get('type', 'participant')
+    # Items may use type='media' + media_type, or direct type='image'/'video'
+    is_video = (t == 'video') or (t == 'media' and item.get('media_type') == 'video')
+    is_image = (t == 'image') or (t == 'media' and item.get('media_type') != 'video')
+    if is_video:
+        return {
+            'type': 'video',
+            'data': {
+                'url':      item.get('url', ''),
+                'autoplay': item.get('autoplay', False),
+                'loop':     item.get('loop', False),
+                'mute':     item.get('mute', False),
+            },
+            'theme_id': 'default',
+        }
+    if is_image:
+        return {
+            'type': 'image',
+            'data': {'url': item.get('url', '')},
+            'theme_id': 'default',
+        }
+    if t == 'song':
+        key  = item.get('lyrics_key') or _lyrics_key(item.get('title', ''))
+        path = _lyrics_path(key)
+        stanza = None
+        if os.path.exists(path):
+            try:
+                lyr    = _load_lyrics(path, hint_number=item.get('hymn_number'), hint_title=item.get('title'))
+                stanzas = lyr.get('stanzas', [])
+                if stanzas:
+                    stanza = stanzas[0]
+            except Exception:
+                pass
+        return {
+            'type': 'text',
+            'data': {'title': item.get('title', ''), 'part': '', 'stanza': stanza or ''},
+            'theme_id': 'default',
+        }
+    if t == 'content':
+        return {
+            'type': 'text',
+            'data': {'title': item.get('title', ''), 'content': item.get('content', ''), 'part': ''},
+            'theme_id': 'default',
+        }
+    # participant (default)
+    return {
+        'type': 'text',
+        'data': {
+            'title':       item.get('title', ''),
+            'part':        item.get('part', item.get('title', '')),
+            'participant': item.get('participant', ''),
+        },
+        'theme_id': 'default',
+    }
+
+
+def _next_sequence_slide(program: dict, item_id: str) -> dict | None:
+    """Return the first-slide state for the sequence item immediately after item_id."""
+    for sp in program.get('service_programs', []):
+        items = sp.get('items', [])
+        for i, it in enumerate(items):
+            if it['item_id'] == item_id and i + 1 < len(items):
+                return _item_to_slide_state(items[i + 1])
+    return None
+
+
 def build_remote_sync() -> dict:
     state = proj.get_state('ch1')
     data  = state.get('data', {}) if state else {}
     next_stanza = data.get('next_stanza')
     next_slide_data = None
     if next_stanza:
+        # Mid-song: show the next stanza
         next_slide_data = {
             'type':     'text',
             'data':     {
@@ -479,6 +548,12 @@ def build_remote_sync() -> dict:
             },
             'theme_id': state.get('theme_id', 'default'),
         }
+    else:
+        # Non-song or last stanza: show first slide of the next sequence item
+        item_id = data.get('item_id') or _active_item.get('item_id')
+        if item_id:
+            program = load_program()
+            next_slide_data = _next_sequence_slide(program, item_id)
     return {
         'slide_data':      state or {},
         'slide_index':     data.get('slide_index', 0),
