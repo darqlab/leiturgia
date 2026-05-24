@@ -112,10 +112,10 @@
       background: var(--card);
       border-bottom: 1px solid var(--border);
     }
-    /* Phone: vertical stack — 60% current / 40% next */
+    /* Phone: vertical stack — 50/50 */
     .slide-previews  { flex-direction: column; }
-    .slide-current   { flex: 3 1 0; min-height: 0; }
-    .slide-next      { display: flex; flex: 2 1 0; min-height: 0; background: #0a1628; }
+    .slide-current   { flex: 1 1 0; min-height: 0; }
+    .slide-next      { display: flex; flex: 1 1 0; min-height: 0; background: #0a1628; }
 
     /* Tablet+: side by side (restore defaults) */
     @media (min-width: 768px) {
@@ -426,14 +426,25 @@
     } catch(e) {}
   }
 
+  // Cover-scale: fill the box in both axes, center the slide, clip overflow.
+  function _scaleFrame(boxEl, frameEl) {
+    if (!boxEl || !frameEl) return;
+    const sw    = boxEl.offsetWidth  / 1920;
+    const sh    = boxEl.offsetHeight / 1080;
+    const scale = Math.max(sw, sh);
+    const dx    = (boxEl.offsetWidth  - 1920 * scale) / 2;
+    const dy    = (boxEl.offsetHeight - 1080 * scale) / 2;
+    frameEl.style.transformOrigin = 'top left';
+    frameEl.style.transform = `translate(${dx}px,${dy}px) scale(${scale})`;
+  }
   function _scaleRemoteFrame() {
-    const box   = document.getElementById('slideCurrent');
-    const frame = document.getElementById('remotePreviewFrame');
-    if (!box || !frame) return;
-    frame.style.transform = `scale(${box.offsetWidth / 1920})`;
+    _scaleFrame(
+      document.getElementById('slideCurrent'),
+      document.getElementById('remotePreviewFrame')
+    );
   }
   window.addEventListener('resize', _scaleRemoteFrame);
-  _scaleRemoteFrame();
+  requestAnimationFrame(_scaleRemoteFrame);
 
   function _patchRemoteFrameVideo() {
     const frame = document.getElementById('remotePreviewFrame');
@@ -451,7 +462,7 @@
     } catch(e) {}
   }
   document.getElementById('remotePreviewFrame').addEventListener('load', function() {
-    _scaleRemoteFrame();
+    requestAnimationFrame(_scaleRemoteFrame);
     _patchRemoteFrameVideo();
     // Replay current slide so it shows even if remote:sync fired before this iframe loaded,
     // and so the patched renderVideo is used instead of the original (which would play the video).
@@ -459,16 +470,16 @@
   });
 
   function _scaleRemoteNextFrame() {
-    const box   = document.getElementById('slideNext');
-    const frame = document.getElementById('remoteNextFrame');
-    if (!box || !frame) return;
-    frame.style.transform = `scale(${box.offsetWidth / 1920})`;
+    _scaleFrame(
+      document.getElementById('slideNext'),
+      document.getElementById('remoteNextFrame')
+    );
   }
   window.addEventListener('resize', _scaleRemoteNextFrame);
-  _scaleRemoteNextFrame();
+  requestAnimationFrame(_scaleRemoteNextFrame);
 
   document.getElementById('remoteNextFrame').addEventListener('load', function() {
-    _scaleRemoteNextFrame();
+    requestAnimationFrame(_scaleRemoteNextFrame);
     try {
       const fw = this.contentWindow;
       // Neutralise renderState so live socket events don't overwrite our next-slide content.
