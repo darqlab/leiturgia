@@ -354,23 +354,45 @@
     const frame = document.getElementById('remoteNextFrame');
     if (!frame || !frame.contentWindow) return;
     const nextData = (data || {}).next_slide_data;
-    // Always use the saved real renderState, not the neutralised no-op
-    const renderFn = frame.contentWindow._renderNext;
-    if (!nextData) {
-      try {
-        const fw    = frame.contentWindow;
-        const slide   = fw.document.getElementById('slide');
-        const waiting = fw.document.getElementById('waiting');
-        if (waiting) waiting.classList.remove('visible');
-        if (slide) {
-          slide.className = 'type-text';
-          slide.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#4a5a7a;font-size:120px;font-family:Georgia,serif;">—</div>';
-        }
-      } catch(e) {}
-      return;
-    }
     try {
-      if (typeof renderFn === 'function') renderFn.call(frame.contentWindow, nextData);
+      const fw      = frame.contentWindow;
+      const slide   = fw.document.getElementById('slide');
+      const waiting = fw.document.getElementById('waiting');
+      if (!slide) return;
+      if (waiting) waiting.classList.remove('visible');
+
+      if (!nextData) {
+        slide.className = 'type-text';
+        slide.innerHTML = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#4a5a7a;font-size:120px;font-family:Georgia,serif;">—</div>';
+        return;
+      }
+
+      const type   = nextData.type || 'blank';
+      const slData = nextData.data || {};
+
+      if (type === 'text' && typeof fw.renderText === 'function') {
+        // renderText calls fitLyricsToSlide so the font scales correctly
+        fw.renderText(slData);
+
+      } else if (type === 'image' && typeof fw.renderImage === 'function') {
+        fw.renderImage(slData);
+
+      } else if (type === 'video') {
+        // Render a static thumbnail — do NOT call fw.renderVideo (it autoplays)
+        slide.className = 'type-video';
+        const url = slData.url || '';
+        const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+        if (ytMatch) {
+          slide.innerHTML = '<img src="https://img.youtube.com/vi/' + ytMatch[1] + '/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;display:block;">';
+        } else {
+          const name = (url.split('/').pop().replace(/%20/g, ' ') || 'Video').replace(/</g,'&lt;');
+          slide.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#000;color:#8C9AB5;font-family:sans-serif;font-size:60px;">' + name + '</div>';
+        }
+
+      } else {
+        slide.className = 'type-blank';
+        slide.innerHTML = '';
+      }
     } catch(e) {}
   }
 
@@ -430,42 +452,14 @@
   window.addEventListener('resize', _scaleRemoteNextFrame);
   _scaleRemoteNextFrame();
 
-  function _patchRemoteNextFrameVideo() {
-    const frame = document.getElementById('remoteNextFrame');
-    if (!frame || !frame.contentWindow) return;
-    try {
-      frame.contentWindow.renderVideo = function (data) {
-        const fw      = frame.contentWindow;
-        const slide   = fw.document.getElementById('slide');
-        const waiting = fw.document.getElementById('waiting');
-        if (!slide) return;
-        if (waiting) waiting.classList.remove('visible');
-        slide.className = 'type-video';
-        const url     = data.url || data.src || '';
-        const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-        if (ytMatch) {
-          slide.innerHTML = '<img src="https://img.youtube.com/vi/' + ytMatch[1] + '/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;display:block;">';
-        } else {
-          const name = url.split('/').pop().replace(/%20/g, ' ') || 'Video';
-          slide.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#000;color:#8C9AB5;font-family:sans-serif;font-size:60px;">' + name.replace(/</g,'&lt;') + '</div>';
-        }
-      };
-    } catch(e) {}
-  }
   document.getElementById('remoteNextFrame').addEventListener('load', function() {
     _scaleRemoteNextFrame();
-    _patchRemoteNextFrameVideo();
     try {
       const fw = this.contentWindow;
-      // Save the real renderState, then replace it with a no-op.
-      // projection.html uses `const socket` (not window.socket) so we can't disconnect it —
-      // neutralising renderState prevents SocketIO handlers from overwriting our next-slide content.
-      if (typeof fw.renderState === 'function') {
-        fw._renderNext = fw.renderState;
-        fw.renderState = function() {};
-      }
+      // Neutralise renderState so live socket events don't overwrite our next-slide content.
+      // projection.html uses const socket so we cannot disconnect it.
+      if (typeof fw.renderState === 'function') fw.renderState = function() {};
     } catch(e) {}
-    // Always render next slide — pass {} so renderNextSlide shows "—" even if currentSync is null yet
     renderNextSlide(currentSync || {});
   });
 
