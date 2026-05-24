@@ -3675,6 +3675,17 @@
     _updateChTile(data.channel || _getChannel(), data);
     const frame = document.getElementById('livePreviewFrame');
     if (!frame || !frame.contentWindow) return;
+    // Never call renderState for video — use the static thumbnail renderer instead
+    if (data.type === 'video') {
+      try {
+        const fw      = frame.contentWindow;
+        const slide   = fw.document.getElementById('slide');
+        const waiting = fw.document.getElementById('waiting');
+        if (waiting) waiting.classList.remove('visible');
+        if (slide) { slide.className = 'type-video'; _renderVideoPreview(slide, data.data || data); }
+      } catch(e) {}
+      return;
+    }
     try {
       if (typeof frame.contentWindow.renderState === 'function') {
         frame.contentWindow.renderState(data);
@@ -3877,10 +3888,20 @@
     const frame = document.getElementById('livePreviewFrame');
     if (!frame || !frame.contentWindow) return;
     try {
-      frame.contentWindow.renderVideo = function (data) {
-        const slide = frame.contentWindow.document.getElementById('slide');
+      const fw = frame.contentWindow;
+      fw.renderVideo = function (data) {
+        const slide = fw.document.getElementById('slide');
         if (slide) _renderVideoPreview(slide, data);
       };
+      // Stop any video/YT iframe that started before the patch was applied
+      const slide = fw.document.getElementById('slide');
+      if (slide) {
+        slide.querySelectorAll('video').forEach(function(v) { v.pause(); v.src = ''; });
+        slide.querySelectorAll('iframe').forEach(function(f) { f.src = ''; });
+        if (slide.querySelector('video, iframe')) {
+          _renderVideoPreview(slide, { url: '' });
+        }
+      }
     } catch(e) {}
   }
   document.getElementById('livePreviewFrame').addEventListener('load', _patchPreviewFrameVideo);
