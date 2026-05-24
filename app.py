@@ -503,12 +503,14 @@ def _item_to_slide_state(item: dict) -> dict:
             'theme_id': 'default',
         }
     # participant (default)
+    name = item.get('participant', '')
+    part = item.get('part', '')
     return {
         'type': 'text',
         'data': {
-            'title':       item.get('title', ''),
-            'part':        item.get('part', item.get('title', '')),
-            'participant': item.get('participant', ''),
+            'title':        item.get('title', ''),
+            'part':         part,
+            'participants': [{'role': part, 'name': name}] if name else [],
         },
         'theme_id': 'default',
     }
