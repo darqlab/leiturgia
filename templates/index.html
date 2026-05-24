@@ -2938,7 +2938,10 @@
     const list  = itemEl.querySelector('.media-file-list');
     const query = (itemEl.querySelector('.media-search-input')?.value || '').toLowerCase();
     const files = list._allFiles || [];
-    _renderMediaList(itemEl, query ? files.filter(f => f.name.toLowerCase().includes(query)) : files);
+    _renderMediaList(itemEl, query ? files.filter(f => {
+      const name = f.name.toLowerCase().replace(/_/g, ' ');
+      return query.split(/\s+/).filter(Boolean).every(token => name.includes(token));
+    }) : files);
   }
 
   function _renderMediaList(itemEl, files) {

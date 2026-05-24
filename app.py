@@ -1331,6 +1331,7 @@ def _yt_progress_hook(d, item_id, sid):
             'speed':   speed_raw,
             'eta':     d.get('eta', 0),
         }, room=sid)
+        eventlet.sleep(0)
     elif status == 'finished':
         socketio.emit('yt:progress', {
             'item_id': item_id,
@@ -1339,6 +1340,7 @@ def _yt_progress_hook(d, item_id, sid):
             'speed':   '',
             'eta':     0,
         }, room=sid)
+        eventlet.sleep(0)
 
 def _yt_cache_write(source_url, filename, local_url):
     m = _YT_ID_RE.search(source_url)
