@@ -552,6 +552,37 @@ def build_remote_sync() -> dict:
             },
             'theme_id': state.get('theme_id', 'default'),
         }
+    elif data.get('is_content_para'):
+        # Mid-content: show next paragraph of the same content item
+        item_id = data.get('item_id') or _active_item.get('item_id')
+        para_idx = data.get('para_idx', 0)
+        if item_id:
+            program = load_program()
+            item = next(
+                (it for sp in program.get('service_programs', [])
+                 for it in sp.get('items', []) if it['item_id'] == item_id),
+                None
+            )
+            if item:
+                full = item.get('content', '')
+                paras = [p.strip() for p in full.split('\n\n') if p.strip()]
+                if para_idx + 1 < len(paras):
+                    next_slide_data = {
+                        'type': 'text',
+                        'data': {
+                            'body': paras[para_idx + 1],
+                            'part': data.get('part', ''),
+                            'title': data.get('title', ''),
+                            'is_content_para': True,
+                        },
+                        'theme_id': state.get('theme_id', 'default'),
+                    }
+                else:
+                    # Last paragraph — show first slide of next sequence item
+                    program_id = _active_item.get('program_id')
+                    next_slide_data = _next_sequence_slide(
+                        program, item_id, program_id=program_id
+                    )
     else:
         # Non-song or last stanza: show first slide of the next sequence item
         item_id   = data.get('item_id') or _active_item.get('item_id')
