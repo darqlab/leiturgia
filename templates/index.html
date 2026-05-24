@@ -4114,9 +4114,9 @@
         stpInner = `<div class="stp-title" style="color:#8C9AB5;font-size:22px;">no lyrics</div>`;
       } else {
         // participant
-        const partTitle = itemEl.querySelector('.item-title')?.value || title;
+        const partLabel = itemEl.querySelector('.item-part')?.value || '';
         const partName  = itemEl.querySelector('.item-participant')?.value || '';
-        const partTitleHtml = partTitle ? `<div class="stp-part-label">${_lpEsc(partTitle)}</div>` : '';
+        const partTitleHtml = partLabel ? `<div class="stp-part-label">${_lpEsc(partLabel)}</div>` : '';
         stpInner = `${partTitleHtml}<div class="stp-participant">${_lpEsc(partName)}</div>`;
       }
       const isActive = itemEl.id === _activeThumbItemId && _activeThumbStanzaIdx === null;
