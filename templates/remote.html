@@ -340,12 +340,40 @@
     renderNextSlide(data);
   });
 
+  function _renderVideoIcon(slide, data) {
+    const url     = data.url || data.src || '';
+    const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+    if (ytMatch) {
+      slide.innerHTML = '<img src="https://img.youtube.com/vi/' + ytMatch[1] + '/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;display:block;">';
+    } else {
+      const name = (url.split('/').pop().replace(/%20/g, ' ') || 'Video').replace(/</g,'&lt;');
+      slide.innerHTML =
+        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;' +
+        'width:100%;height:100%;background:#000;color:#8C9AB5;gap:40px;">' +
+        '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 24 24" fill="#8C9AB5">' +
+        '<path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" opacity=".3"/>' +
+        '<path d="M18 4H6L4 6h16l-2-2zM4 18h16v-1H4v1zM20 7H4v9h16V7zM9 8h1v1H9V8zm-2 0h1v1H7V8zm-2 0h1v1H5V8zm14 0h1v1h-1V8zm-2 0h1v1h-1V8zm-2 0h1v1h-1V8zM5 16h1v1H5v-1zm2 0h1v1H7v-1zm2 0h1v1H9v-1zm8 0h1v1h-1v-1zm-2 0h1v1h-1v-1zm-2 0h1v1h-1v-1z"/>' +
+        '</svg>' +
+        '<span style="font-size:72px;font-family:sans-serif;">' + name + '</span>' +
+        '</div>';
+    }
+  }
+
   function renderCurrentSlide(data) {
-    const frame = document.getElementById('remotePreviewFrame');
+    const frame     = document.getElementById('remotePreviewFrame');
     if (!frame || !frame.contentWindow) return;
+    const slideData = data.slide_data || { type: 'blank' };
     try {
+      if (slideData.type === 'video') {
+        const fw      = frame.contentWindow;
+        const slide   = fw.document.getElementById('slide');
+        const waiting = fw.document.getElementById('waiting');
+        if (waiting) waiting.classList.remove('visible');
+        if (slide) { slide.className = 'type-video'; _renderVideoIcon(slide, slideData.data || {}); }
+        return;
+      }
       if (typeof frame.contentWindow.renderState === 'function') {
-        frame.contentWindow.renderState(data.slide_data || { type: 'blank' });
+        frame.contentWindow.renderState(slideData);
       }
     } catch(e) {}
   }
@@ -378,16 +406,9 @@
         fw.renderImage(slData);
 
       } else if (type === 'video') {
-        // Render a static thumbnail — do NOT call fw.renderVideo (it autoplays)
+        // Render a static icon — do NOT call fw.renderVideo (it autoplays)
         slide.className = 'type-video';
-        const url = slData.url || '';
-        const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-        if (ytMatch) {
-          slide.innerHTML = '<img src="https://img.youtube.com/vi/' + ytMatch[1] + '/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;display:block;">';
-        } else {
-          const name = (url.split('/').pop().replace(/%20/g, ' ') || 'Video').replace(/</g,'&lt;');
-          slide.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#000;color:#8C9AB5;font-family:sans-serif;font-size:60px;">' + name + '</div>';
-        }
+        _renderVideoIcon(slide, slData);
 
       } else {
         slide.className = 'type-blank';
@@ -416,22 +437,7 @@
         if (!slide) return;
         if (waiting) waiting.classList.remove('visible');
         slide.className = 'type-video';
-        const url     = data.url || data.src || '';
-        const ytMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-        if (ytMatch) {
-          slide.innerHTML = '<img src="https://img.youtube.com/vi/' + ytMatch[1] + '/hqdefault.jpg" style="width:100%;height:100%;object-fit:cover;display:block;">';
-        } else {
-          const name = url.split('/').pop().replace(/%20/g, ' ') || 'Video';
-          slide.innerHTML =
-            '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;' +
-            'width:100%;height:100%;background:#000;color:#8C9AB5;gap:40px;">' +
-            '<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'360\' height=\'360\' viewBox=\'0 0 24 24\' fill=\'#8C9AB5\'>' +
-            '<path d=\'M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z\' opacity=\'.3\'/>' +
-            '<path d=\'M18 4H6L4 6h16l-2-2zM4 18h16v-1H4v1zM20 7H4v9h16V7zM9 8h1v1H9V8zm-2 0h1v1H7V8zm-2 0h1v1H5V8zm14 0h1v1h-1V8zm-2 0h1v1h-1V8zm-2 0h1v1h-1V8zM5 16h1v1H5v-1zm2 0h1v1H7v-1zm2 0h1v1H9v-1zm8 0h1v1h-1v-1zm-2 0h1v1h-1v-1zm-2 0h1v1h-1v-1z\'/>' +
-            '</svg>' +
-            '<span style=\'font-size:72px;font-family:sans-serif;\'>' + name.replace(/</g,'&lt;') + '</span>' +
-            '</div>';
-        }
+        _renderVideoIcon(slide, data);
       };
     } catch(e) {}
   }
