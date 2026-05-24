@@ -496,7 +496,7 @@ def _item_to_slide_state(item: dict) -> dict:
     if t == 'content':
         return {
             'type': 'text',
-            'data': {'title': item.get('title', ''), 'content': item.get('content', ''), 'part': ''},
+            'data': {'title': item.get('title', ''), 'body': item.get('content', ''), 'part': item.get('part', '')},
             'theme_id': 'default',
         }
     # participant (default)
