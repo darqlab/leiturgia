@@ -33,6 +33,8 @@
       color: var(--white);
       font-family: 'DM Sans', sans-serif;
       font-size: 14px;
+      display: flex;
+      flex-direction: column;
     }
 
     /* ── Header ── */
@@ -102,7 +104,8 @@
     /* ── Layout ── */
     .page-layout {
       display: flex;
-      height: calc(100vh - 64px);
+      flex: 1 1 auto;
+      min-height: 0;
     }
 
     /* ── Slide panel (LibreOffice Impress-style) ── */
@@ -476,7 +479,7 @@
     }
     .main-content::-webkit-scrollbar { width: 4px; }
     .main-content::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
-    .container { padding: 1.5rem 2rem 160px; }
+    .container { padding: 1.5rem 2rem 1.5rem; }
 
 
     .status-group { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center; }
@@ -1207,12 +1210,10 @@
     }
     .btn-rp-blank:hover { border-color: var(--error); color: var(--error); }
 
-    /* ── Slide strip (fixed footer) ── */
+    /* ── Slide strip (docked footer row) ── */
     .slide-strip {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      flex: 0 0 130px;
+      width: 100%;
       height: 130px;
       background: #040b18;
       border-top: 1px solid #0e1a30;
@@ -1426,8 +1427,6 @@
       margin-top: 2px;
     }
 
-    /* Push page content above fixed footer strip */
-    body { padding-bottom: 130px; }
 
     /* ── Channel tiles (multi-channel overview) ── */
     .channel-tiles {
