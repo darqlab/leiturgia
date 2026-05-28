@@ -9,7 +9,7 @@ from flask import Flask, render_template, request, jsonify, send_file, session, 
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import json, os, copy, re, requests
+import json, os, copy, re, requests, uuid
 from urllib.parse import quote as _url_quote
 from datetime import datetime, timedelta
 from functools import wraps
@@ -210,9 +210,25 @@ def load_program():
     return copy.deepcopy(DEFAULT_PROGRAM)
 
 
+def _ensure_item_ids(program: dict) -> None:
+    """Assign a unique item_id to any item that is missing one."""
+    for sp in program.get("service_programs", []):
+        for item in sp.get("items", []):
+            if not item.get("item_id"):
+                item["item_id"] = str(uuid.uuid4())
+
+
 def save_program(data):
+    _ensure_item_ids(data)
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=2)
+
+
+def _broadcast_rundown(program):
+    state = timer.get_full_state('timer')['state']
+    payload = rundown.get_display(program, state)
+    for ch in roles.get_channels('rundown'):
+        socketio.emit('rundown:update', payload, room=ch)
 
 
 def save_history(program):
@@ -329,6 +345,7 @@ def save_program_route():
     save_program(data)
     save_history(data)
     cloud_agent.notify_program_saved(data)
+    _broadcast_rundown(data)
     return jsonify({"status": "saved"})
 
 
@@ -442,6 +459,7 @@ def add_program():
     program["service_programs"].append({"id": pid, "name": name, "time": "", "items": []})
     save_program(program)
     save_history(program)
+    _broadcast_rundown(program)
     return jsonify({"status": "ok", "id": pid})
 
 
@@ -461,6 +479,7 @@ def delete_program(program_id):
         return jsonify({"error": "cannot delete last program"}), 400
     program["service_programs"] = [p for p in programs if p["id"] != program_id]
     save_program(program)
+    _broadcast_rundown(program)
     return jsonify({"ok": True, "selected": program["service_programs"][0]["id"]})
 
 

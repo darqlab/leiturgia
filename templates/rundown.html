@@ -183,15 +183,31 @@
   function buildRow(item) {
     const colorClass = rowColorClass(item.status, currentTimerState);
     const check      = item.status === 'done' ? '✓' : '';
-    const timeLabel  = item.status === 'active' ? formatSecs(activeRemaining) : '';
+    const isTimed   = item.timed !== false && item.allotted_seconds > 0;
+    const timeLabel = item.status === 'active' ? formatSecs(activeRemaining)
+                    : isTimed                  ? formatSecs(item.allotted_seconds)
+                    : '';
+
+    let leftLabel, rightLabel;
+    const isVideo = item.type === 'video' || item.type === 'media';
+    if (item.type === 'song') {
+        leftLabel  = esc(item.part || item.title);
+        rightLabel = esc(item.title);
+    } else if (isVideo) {
+        leftLabel  = esc(item.title);
+        rightLabel = esc(item.media_filename || '');
+    } else {
+        leftLabel  = esc(item.title);
+        rightLabel = esc(item.participant || '');
+    }
 
     return `<div class="item-row ${item.status} ${colorClass}"
                  data-id="${item.item_id}"
                  data-allotted="${item.allotted_seconds}"
                  data-timed="${item.timed === false ? 'false' : 'true'}">
       <span class="item-check">${check}</span>
-      <span class="item-title">${esc(item.title)}</span>
-      <span class="item-participant">${esc(item.participant || '')}</span>
+      <span class="item-title">${leftLabel}</span>
+      <span class="item-participant">${rightLabel}</span>
       <span class="item-time">${timeLabel}</span>
     </div>`;
   }

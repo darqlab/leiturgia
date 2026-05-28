@@ -79,6 +79,7 @@ class RundownManager:
             row_color = _ROW_COLOR.get((status, timer_state), "none")
             allotted  = self._allotted_seconds(item) if is_timed else 0
 
+            url = item.get("url", "")
             display_items.append({
                 "item_id":          item_id,
                 "title":            item.get("title", item.get("name", "—")),
@@ -87,6 +88,9 @@ class RundownManager:
                 "allotted_seconds": allotted,
                 "row_color":        row_color,
                 "timed":            is_timed,
+                "type":             item.get("type", "participant"),
+                "part":             item.get("part", ""),
+                "media_filename":   url.rsplit("/", 1)[-1] if url else "",
             })
 
         return {
