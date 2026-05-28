@@ -215,6 +215,13 @@ def save_program(data):
         json.dump(data, f, indent=2)
 
 
+def _broadcast_rundown(program):
+    state = timer.get_full_state('timer')['state']
+    payload = rundown.get_display(program, state)
+    for ch in roles.get_channels('rundown'):
+        socketio.emit('rundown:update', payload, room=ch)
+
+
 def save_history(program):
     """Append a snapshot of the current program to history (capped at HISTORY_MAX)."""
     history = []
@@ -329,6 +336,7 @@ def save_program_route():
     save_program(data)
     save_history(data)
     cloud_agent.notify_program_saved(data)
+    _broadcast_rundown(data)
     return jsonify({"status": "saved"})
 
 
@@ -442,6 +450,7 @@ def add_program():
     program["service_programs"].append({"id": pid, "name": name, "time": "", "items": []})
     save_program(program)
     save_history(program)
+    _broadcast_rundown(program)
     return jsonify({"status": "ok", "id": pid})
 
 
@@ -461,6 +470,7 @@ def delete_program(program_id):
         return jsonify({"error": "cannot delete last program"}), 400
     program["service_programs"] = [p for p in programs if p["id"] != program_id]
     save_program(program)
+    _broadcast_rundown(program)
     return jsonify({"ok": True, "selected": program["service_programs"][0]["id"]})
 
 
