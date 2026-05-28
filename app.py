@@ -9,7 +9,7 @@ from flask import Flask, render_template, request, jsonify, send_file, session, 
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import json, os, copy, re, requests
+import json, os, copy, re, requests, uuid
 from urllib.parse import quote as _url_quote
 from datetime import datetime, timedelta
 from functools import wraps
@@ -210,7 +210,16 @@ def load_program():
     return copy.deepcopy(DEFAULT_PROGRAM)
 
 
+def _ensure_item_ids(program: dict) -> None:
+    """Assign a unique item_id to any item that is missing one."""
+    for sp in program.get("service_programs", []):
+        for item in sp.get("items", []):
+            if not item.get("item_id"):
+                item["item_id"] = str(uuid.uuid4())
+
+
 def save_program(data):
+    _ensure_item_ids(data)
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
