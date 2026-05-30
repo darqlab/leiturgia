@@ -1491,6 +1491,13 @@
         <path d="M14 14h3v3h-3z" fill="currentColor" stroke="none"/><path d="M17 17h4"/><path d="M21 14v3"/>
       </svg>
     </button>
+    <!-- Open main display (ch1) -->
+    <a href="/ch1" target="_blank" class="hdr-icon-btn" title="Open main display (ch1)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+        <polyline points="14 8 17 8 17 11"/><line x1="13" y1="11" x2="17" y2="8"/>
+      </svg>
+    </a>
     <!-- Settings -->
     <button class="hdr-icon-btn" title="Settings" onclick="openSettings()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1852,20 +1859,10 @@
 <!-- ── Right panel: Live Control ──────────────────────────────────────────── -->
 <aside class="right-panel">
 
-  <!-- Channel + connection -->
-  <div>
-    <div class="rp-section-label">Channel</div>
-    <div class="rp-channel-row">
-      <span id="live-status" class="live-status offline" title="Projection: disconnected"></span>
-      <select id="channelSelect" class="channel-select" style="flex:1" onchange="updateDisplayLink()">
-        <option value="ch1">ch1</option>
-        <option value="ch2">ch2</option>
-        <option value="ch3">ch3</option>
-        <option value="ch4">ch4</option>
-        <option value="ch5">ch5</option>
-      </select>
-      <a id="openDisplayBtn" href="/ch1" target="_blank" class="btn btn-outline" style="font-size:11px;padding:5px 8px;" title="Open display in new tab">↗</a>
-    </div>
+  <!-- Connection status -->
+  <div style="display:flex;align-items:center;gap:6px;">
+    <span id="live-status" class="live-status offline" title="Projection: disconnected"></span>
+    <span class="rp-section-label" style="margin-bottom:0;">Projection</span>
   </div>
 
   <!-- Theme selector -->
@@ -3939,20 +3936,14 @@
   }
 
   function _getChannel() {
-    return document.getElementById('channelSelect')?.value || 'ch1';
+    return 'ch1';
   }
 
   function _getTheme() {
     return document.getElementById('themeSelect')?.value || 'default';
   }
 
-  function updateDisplayLink() {
-    const ch  = _getChannel();
-    const btn = document.getElementById('openDisplayBtn');
-    if (btn) btn.href = '/' + ch;
-  }
-
-  // ── Live preview iframe scaling ────────────────────────────────────────────
+// ── Live preview iframe scaling ────────────────────────────────────────────
   function _scalePreviewFrame() {
     const screen = document.getElementById('livePreviewScreen');
     const frame  = document.getElementById('livePreviewFrame');
