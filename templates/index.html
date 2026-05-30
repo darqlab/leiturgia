@@ -78,6 +78,12 @@
     }
     .hdr-icon-btn:hover { border-color: var(--border); color: var(--gold); background: var(--card); }
     .hdr-icon-btn svg { display: block; }
+    .hdr-display-btn {
+      width: auto; padding: 0 10px; gap: 6px;
+      background: var(--gold); border-color: var(--gold); color: var(--bg);
+      font-size: 11px; font-weight: 700; letter-spacing: .05em;
+    }
+    .hdr-display-btn:hover { background: var(--gold-lt, #e0c070); border-color: var(--gold-lt, #e0c070); color: var(--bg); }
 
     /* ── Buttons ── */
     .btn {
@@ -1096,6 +1102,29 @@
     .right-panel::-webkit-scrollbar { width: 4px; }
     .right-panel::-webkit-scrollbar-thumb { background: #1e2f52; border-radius: 2px; }
 
+    .rp-ch-grid { display: flex; flex-direction: column; gap: 6px; }
+    .rp-ch-row {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 6px 8px;
+    }
+    .rp-ch-label {
+      font-size: 10px; font-weight: 700; color: var(--muted);
+      min-width: 28px; letter-spacing: .04em;
+    }
+    .rp-ch-role-btns {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; flex: 1;
+    }
+    .rp-btn-role {
+      min-height: 34px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--muted); font-size: 10px; font-weight: 700;
+      letter-spacing: .02em; cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+      -webkit-tap-highlight-color: transparent; padding: 0 2px;
+    }
+    .rp-btn-role.active { background: #16a34a; border-color: #16a34a; color: #fff; }
+    .rp-btn-role:active { opacity: .75; }
+
     .rp-section-label {
       font-size: 9px;
       font-weight: 700;
@@ -1460,6 +1489,14 @@
     <div class="logo-text">Lei<span>turgia</span></div>
   </div>
   <div class="header-actions">
+    <!-- Open main display (ch1) -->
+    <a href="/ch1" target="_blank" class="hdr-icon-btn hdr-display-btn" title="Open main display (ch1)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+        <polyline points="14 8 17 8 17 11"/><line x1="13" y1="11" x2="17" y2="8"/>
+      </svg>
+      DISPLAY
+    </a>
     <!-- QR Remote -->
     <button class="hdr-icon-btn" title="Open Remote QR" onclick="openQrModal()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -1829,19 +1866,15 @@
 <!-- ── Right panel: Live Control ──────────────────────────────────────────── -->
 <aside class="right-panel">
 
-  <!-- Channel + connection -->
+  <!-- Live preview -->
   <div>
-    <div class="rp-section-label">Channel</div>
-    <div class="rp-channel-row">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
       <span id="live-status" class="live-status offline" title="Projection: disconnected"></span>
-      <select id="channelSelect" class="channel-select" style="flex:1" onchange="updateDisplayLink()">
-        <option value="ch1">ch1</option>
-        <option value="ch2">ch2</option>
-        <option value="ch3">ch3</option>
-        <option value="ch4">ch4</option>
-        <option value="ch5">ch5</option>
-      </select>
-      <a id="openDisplayBtn" href="/ch1" target="_blank" class="btn btn-outline" style="font-size:11px;padding:5px 8px;" title="Open display in new tab">↗</a>
+      <span class="rp-section-label" style="margin-bottom:0;">Live Projection</span>
+    </div>
+    <div class="live-preview-screen" id="livePreviewScreen">
+      <iframe id="livePreviewFrame" src="/ch1" scrolling="no" tabindex="-1"
+              style="position:absolute;top:0;left:0;width:1920px;height:1080px;border:none;pointer-events:none;transform-origin:top left;"></iframe>
     </div>
   </div>
 
@@ -1862,39 +1895,47 @@
     </select>
   </div>
 
-  <!-- Channel tiles overview -->
-  <div>
-    <div class="rp-section-label">Channels</div>
-    <div class="channel-tiles" id="channelTiles">
-      <div class="ch-tile selected" data-ch="ch1" onclick="selectChannel('ch1')">
-        <div class="ch-tile-name">ch1</div>
-        <div class="ch-tile-state" id="ch-state-ch1">—</div>
-      </div>
-      <div class="ch-tile" data-ch="ch2" onclick="selectChannel('ch2')">
-        <div class="ch-tile-name">ch2</div>
-        <div class="ch-tile-state" id="ch-state-ch2">—</div>
-      </div>
-      <div class="ch-tile" data-ch="ch3" onclick="selectChannel('ch3')">
-        <div class="ch-tile-name">ch3</div>
-        <div class="ch-tile-state" id="ch-state-ch3">—</div>
-      </div>
-      <div class="ch-tile" data-ch="ch4" onclick="selectChannel('ch4')">
-        <div class="ch-tile-name">ch4</div>
-        <div class="ch-tile-state" id="ch-state-ch4">—</div>
-      </div>
-      <div class="ch-tile" data-ch="ch5" onclick="selectChannel('ch5')">
-        <div class="ch-tile-name">ch5</div>
-        <div class="ch-tile-state" id="ch-state-ch5">—</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Live preview -->
+  <!-- Channel role assignment -->
   <div>
-    <div class="rp-section-label">Live Preview</div>
-    <div class="live-preview-screen" id="livePreviewScreen">
-      <iframe id="livePreviewFrame" src="/ch1" scrolling="no" tabindex="-1"
-              style="position:absolute;top:0;left:0;width:1920px;height:1080px;border:none;pointer-events:none;transform-origin:top left;"></iframe>
+    <div class="rp-section-label">Channel Roles</div>
+    <div class="rp-ch-grid" id="rpChGrid">
+      <div class="rp-ch-row">
+        <span class="rp-ch-label">CH 1</span>
+        <div class="rp-ch-role-btns">
+          <button class="rp-btn-role" data-ch="ch1" data-role="main"         onclick="rpAssignRole(this)">MAIN</button>
+          <button class="rp-btn-role" data-ch="ch1" data-role="rundown"      onclick="rpAssignRole(this)">RUN</button>
+          <button class="rp-btn-role" data-ch="ch1" data-role="timer"        onclick="rpAssignRole(this)">TIME</button>
+          <button class="rp-btn-role" data-ch="ch1" data-role="announcement" onclick="rpAssignRole(this)">ANNC</button>
+        </div>
+      </div>
+      <div class="rp-ch-row">
+        <span class="rp-ch-label">CH 2</span>
+        <div class="rp-ch-role-btns">
+          <button class="rp-btn-role" data-ch="ch2" data-role="main"         onclick="rpAssignRole(this)">MAIN</button>
+          <button class="rp-btn-role" data-ch="ch2" data-role="rundown"      onclick="rpAssignRole(this)">RUN</button>
+          <button class="rp-btn-role" data-ch="ch2" data-role="timer"        onclick="rpAssignRole(this)">TIME</button>
+          <button class="rp-btn-role" data-ch="ch2" data-role="announcement" onclick="rpAssignRole(this)">ANNC</button>
+        </div>
+      </div>
+      <div class="rp-ch-row">
+        <span class="rp-ch-label">CH 3</span>
+        <div class="rp-ch-role-btns">
+          <button class="rp-btn-role" data-ch="ch3" data-role="main"         onclick="rpAssignRole(this)">MAIN</button>
+          <button class="rp-btn-role" data-ch="ch3" data-role="rundown"      onclick="rpAssignRole(this)">RUN</button>
+          <button class="rp-btn-role" data-ch="ch3" data-role="timer"        onclick="rpAssignRole(this)">TIME</button>
+          <button class="rp-btn-role" data-ch="ch3" data-role="announcement" onclick="rpAssignRole(this)">ANNC</button>
+        </div>
+      </div>
+      <div class="rp-ch-row">
+        <span class="rp-ch-label">CH 4</span>
+        <div class="rp-ch-role-btns">
+          <button class="rp-btn-role" data-ch="ch4" data-role="main"         onclick="rpAssignRole(this)">MAIN</button>
+          <button class="rp-btn-role" data-ch="ch4" data-role="rundown"      onclick="rpAssignRole(this)">RUN</button>
+          <button class="rp-btn-role" data-ch="ch4" data-role="timer"        onclick="rpAssignRole(this)">TIME</button>
+          <button class="rp-btn-role" data-ch="ch4" data-role="announcement" onclick="rpAssignRole(this)">ANNC</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3676,6 +3717,9 @@
     el.title = 'Projection: connected';
     _socket.emit('console:join');
     _socket.emit('state:restore', { channel: _getChannel() });
+    fetch('/api/roles').then(function(r){ return r.json(); }).then(function(d) {
+      rebuildRoleGrid_rp(_rpConvertRoles(d.assignments || {}));
+    });
   });
 
   _socket.on('remote:next',  () => _projNext());
@@ -3744,6 +3788,30 @@
   _socket.on('timer:start',  function (d) { _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
   _socket.on('timer:pause',  function (d) { if (d) _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
   _socket.on('timer:reset',  function (d) { _lpFrameRender(Object.assign({}, d, { type: 'timer' })); });
+
+  // ── Channel Roles (right panel) ───────────────────────────────────────────
+
+  function rpAssignRole(btn) {
+    _socket.emit('roles:assign', { channels: [btn.dataset.ch], role: btn.dataset.role });
+  }
+
+  function rebuildRoleGrid_rp(assignments) {
+    document.querySelectorAll('.rp-btn-role[data-ch]').forEach(function(btn) {
+      btn.classList.toggle('active', assignments[btn.dataset.ch] === btn.dataset.role);
+    });
+  }
+
+  function _rpConvertRoles(roleKeyed) {
+    var out = {};
+    Object.entries(roleKeyed).forEach(function([role, chs]) {
+      chs.forEach(function(ch) { out[ch] = role; });
+    });
+    return out;
+  }
+
+  _socket.on('roles:updated', function(data) {
+    rebuildRoleGrid_rp(data.assignments || {});
+  });
 
   _socket.on('disconnect', function () {
     const el = document.getElementById('live-status');
@@ -3872,20 +3940,14 @@
   }
 
   function _getChannel() {
-    return document.getElementById('channelSelect')?.value || 'ch1';
+    return 'ch1';
   }
 
   function _getTheme() {
     return document.getElementById('themeSelect')?.value || 'default';
   }
 
-  function updateDisplayLink() {
-    const ch  = _getChannel();
-    const btn = document.getElementById('openDisplayBtn');
-    if (btn) btn.href = '/' + ch;
-  }
-
-  // ── Live preview iframe scaling ────────────────────────────────────────────
+// ── Live preview iframe scaling ────────────────────────────────────────────
   function _scalePreviewFrame() {
     const screen = document.getElementById('livePreviewScreen');
     const frame  = document.getElementById('livePreviewFrame');
