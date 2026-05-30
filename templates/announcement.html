@@ -69,6 +69,11 @@
     textEl.textContent = 'Leiturgia';
     textEl.classList.add('blank');
   });
+
+  socket.on('roles:updated', (data) => {
+    const newRole = (data.assignments || {})[CHANNEL];
+    if (newRole && newRole !== '{{ role }}') { window.location.reload(); }
+  });
 </script>
 </body>
 </html>

@@ -559,6 +559,15 @@ def _next_sequence_slide(program: dict, item_id: str,
     return None
 
 
+def roles_channel_map() -> dict:
+    """Return {channel: role} from roles.to_dict() which is {role: [channels]}."""
+    result = {}
+    for role, channels in roles.to_dict().items():
+        for ch in channels:
+            result[ch] = role
+    return result
+
+
 def build_remote_sync() -> dict:
     state = proj.get_state('ch1')
     data  = state.get('data', {}) if state else {}
@@ -622,6 +631,7 @@ def build_remote_sync() -> dict:
         'slide_count':     data.get('slide_count', 0),
         'item_title':      data.get('title', ''),
         'next_slide_data': next_slide_data,
+        'assignments':     roles_channel_map(),
     }
 
 
@@ -763,7 +773,14 @@ def on_remote_blank():
 def on_state_restore(data):
     channel = data.get('channel', 'ch1')
     state   = proj.get_state(channel)
-    # Don't restore blank — display stays in "Waiting for content…" mode
+    # If this MAIN channel has no content yet, mirror another MAIN channel that does
+    if state.get('type') == 'blank' and roles.get_role(channel) == 'main':
+        for ch in roles.get_channels('main'):
+            if ch != channel:
+                s = proj.get_state(ch)
+                if s.get('type') != 'blank':
+                    state = s
+                    break
     if state.get('type') != 'blank':
         emit('slide:show', state)
 
@@ -774,8 +791,9 @@ def on_slide_show(data):
         return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
-    proj.set_state(channel, state)
-    emit('slide:show', data, to=channel)
+    for ch in roles.get_channels(roles.get_role(channel) or 'main'):
+        proj.set_state(ch, state)
+        socketio.emit('slide:show', data, room=ch)
     socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('slide:blank')
@@ -785,8 +803,9 @@ def on_slide_blank(data):
         return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'blank', 'data': {}, 'theme_id': 'default'}
-    proj.set_state(channel, state)
-    emit('slide:blank', state, to=channel)
+    for ch in roles.get_channels(roles.get_role(channel) or 'main'):
+        proj.set_state(ch, state)
+        socketio.emit('slide:blank', state, room=ch)
     socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('slide:edit')
@@ -796,8 +815,9 @@ def on_slide_edit(data):
         return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'text', 'data': data, 'theme_id': data.get('theme_id', 'default')}
-    proj.set_state(channel, state)
-    emit('slide:edit', data, to=channel)
+    for ch in roles.get_channels(roles.get_role(channel) or 'main'):
+        proj.set_state(ch, state)
+        socketio.emit('slide:edit', data, room=ch)
 
 @socketio.on('media:image')
 def on_media_image(data):
@@ -806,10 +826,10 @@ def on_media_image(data):
         return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'image', 'data': data, 'theme_id': 'default'}
-    proj.set_state(channel, state)
-    emit('media:image', data, to=channel)
-    if channel == 'ch1':
-        socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
+    for ch in roles.get_channels(roles.get_role(channel) or 'main'):
+        proj.set_state(ch, state)
+        socketio.emit('media:image', data, room=ch)
+    socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('media:video')
 def on_media_video(data):
@@ -818,10 +838,10 @@ def on_media_video(data):
         return
     channel = data.get('channel', 'ch1')
     state   = {'type': 'video', 'data': data, 'theme_id': 'default'}
-    proj.set_state(channel, state)
-    emit('media:video', data, to=channel)
-    if channel == 'ch1':
-        socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
+    for ch in roles.get_channels(roles.get_role(channel) or 'main'):
+        proj.set_state(ch, state)
+        socketio.emit('media:video', data, room=ch)
+    socketio.emit('remote:sync', build_remote_sync(), room='remote-clients')
 
 @socketio.on('media:status')
 def on_media_status(data):
@@ -908,8 +928,8 @@ def on_roles_assign(data):
     if not channels or not all(ch in _VALID_CHANNELS for ch in channels):
         emit('error', {'message': 'Invalid or empty channels list'})
         return
-    assignments = roles.assign(channels, role)
-    socketio.emit('roles:updated', {'assignments': assignments})
+    roles.assign(channels, role)
+    socketio.emit('roles:updated', {'assignments': roles_channel_map()})
 
 @app.route('/api/roles', methods=['GET'])
 @operator_required
@@ -926,9 +946,10 @@ def api_roles_post():
         return jsonify({'status': 'error', 'message': f'Invalid role: {role}'}), 400
     if not channels or not all(ch in _VALID_CHANNELS for ch in channels):
         return jsonify({'status': 'error', 'message': 'Invalid or empty channels list'}), 400
-    assignments = roles.assign(channels, role)
-    socketio.emit('roles:updated', {'assignments': assignments})
-    return jsonify({'assignments': assignments})
+    roles.assign(channels, role)
+    ch_map = roles_channel_map()
+    socketio.emit('roles:updated', {'assignments': ch_map})
+    return jsonify({'assignments': ch_map})
 
 
 # ── Active item control ───────────────────────────────────────────────────────

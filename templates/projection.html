@@ -330,6 +330,11 @@
   socket.on('timer:pause',  function ()     { pauseTimer(); });
   socket.on('timer:reset',  function (data) { resetTimer(data); });
 
+  socket.on('roles:updated', function (data) {
+    var newRole = (data.assignments || {})[CHANNEL];
+    if (newRole && newRole !== '{{ role }}') { window.location.reload(); }
+  });
+
   // ── Render dispatcher ──────────────────────────────────────────────────────
   // ── Theme switching ──────────────────────────────────────────────────────
   let _currentTheme = 'default';
