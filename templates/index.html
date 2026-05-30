@@ -1866,12 +1866,6 @@
 <!-- ── Right panel: Live Control ──────────────────────────────────────────── -->
 <aside class="right-panel">
 
-  <!-- Connection status -->
-  <div style="display:flex;align-items:center;gap:6px;">
-    <span id="live-status" class="live-status offline" title="Projection: disconnected"></span>
-    <span class="rp-section-label" style="margin-bottom:0;">Projection</span>
-  </div>
-
   <!-- Theme selector -->
   <div>
     <div class="rp-section-label">Theme</div>
@@ -1935,7 +1929,10 @@
 
   <!-- Live preview -->
   <div>
-    <div class="rp-section-label">Live Preview</div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+      <span id="live-status" class="live-status offline" title="Projection: disconnected"></span>
+      <span class="rp-section-label" style="margin-bottom:0;">Live Projection</span>
+    </div>
     <div class="live-preview-screen" id="livePreviewScreen">
       <iframe id="livePreviewFrame" src="/ch1" scrolling="no" tabindex="-1"
               style="position:absolute;top:0;left:0;width:1920px;height:1080px;border:none;pointer-events:none;transform-origin:top left;"></iframe>
