@@ -131,7 +131,8 @@
   });
 
   socket.on('roles:updated', (data) => {
-    const newRole = (data.assignments || {})[CHANNEL];
+    const a = data.assignments || {};
+    const newRole = Object.entries(a).find(([, chs]) => chs.includes(CHANNEL))?.[0];
     if (newRole && newRole !== '{{ role }}') { window.location.reload(); }
   });
 
