@@ -26,13 +26,27 @@ class RoleManager:
     # ── Public API ─────────────────────────────────────────────────────────────
 
     def assign(self, channels: list[str], role: str) -> dict:
-        """Move each channel to role, removing it from its previous role."""
-        for ch in channels:
-            for r in _VALID_ROLES:
-                if ch in self._assignments[r] and r != role:
-                    self._assignments[r].remove(ch)
-            if ch not in self._assignments[role]:
-                self._assignments[role].append(ch)
+        """Swap: channel takes role; previous holder of that role takes channel's old role."""
+        ch = channels[0]
+        old_role = self.get_role(ch)
+        if old_role == role:
+            return self.to_dict()
+
+        # Find current holder of the target role (if any)
+        old_holder = next((c for c in self._assignments.get(role, []) if c != ch), None)
+
+        # Remove ch from its current role
+        if old_role and ch in self._assignments[old_role]:
+            self._assignments[old_role].remove(ch)
+
+        # Move old holder to ch's vacated role
+        if old_holder:
+            self._assignments[role].remove(old_holder)
+            if old_role:
+                self._assignments[old_role].append(old_holder)
+
+        # Assign ch to the new role
+        self._assignments[role].append(ch)
         self._save()
         return self.to_dict()
 
