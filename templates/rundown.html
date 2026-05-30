@@ -161,6 +161,11 @@
     updateActiveRow(data);
   });
 
+  socket.on('roles:updated', (data) => {
+    const newRole = (data.assignments || {})[CHANNEL];
+    if (newRole && newRole !== '{{ role }}') { window.location.reload(); }
+  });
+
   // ── Render ──────────────────────────────────────────────────────────────────
   function renderRundown(data) {
     const list = document.getElementById('item-list');
