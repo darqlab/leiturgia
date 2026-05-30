@@ -346,6 +346,10 @@
     currentSync = data;
     renderCurrentSlide(data);
     renderNextSlide(data);
+    if (data.assignments) {
+      rebuildRoleGrid(data.assignments);
+      rebuildStatusList(data.assignments);
+    }
   });
 
   function _renderVideoIcon(slide, data) {

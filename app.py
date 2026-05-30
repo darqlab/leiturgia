@@ -559,6 +559,15 @@ def _next_sequence_slide(program: dict, item_id: str,
     return None
 
 
+def roles_channel_map() -> dict:
+    """Return {channel: role} from roles.to_dict() which is {role: [channels]}."""
+    result = {}
+    for role, channels in roles.to_dict().items():
+        for ch in channels:
+            result[ch] = role
+    return result
+
+
 def build_remote_sync() -> dict:
     state = proj.get_state('ch1')
     data  = state.get('data', {}) if state else {}
@@ -622,6 +631,7 @@ def build_remote_sync() -> dict:
         'slide_count':     data.get('slide_count', 0),
         'item_title':      data.get('title', ''),
         'next_slide_data': next_slide_data,
+        'assignments':     roles_channel_map(),
     }
 
 
@@ -908,8 +918,8 @@ def on_roles_assign(data):
     if not channels or not all(ch in _VALID_CHANNELS for ch in channels):
         emit('error', {'message': 'Invalid or empty channels list'})
         return
-    assignments = roles.assign(channels, role)
-    socketio.emit('roles:updated', {'assignments': assignments})
+    roles.assign(channels, role)
+    socketio.emit('roles:updated', {'assignments': roles_channel_map()})
 
 @app.route('/api/roles', methods=['GET'])
 @operator_required
@@ -926,9 +936,10 @@ def api_roles_post():
         return jsonify({'status': 'error', 'message': f'Invalid role: {role}'}), 400
     if not channels or not all(ch in _VALID_CHANNELS for ch in channels):
         return jsonify({'status': 'error', 'message': 'Invalid or empty channels list'}), 400
-    assignments = roles.assign(channels, role)
-    socketio.emit('roles:updated', {'assignments': assignments})
-    return jsonify({'assignments': assignments})
+    roles.assign(channels, role)
+    ch_map = roles_channel_map()
+    socketio.emit('roles:updated', {'assignments': ch_map})
+    return jsonify({'assignments': ch_map})
 
 
 # ── Active item control ───────────────────────────────────────────────────────

@@ -331,8 +331,7 @@
   socket.on('timer:reset',  function (data) { resetTimer(data); });
 
   socket.on('roles:updated', function (data) {
-    var a = data.assignments || {}, newRole = null;
-    for (var r in a) { if (a[r].indexOf(CHANNEL) !== -1) { newRole = r; break; } }
+    var newRole = (data.assignments || {})[CHANNEL];
     if (newRole && newRole !== '{{ role }}') { window.location.reload(); }
   });
 
