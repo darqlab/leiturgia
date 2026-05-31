@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rundown — {{ channel }}</title>
+  <title>Order of Service — {{ channel }}</title>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -129,7 +129,7 @@
 </div>
 
 <div id="item-list">
-  <!-- Populated by JS on rundown:update -->
+  <!-- Populated by JS on order_of_service:update -->
   <div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:0.4;">
     Waiting for program…
   </div>
@@ -147,10 +147,10 @@
     socket.emit('join', { channel: CHANNEL });
   });
 
-  // ── Rundown update ──────────────────────────────────────────────────────────
-  socket.on('rundown:update', (data) => {
+  // ── Order of Service update ─────────────────────────────────────────────────
+  socket.on('order_of_service:update', (data) => {
     currentTimerState = data.timer_state || 'normal';
-    renderRundown(data);
+    renderOrderOfService(data);
   });
 
   // ── Timer tick — update bar + colours ───────────────────────────────────────
@@ -167,7 +167,7 @@
   });
 
   // ── Render ──────────────────────────────────────────────────────────────────
-  function renderRundown(data) {
+  function renderOrderOfService(data) {
     const list = document.getElementById('item-list');
     const date = document.getElementById('program-date');
 

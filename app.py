@@ -20,7 +20,7 @@ from projection import ProjectionStateManager
 from media_manager import list_media
 from timer import TimerManager
 from roles import RoleManager
-from rundown import RundownManager
+from order_of_service import OrderOfServiceManager
 from cloud_agent import agent as cloud_agent
 
 app = Flask(__name__)
@@ -36,7 +36,7 @@ limiter  = Limiter(get_remote_address, app=app, default_limits=[])
 proj     = ProjectionStateManager()
 timer    = TimerManager()
 roles    = RoleManager()
-rundown  = RundownManager()
+oos      = OrderOfServiceManager()
 
 _active_item = {
     'program_id':       None,
@@ -224,11 +224,11 @@ def save_program(data):
         json.dump(data, f, indent=2)
 
 
-def _broadcast_rundown(program):
+def _broadcast_order_of_service(program):
     state = timer.get_full_state('timer')['state']
-    payload = rundown.get_display(program, state)
-    for ch in roles.get_channels('rundown'):
-        socketio.emit('rundown:update', payload, room=ch)
+    payload = oos.get_display(program, state)
+    for ch in roles.get_channels('order_of_service'):
+        socketio.emit('order_of_service:update', payload, room=ch)
 
 
 def save_history(program):
@@ -345,7 +345,7 @@ def save_program_route():
     save_program(data)
     save_history(data)
     cloud_agent.notify_program_saved(data)
-    _broadcast_rundown(data)
+    _broadcast_order_of_service(data)
     return jsonify({"status": "saved"})
 
 
@@ -459,7 +459,7 @@ def add_program():
     program["service_programs"].append({"id": pid, "name": name, "time": "", "items": []})
     save_program(program)
     save_history(program)
-    _broadcast_rundown(program)
+    _broadcast_order_of_service(program)
     return jsonify({"status": "ok", "id": pid})
 
 
@@ -479,7 +479,7 @@ def delete_program(program_id):
         return jsonify({"error": "cannot delete last program"}), 400
     program["service_programs"] = [p for p in programs if p["id"] != program_id]
     save_program(program)
-    _broadcast_rundown(program)
+    _broadcast_order_of_service(program)
     return jsonify({"ok": True, "selected": program["service_programs"][0]["id"]})
 
 
@@ -637,10 +637,10 @@ def build_remote_sync() -> dict:
 
 # ── Projection routes ────────────────────────────────────────────────────────
 _ROLE_TEMPLATE = {
-    'main':         'projection.html',
-    'rundown':      'rundown.html',
-    'timer':        'timer_display.html',
-    'announcement': 'announcement.html',
+    'main':              'projection.html',
+    'order_of_service':  'order_of_service.html',
+    'timer':             'timer_display.html',
+    'announcement':      'announcement.html',
 }
 
 @app.route("/ch<int:n>")
@@ -650,12 +650,12 @@ def projection_channel(n):
     template = _ROLE_TEMPLATE.get(role, 'projection.html')
     program  = load_program()
     timer_fs = timer.get_full_state('timer')
-    rundown_data = rundown.get_display(program, timer_fs['state'])
+    oos_data = oos.get_display(program, timer_fs['state'])
     return render_template(
         template,
         channel=channel,
         role=role,
-        rundown=rundown_data,
+        order_of_service=oos_data,
         timer_state=timer_fs,
         active_item=_active_item,
         announcement=_announcement_text,
@@ -701,11 +701,11 @@ def on_join(data):
     channel = data.get('channel', 'ch1')
     join_room(channel)
     role = roles.get_role(channel)
-    if role == 'rundown':
+    if role == 'order_of_service':
         program    = load_program()
         timer_fs   = timer.get_full_state('timer')
-        payload    = rundown.get_display(program, timer_fs['state'])
-        emit('rundown:update', payload)
+        payload    = oos.get_display(program, timer_fs['state'])
+        emit('order_of_service:update', payload)
     elif role == 'timer':
         fs = timer.get_full_state('timer')
         emit('timer:tick', {
@@ -912,7 +912,7 @@ def on_timer_reset(data):
 
 # ── Role assignment ───────────────────────────────────────────────────────────
 
-_VALID_ROLES    = ('main', 'rundown', 'timer', 'announcement')
+_VALID_ROLES    = ('main', 'order_of_service', 'timer', 'announcement')
 _VALID_CHANNELS = ('ch1', 'ch2', 'ch3', 'ch4', 'ch5')
 
 @socketio.on('roles:assign')
@@ -990,7 +990,7 @@ def on_program_item_set(data):
         'timed':            is_timed,
     }
 
-    rundown.set_active(program_id, item_id)
+    oos.set_active(program_id, item_id)
 
     if is_timed:
         timer.reset('timer', allotted_secs)
@@ -1002,9 +1002,9 @@ def on_program_item_set(data):
         for ch in roles.get_channels('timer'):
             socketio.emit('timer:idle', {}, room=ch)
 
-    rundown_payload = rundown.get_display(program, timer_state)
-    for ch in roles.get_channels('rundown'):
-        socketio.emit('rundown:update', rundown_payload, room=ch)
+    oos_payload = oos.get_display(program, timer_state)
+    for ch in roles.get_channels('order_of_service'):
+        socketio.emit('order_of_service:update', oos_payload, room=ch)
 
     slide_state = proj.get_state(roles.get_channels('main')[0] if roles.get_channels('main') else 'ch1')
     for ch in roles.get_channels('main'):
@@ -1483,7 +1483,7 @@ def _timer_tick_loop():
         }
         for ch in roles.get_channels('timer'):
             socketio.emit('timer:tick', payload, room=ch)
-        for ch in roles.get_channels('rundown'):
+        for ch in roles.get_channels('order_of_service'):
             socketio.emit('timer:tick', payload, room=ch)
 
 socketio.start_background_task(_timer_tick_loop)
