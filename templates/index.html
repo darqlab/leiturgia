@@ -1112,6 +1112,14 @@
       font-size: 10px; font-weight: 700; color: var(--muted);
       min-width: 28px; letter-spacing: .04em;
     }
+    .rp-ch-link {
+      display: inline-flex; align-items: center;
+      background: var(--gold); color: var(--bg) !important;
+      border-radius: 4px; padding: 2px 5px;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .rp-ch-link:hover { background: var(--gold-lt); }
     .rp-ch-role-btns {
       display: grid; grid-template-columns: repeat(4,1fr); gap: 4px; flex: 1;
     }
@@ -1904,34 +1912,34 @@
         <span class="rp-ch-label">CH 1</span>
         <div class="rp-ch-role-btns">
           <button class="rp-btn-role" data-ch="ch1" data-role="main"         onclick="rpAssignRole(this)">MAIN</button>
-          <button class="rp-btn-role" data-ch="ch1" data-role="rundown"      onclick="rpAssignRole(this)">RUN</button>
+          <button class="rp-btn-role" data-ch="ch1" data-role="order_of_service" onclick="rpAssignRole(this)">ORDER</button>
           <button class="rp-btn-role" data-ch="ch1" data-role="timer"        onclick="rpAssignRole(this)">TIME</button>
           <button class="rp-btn-role" data-ch="ch1" data-role="announcement" onclick="rpAssignRole(this)">ANNC</button>
         </div>
       </div>
       <div class="rp-ch-row">
-        <span class="rp-ch-label">CH 2</span>
+        <a class="rp-ch-label rp-ch-link" href="/ch2" target="_blank">CH 2</a>
         <div class="rp-ch-role-btns">
           <button class="rp-btn-role" data-ch="ch2" data-role="main"         onclick="rpAssignRole(this)">MAIN</button>
-          <button class="rp-btn-role" data-ch="ch2" data-role="rundown"      onclick="rpAssignRole(this)">RUN</button>
+          <button class="rp-btn-role" data-ch="ch2" data-role="order_of_service" onclick="rpAssignRole(this)">ORDER</button>
           <button class="rp-btn-role" data-ch="ch2" data-role="timer"        onclick="rpAssignRole(this)">TIME</button>
           <button class="rp-btn-role" data-ch="ch2" data-role="announcement" onclick="rpAssignRole(this)">ANNC</button>
         </div>
       </div>
       <div class="rp-ch-row">
-        <span class="rp-ch-label">CH 3</span>
+        <a class="rp-ch-label rp-ch-link" href="/ch3" target="_blank">CH 3</a>
         <div class="rp-ch-role-btns">
           <button class="rp-btn-role" data-ch="ch3" data-role="main"         onclick="rpAssignRole(this)">MAIN</button>
-          <button class="rp-btn-role" data-ch="ch3" data-role="rundown"      onclick="rpAssignRole(this)">RUN</button>
+          <button class="rp-btn-role" data-ch="ch3" data-role="order_of_service" onclick="rpAssignRole(this)">ORDER</button>
           <button class="rp-btn-role" data-ch="ch3" data-role="timer"        onclick="rpAssignRole(this)">TIME</button>
           <button class="rp-btn-role" data-ch="ch3" data-role="announcement" onclick="rpAssignRole(this)">ANNC</button>
         </div>
       </div>
       <div class="rp-ch-row">
-        <span class="rp-ch-label">CH 4</span>
+        <a class="rp-ch-label rp-ch-link" href="/ch4" target="_blank">CH 4</a>
         <div class="rp-ch-role-btns">
           <button class="rp-btn-role" data-ch="ch4" data-role="main"         onclick="rpAssignRole(this)">MAIN</button>
-          <button class="rp-btn-role" data-ch="ch4" data-role="rundown"      onclick="rpAssignRole(this)">RUN</button>
+          <button class="rp-btn-role" data-ch="ch4" data-role="order_of_service" onclick="rpAssignRole(this)">ORDER</button>
           <button class="rp-btn-role" data-ch="ch4" data-role="timer"        onclick="rpAssignRole(this)">TIME</button>
           <button class="rp-btn-role" data-ch="ch4" data-role="announcement" onclick="rpAssignRole(this)">ANNC</button>
         </div>
@@ -4277,7 +4285,7 @@
     itemEl.querySelector('.btn-live')?.classList.add('active');
     document.activeElement?.blur();
 
-    // Notify output channels (rundown, timer) of the active item
+    // Notify output channels (order_of_service, timer) of the active item
     const _programId = itemEl.closest('.service-program')?.dataset.programId || '';
     const _itemId    = itemEl.dataset.itemId || '';
     if (_programId && _itemId) {

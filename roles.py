@@ -1,7 +1,7 @@
 """
 roles.py — Role-to-channel assignment manager.
 
-Tracks which channels carry each output role (MAIN, RUNDOWN, TIMER, ANNOUNCEMENT).
+Tracks which channels carry each output role (MAIN, ORDER_OF_SERVICE, TIMER, ANNOUNCEMENT).
 Any role can be mirrored to multiple channels. Persists to data/role_assignments.json.
 """
 
@@ -9,13 +9,13 @@ import json
 import os
 
 _PERSIST_FILE = "data/role_assignments.json"
-_VALID_ROLES    = ('main', 'rundown', 'timer', 'announcement')
+_VALID_ROLES    = ('main', 'order_of_service', 'timer', 'announcement')
 _VALID_CHANNELS = ('ch1', 'ch2', 'ch3', 'ch4', 'ch5')
 _DEFAULT = {
-    'main':         ['ch1'],
-    'rundown':      ['ch2'],
-    'timer':        ['ch3'],
-    'announcement': ['ch4'],
+    'main':              ['ch1'],
+    'order_of_service':  ['ch2'],
+    'timer':             ['ch3'],
+    'announcement':      ['ch4'],
 }
 
 
@@ -65,6 +65,15 @@ class RoleManager:
                 with open(_PERSIST_FILE) as f:
                     data = json.load(f)
                 if isinstance(data, dict):
+                    # Migrate legacy 'rundown' key → 'order_of_service'
+                    if 'rundown' in data:
+                        data['order_of_service'] = data.pop('rundown')
+                        try:
+                            os.makedirs(os.path.dirname(_PERSIST_FILE), exist_ok=True)
+                            with open(_PERSIST_FILE, 'w') as f:
+                                json.dump(data, f, indent=2)
+                        except Exception:
+                            pass
                     # Ensure all roles are present
                     result = {r: list(_DEFAULT[r]) for r in _VALID_ROLES}
                     for r in _VALID_ROLES:

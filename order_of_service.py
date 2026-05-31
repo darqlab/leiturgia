@@ -1,5 +1,5 @@
 """
-rundown.py — Rundown display state for CH2 (participants holding area).
+order_of_service.py — Order of Service display state for CH2 (participants holding area).
 
 Derives the display list from the loaded program + active item reference.
 Does not persist — regenerated on every item change or timer tick.
@@ -33,7 +33,7 @@ _ROW_COLOR = {
 }
 
 
-class RundownManager:
+class OrderOfServiceManager:
     def __init__(self):
         self._active_program_id: str | None = None
         self._active_item_id:    str | None = None
@@ -44,7 +44,7 @@ class RundownManager:
 
     def get_display(self, program: dict, timer_state: str = "normal") -> dict:
         """
-        Returns the rundown display payload for CH2.
+        Returns the order of service display payload for CH2.
 
         program:     the full program dict loaded from program.json
         timer_state: 'normal' | 'warning' | 'overtime'
