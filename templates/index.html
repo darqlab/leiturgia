@@ -1761,7 +1761,6 @@
             </div>
             <input type="hidden" class="item-title" value="{{ item.title }}">
             <input type="hidden" class="item-hymn"  value="{{ item.get('hymn_number', '') }}">
-            <select class="item-hymn-lang hymn-lang-select" data-lang="{{ item.get('hymn_lang', 'en') }}"></select>
             {% else %}
             <div class="participant">
               <div class="role-label">Title</div>
@@ -1823,6 +1822,7 @@
             <div class="rule" style="margin:10px 0 8px;"></div>
             <div class="lyrics-section">
               <div class="lyrics-search-row">
+                <select class="item-hymn-lang hymn-lang-select" data-lang="{{ item.get('hymn_lang', 'en') }}"></select>
                 <input type="text" class="lyrics-query"
                        placeholder="Hymn # or song title…"
                        value="{{ ('#' ~ item.hymn_number|string ~ ' — ' ~ item.title) if (item.get('hymn_number') and item.get('title') and 'lyrics_key' in item) else (item.get('hymn_number', '') or item.get('lyrics_key', '')) }}"
@@ -2021,10 +2021,10 @@
         </div>
         <input type="hidden" class="item-title" value="">
         <input type="hidden" class="item-hymn"  value="">
-        <select class="item-hymn-lang hymn-lang-select" data-lang="en"></select>
         <div class="rule" style="margin:10px 0 8px;"></div>
         <div class="lyrics-section">
           <div class="lyrics-search-row">
+            <select class="item-hymn-lang hymn-lang-select" data-lang="en"></select>
             <input type="text" class="lyrics-query" placeholder="Hymn # or song title…" value="" oninput="hymnalSuggest(this)" onblur="closeSuggest(this)" onkeydown="hymnalSuggestKeydown(event, this)">
             <div class="hymnal-suggest"></div>
             <button class="btn btn-outline" onclick="searchLyrics(this)" style="height:38px; white-space:nowrap">Search Lyrics</button>
