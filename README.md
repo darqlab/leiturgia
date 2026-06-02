@@ -96,18 +96,6 @@ rm -f data/lyrics/*.json
 sudo systemctl restart leiturgia
 ```
 
-### Adding a new language
-
-1. Place a source JSON in `hymns_tools/sources/`
-2. Run the converter:
-   ```bash
-   cd /path/to/hymns_tools
-   python3 build_hymns_lang.py --lang ceb --json sources/hymns_ceb.json \
-     --out ../Leiturgia/data/hymns_ceb.db --apply
-   ```
-3. Add the DB to git, sync to the Pi, and restart — the new language appears in the
-   operator console selector automatically.
-
 ---
 
 ## Uninstall
