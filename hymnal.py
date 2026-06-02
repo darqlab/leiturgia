@@ -12,8 +12,11 @@ import sqlite3
 import os
 import re
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "data", "hymns.db")
 VERSE_COLS = ["verse1", "verse2", "verse3", "verse4", "verse5", "verse6", "verse7"]
+
+
+def _db_path(lang: str = "en") -> str:
+    return os.path.join(os.path.dirname(__file__), "data", f"hymns_{lang}.db")
 
 
 def _row_to_stanzas(row: sqlite3.Row) -> list[dict]:
@@ -39,18 +42,18 @@ def _row_to_stanzas(row: sqlite3.Row) -> list[dict]:
     return stanzas
 
 
-def _connect():
-    con = sqlite3.connect(DB_PATH)
+def _connect(lang: str = "en"):
+    con = sqlite3.connect(_db_path(lang))
     con.row_factory = sqlite3.Row
     return con
 
 
-def get_by_number(number: int) -> dict | None:
+def get_by_number(number: int, lang: str = "en") -> dict | None:
     """
     Fetch a hymn by its number (1–695).
     Returns {"number": N, "title": "...", "stanzas": [...]} or None.
     """
-    with _connect() as con:
+    with _connect(lang) as con:
         row = con.execute(
             "SELECT * FROM Hymns WHERE number = ?", (number,)
         ).fetchone()
@@ -60,7 +63,7 @@ def get_by_number(number: int) -> dict | None:
             "stanzas": _row_to_stanzas(row)}
 
 
-def get_by_title(title: str) -> dict | None:
+def get_by_title(title: str, lang: str = "en") -> dict | None:
     """
     Search hymns by title using progressively looser matching:
       1. Exact (case-insensitive)
@@ -70,7 +73,7 @@ def get_by_title(title: str) -> dict | None:
     Returns the best match or None.
     """
     q = title.strip().lower()
-    with _connect() as con:
+    with _connect(lang) as con:
         rows = con.execute("SELECT * FROM Hymns ORDER BY number").fetchall()
 
     # Score each hymn title against the query
@@ -93,13 +96,13 @@ def get_by_title(title: str) -> dict | None:
             "stanzas": _row_to_stanzas(best)}
 
 
-def search_titles(query: str, limit: int = 10) -> list[dict]:
+def search_titles(query: str, limit: int = 10, lang: str = "en") -> list[dict]:
     """
     Return up to `limit` hymns whose title contains the query string.
     Each result: {"number": N, "title": "..."}
     """
     q = f"%{query.strip()}%"
-    with _connect() as con:
+    with _connect(lang) as con:
         rows = con.execute(
             "SELECT number, title FROM Hymns WHERE LOWER(title) LIKE LOWER(?) ORDER BY number LIMIT ?",
             (q, limit)
@@ -107,9 +110,9 @@ def search_titles(query: str, limit: int = 10) -> list[dict]:
     return [{"number": r["number"], "title": r["title"]} for r in rows]
 
 
-def search_by_number_prefix(prefix: str, limit: int = 8) -> list[dict]:
+def search_by_number_prefix(prefix: str, limit: int = 8, lang: str = "en") -> list[dict]:
     pattern = f"{prefix}%"
-    with _connect() as con:
+    with _connect(lang) as con:
         rows = con.execute(
             "SELECT number, title FROM Hymns WHERE CAST(number AS TEXT) LIKE ? ORDER BY number LIMIT ?",
             (pattern, limit)

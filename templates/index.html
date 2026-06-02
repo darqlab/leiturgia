@@ -950,6 +950,7 @@
     .hymnal-suggest-item:hover { background: var(--border); }
     .hymnal-suggest-num { color: var(--gold); font-size: 11px; min-width: 28px; }
     .hymnal-suggest-title { color: var(--white); }
+    .hymn-lang-select { height: 38px; padding: 0 6px; background: var(--surface); color: var(--white); border: 1px solid var(--border); border-radius: 4px; font-size: 12px; cursor: pointer; }
 
 
     .lyrics-status-text { font-size: 12px; white-space: nowrap; }
@@ -1760,6 +1761,7 @@
             </div>
             <input type="hidden" class="item-title" value="{{ item.title }}">
             <input type="hidden" class="item-hymn"  value="{{ item.get('hymn_number', '') }}">
+            <select class="item-hymn-lang hymn-lang-select" data-lang="{{ item.get('hymn_lang', 'en') }}"></select>
             {% else %}
             <div class="participant">
               <div class="role-label">Title</div>
@@ -2019,6 +2021,7 @@
         </div>
         <input type="hidden" class="item-title" value="">
         <input type="hidden" class="item-hymn"  value="">
+        <select class="item-hymn-lang hymn-lang-select" data-lang="en"></select>
         <div class="rule" style="margin:10px 0 8px;"></div>
         <div class="lyrics-section">
           <div class="lyrics-search-row">
@@ -2242,6 +2245,7 @@
 
     // Open the new item in edit mode
     selectItem(domId);
+    _populateLangSelects();
   }
 
   // ── Content item formatting toolbar ───────────────────────────────────────
@@ -2388,10 +2392,11 @@
     }
 
     if (type === "song") {
-      const hymn_num  = el.querySelector(".item-hymn")?.value  || "";
-      const lyricsKey = el.querySelector(".lyrics-key")?.value || "";
-      const songPart  = el.querySelector(".item-part")?.value  || "";
-      const item = { type: "song", title };
+      const hymn_num  = el.querySelector(".item-hymn")?.value      || "";
+      const hymn_lang = el.querySelector(".item-hymn-lang")?.value || "en";
+      const lyricsKey = el.querySelector(".lyrics-key")?.value     || "";
+      const songPart  = el.querySelector(".item-part")?.value      || "";
+      const item = { type: "song", title, hymn_lang };
       if (hymn_num)  item.hymn_number = hymn_num;
       if (lyricsKey) item.lyrics_key  = lyricsKey;
       if (songPart)  item.part        = songPart;
@@ -2442,7 +2447,9 @@
     status.className = "lyrics-status-text";
 
     try {
-      const res  = await fetch(`/api/fetch-lyrics?q=${encodeURIComponent(query)}`);
+      const langSel = section.closest(".program-item")?.querySelector(".item-hymn-lang");
+      const lang = langSel?.value || "en";
+      const res  = await fetch(`/api/fetch-lyrics?q=${encodeURIComponent(query)}&lang=${lang}`);
       const data = await res.json();
       if (data.status === "ok") {
         keyEl.value = data.key;
@@ -2459,6 +2466,10 @@
         if (data.title) {
           const titleInput = itemEl?.querySelector(".item-title");
           if (titleInput) titleInput.value = data.title;
+        }
+        if (data.lang) {
+          const langInput = itemEl?.querySelector(".item-hymn-lang");
+          if (langInput) langInput.value = data.lang;
         }
         // Update query input to show "#number — title"
         const hymnNum   = itemEl?.querySelector(".item-hymn")?.value  || "";
@@ -3428,7 +3439,9 @@
     status.className = "hymn-status";
 
     try {
-      const res  = await fetch(`/api/fetch-hymn/${num}`);
+      const langSel = row.closest(".program-item")?.querySelector(".item-hymn-lang");
+      const lang = langSel?.value || "en";
+      const res  = await fetch(`/api/fetch-hymn/${num}?lang=${lang}`);
       const data = await res.json();
       if (data.status === "ok" && data.stanzas.length) {
         status.textContent = `✓ ${data.stanzas.length} verses loaded`;
@@ -3616,7 +3629,9 @@
     if (!q) { drop.classList.remove("open"); return; }
 
     _suggestTimer = setTimeout(async () => {
-      const res  = await fetch(`/api/hymnal/search?q=${encodeURIComponent(q)}`);
+      const langSel = row.closest(".program-item")?.querySelector(".item-hymn-lang");
+      const lang = langSel?.value || "en";
+      const res  = await fetch(`/api/hymnal/search?q=${encodeURIComponent(q)}&lang=${lang}`);
       const data = await res.json();
       if (!data.length) { drop.classList.remove("open"); return; }
 
@@ -4279,6 +4294,7 @@
     const title      = itemEl.querySelector('.item-title')?.value || '';
     const part       = itemEl.querySelector('.item-part')?.value  || '';
     const hymn_number = itemEl.querySelector('.item-hymn')?.value || '';
+    const hymn_lang = itemEl.querySelector('.item-hymn-lang')?.value || 'en';
 
     // Highlight active live button
     document.querySelectorAll('.btn-live.active').forEach(b => b.classList.remove('active'));
@@ -4300,6 +4316,7 @@
         const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
                      item_id: itemEl.dataset.itemId, stanza_idx: null };
         if (hymn_number) sd.hymn_number = hymn_number;
+        sd.hymn_lang = hymn_lang;
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
         return;
@@ -4320,6 +4337,7 @@
         const sd = { type: 'text', title, part, channel: ch, theme_id: _getTheme(),
                      item_id: itemEl.dataset.itemId, stanza_idx: null };
         if (hymn_number) sd.hymn_number = hymn_number;
+        sd.hymn_lang = hymn_lang;
         _socket.emit('slide:show', sd);
         renderLivePreview(sd);
       }
@@ -4387,6 +4405,7 @@
     if (stanza && stanza.type !== '__title__') sd.stanza = stanza;
     if (nextStanza && nextStanza.type !== '__title__') sd.next_stanza = nextStanza;
     if (hymn_number) sd.hymn_number = hymn_number;
+    sd.hymn_lang = _projItem?.querySelector('.item-hymn-lang')?.value || 'en';
     _socket.emit('slide:show', sd);
     renderLivePreview(sd);
   }
@@ -4516,6 +4535,28 @@
     _socket.emit('announcement', data);
     renderLivePreview(data);
   }
+
+  // ── Hymnal language selector ─────────────────────────────────────────────
+  let _hymnLangs = [];
+
+  async function _loadHymnLangs() {
+    try {
+      const res = await fetch('/api/hymnal/languages');
+      _hymnLangs = await res.json();
+      _populateLangSelects();
+    } catch (e) { _hymnLangs = [{code: 'en', label: 'English'}]; }
+  }
+
+  function _populateLangSelects() {
+    document.querySelectorAll('.item-hymn-lang').forEach(sel => {
+      const cur = sel.dataset.lang || sel.value || 'en';
+      sel.innerHTML = _hymnLangs.map(l =>
+        `<option value="${l.code}"${l.code === cur ? ' selected' : ''}>${l.label}</option>`
+      ).join('');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => { _loadHymnLangs(); });
 
 </script>
 
