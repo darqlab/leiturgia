@@ -14,7 +14,7 @@ from any device on the same network.
 - **Timer display** — dedicated countdown/elapsed timer view for service flow
 - **Rundown view** — at-a-glance program order for worship leaders
 - **Announcement display** — full-screen announcement channel
-- **Hymn lyrics** — fetch and cache lyrics by hymn number or title; offline SQLite fallback (695 hymns)
+- **Multi-language hymnal** — English (695 hymns) and Tagalog (237 hymns) hymnals bundled as independent SQLite databases; language selector per song item in the operator console; extensible — adding Cebuano, Ilocano, or any future language requires only a new DB file, no code changes
 - **10 projection themes** — switchable color themes for the projection display
 - **Media support** — upload images/videos or paste URLs; send directly to projection
 - **PIN authentication** — operator console protected by a configurable PIN
@@ -85,11 +85,11 @@ Or, on a development install, use `deploy.sh`:
 bash deploy.sh
 ```
 
-### Updating the hymns database
+### Updating the hymns databases
 
-`data/hymns.db` is bundled in the repo and updated via `git pull`. After pulling a new
-version of the DB, the lyrics cache must be cleared so hymns are re-read from the updated
-database rather than served from stale cached files:
+The hymnal databases (`data/hymns_en.db`, `data/hymns_tl.db`) are bundled in the repo and
+updated via `git pull`. After pulling a new version, clear the lyrics cache so hymns are
+re-read from the updated databases rather than served from stale cached files:
 
 ```bash
 rm -f data/lyrics/*.json
@@ -131,7 +131,7 @@ git push origin v1.2.3
 ```
 
 The workflow builds a `.deb` package (`leiturgia_<version>_armhf.deb`) and publishes it
-as a GitHub Release. The package includes all app files, the hymnal database, and the
+as a GitHub Release. The package includes all app files, the hymnal databases, and the
 bundled welcome image. The `postinst` script handles virtualenv setup, directory creation,
 program seeding, and service activation on the target Pi.
 
@@ -149,7 +149,7 @@ cp app.py projection.py timer.py media_manager.py \
    scraper.py hymnal.py claude_helpers.py roles.py rundown.py \
    requirements.txt config.example.json "${PKG_DIR}/opt/leiturgia/"
 cp -r templates static "${PKG_DIR}/opt/leiturgia/"
-cp data/hymns.db "${PKG_DIR}/opt/leiturgia/data/"
+cp data/hymns_en.db data/hymns_tl.db "${PKG_DIR}/opt/leiturgia/data/"
 cp packaging/debian/control "${PKG_DIR}/DEBIAN/control"
 cp packaging/debian/postinst "${PKG_DIR}/DEBIAN/postinst"
 cp packaging/debian/prerm "${PKG_DIR}/DEBIAN/prerm"
@@ -174,13 +174,14 @@ leiturgia/
 ├── rundown.py              # Rundown/order-of-service helpers
 ├── media_manager.py        # Media file enumeration
 ├── scraper.py              # Hymn lyrics scraper
-├── hymnal.py               # SQLite hymnal queries (695 hymns)
+├── hymnal.py               # SQLite hymnal queries — language-aware, supports any hymns_*.db
 ├── claude_helpers.py       # Claude API integration (lyric cleaning)
 ├── requirements.txt
 ├── config.example.json     # Config template (copy to config.json)
 ├── deploy.sh               # Staging deploy helper
 ├── data/
-│   ├── hymns.db            # Bundled SDA hymnal database (695 hymns)
+│   ├── hymns_en.db         # English SDA hymnal (695 hymns)
+│   ├── hymns_tl.db         # Tagalog SDA hymnal (237 hymns)
 │   ├── program.json        # Current program state (seeded on first install)
 │   ├── history.json        # Last 6 saved programs
 │   ├── projection_state.json
