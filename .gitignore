@@ -31,4 +31,6 @@ memory/
 # Data (runtime state — except bundled hymn DB)
 data/*
 !data/hymns.db
+!data/hymns_en.db
+!data/hymns_tl.db
 CLAUDE.md

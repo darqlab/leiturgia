@@ -86,6 +86,10 @@ def _load_lyrics(path, hint_number=None, hint_title=None):
             key = os.path.splitext(os.path.basename(path))[0]
             if key.isdigit():
                 hymn_number = int(key)
+            else:
+                m = re.match(r'^[a-z]+-(\d+)$', key)
+                if m:
+                    hymn_number = int(m.group(1))
         if hymn_number and not hymn_title:
             db = get_by_number(hymn_number)
             if db:
@@ -137,6 +141,7 @@ def _migrate_item(item, item_id=""):
             "type":        "song",
             "title":       item.get("title", ""),
             "hymn_number": item.get("hymn_number", ""),
+            "hymn_lang":   item.get("hymn_lang", "en"),
             **({} if not item.get("lyrics_key") else {"lyrics_key": item["lyrics_key"]}),
         }
     return {
@@ -273,7 +278,8 @@ def _prepare_lyrics(items):
                                     hint_title=item.get("title"))
                 item["lyrics"] = data["stanzas"]
         elif item.get("hymn_number") and not item.get("lyrics"):
-            result = get_by_number(int(item["hymn_number"]))
+            hymn_lang = item.get("hymn_lang", "en")
+            result = get_by_number(int(item["hymn_number"]), lang=hymn_lang)
             if result:
                 item["lyrics"] = result["stanzas"]
 
@@ -364,10 +370,11 @@ def get_history():
 @app.route("/api/fetch-hymn/<int:number>")
 @operator_required
 def fetch_hymn(number):
-    result = get_by_number(number)
+    lang = request.args.get("lang", "en")
+    result = get_by_number(number, lang=lang)
     if not result:
         return jsonify({"status": "error", "message": "Hymn not found"}), 404
-    return jsonify({"status": "ok", "stanzas": result["stanzas"]})
+    return jsonify({"status": "ok", "stanzas": result["stanzas"], "lang": lang})
 
 
 @app.route("/api/fetch-lyrics")
@@ -377,17 +384,18 @@ def fetch_lyrics_route():
     if not q:
         return jsonify({"status": "error", "message": "No query provided"}), 400
     try:
+        lang        = request.args.get("lang", "en")
         hymn_number = None
         hymn_title  = None
 
         if q.isdigit():
-            key = q
+            key = f"{lang}-{q}"
             hymn_number = int(q)
         else:
             # Resolve title → hymn number via local DB so key is always numeric
-            db_result = get_by_title(q)
+            db_result = get_by_title(q, lang=lang)
             if db_result:
-                key         = str(db_result["number"])
+                key         = f"{lang}-{db_result['number']}"
                 hymn_number = db_result["number"]
                 hymn_title  = db_result["title"]
             else:
@@ -399,23 +407,23 @@ def fetch_lyrics_route():
             stanzas = data["stanzas"]
             hymn_number = hymn_number or data.get("hymn_number")
             hymn_title  = hymn_title  or data.get("title")
-            resp = {"status": "ok", "key": key, "count": len(stanzas), "source": "cache"}
+            resp = {"status": "ok", "key": key, "count": len(stanzas), "source": "cache", "lang": lang}
             if hymn_number: resp["hymn_number"] = hymn_number
             if hymn_title:  resp["title"]       = hymn_title
             return jsonify(resp)
 
-        result = get_by_number(hymn_number) if hymn_number else get_by_title(q)
+        result = get_by_number(hymn_number, lang=lang) if hymn_number else get_by_title(q, lang=lang)
         if not result or not result.get("stanzas"):
             return jsonify({"status": "error", "message": "No lyrics found"})
         stanzas     = result["stanzas"]
         hymn_number = hymn_number or result.get("number")
         hymn_title  = hymn_title  or result.get("title")
-        lyrics_data = {"stanzas": stanzas}
+        lyrics_data = {"stanzas": stanzas, "lang": lang}
         if hymn_number: lyrics_data["hymn_number"] = hymn_number
         if hymn_title:  lyrics_data["title"]       = hymn_title
         with open(path, "w") as f:
             json.dump(lyrics_data, f, indent=2)
-        resp = {"status": "ok", "key": key, "count": len(stanzas), "source": "db"}
+        resp = {"status": "ok", "key": key, "count": len(stanzas), "source": "db", "lang": lang}
         if hymn_number: resp["hymn_number"] = hymn_number
         if hymn_title:  resp["title"]       = hymn_title
         return jsonify(resp)
@@ -438,12 +446,30 @@ def get_lyrics(key):
 @app.route("/api/hymnal/search")
 @operator_required
 def hymnal_search():
-    q = request.args.get("q", "").strip()
+    q    = request.args.get("q", "").strip()
+    lang = request.args.get("lang", "en")
     if not q:
         return jsonify([])
     if q.isdigit():
-        return jsonify(search_by_number_prefix(q, limit=8))
-    return jsonify(search_titles(q, limit=8))
+        results = search_by_number_prefix(q, limit=8, lang=lang)
+    else:
+        results = search_titles(q, limit=8, lang=lang)
+    for r in results:
+        r["lang"] = lang
+    return jsonify(results)
+
+
+LANG_LABELS = {"en": "English", "tl": "Tagalog", "ceb": "Cebuano", "ilo": "Ilocano"}
+
+@app.route("/api/hymnal/languages")
+def hymnal_languages():
+    import glob
+    pattern = os.path.join(os.path.dirname(__file__), "data", "hymns_*.db")
+    langs = []
+    for path in sorted(glob.glob(pattern)):
+        code = os.path.basename(path)[len("hymns_"):-len(".db")]
+        langs.append({"code": code, "label": LANG_LABELS.get(code, code.upper())})
+    return jsonify(langs)
 
 
 @app.route("/api/program/add", methods=["POST"])
