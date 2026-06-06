@@ -8,7 +8,10 @@ stores the last-known state so state:restore can replay it.
 Phase 6 adds start/pause/reset/jump controls.
 """
 
+import logging
 import time
+
+logger = logging.getLogger('leiturgia.timer')
 
 
 class TimerState:

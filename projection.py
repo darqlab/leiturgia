@@ -12,8 +12,11 @@ State is persisted to data/projection_state.json on every set_state() call
 so that a server restart + state:restore can replay the last known state.
 """
 
+import logging
 import json
 import os
+
+logger = logging.getLogger('leiturgia.projection')
 
 _BLANK_STATE      = {"type": "blank", "data": {}, "theme_id": "default"}
 _STATE_FILE       = "data/projection_state.json"

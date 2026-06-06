@@ -10,7 +10,7 @@ logging.basicConfig(
 )
 logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('leiturgia.program')
 
 from flask import Flask, render_template, request, jsonify, send_file, session, redirect
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
@@ -36,6 +36,8 @@ app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024   # 200 MB upload limit
 
 with open('config.json') as _f:
     _config = json.load(_f)
+_log_level = getattr(logging, _config.get('log_level', 'INFO').upper(), logging.INFO)
+logging.getLogger().setLevel(_log_level)
 app.secret_key = _config['session_secret']
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=_config.get('session_timeout_hours', 8))
 
@@ -1524,6 +1526,17 @@ def _timer_tick_loop():
             socketio.emit('timer:tick', payload, room=ch)
 
 socketio.start_background_task(_timer_tick_loop)
+
+
+@app.errorhandler(Exception)
+def _handle_unexpected_error(exc):
+    logger.exception("unhandled exception: %s %s", request.method, request.path)
+    return jsonify({'error': 'internal server error'}), 500
+
+
+@socketio.on_error_default
+def _handle_socketio_error(exc):
+    logger.exception("unhandled socket.io error")
 
 
 def _cloud_update_pump():

@@ -4,8 +4,11 @@ media_manager.py — Enumerate media files in media/images/ and media/videos/.
 Only list_media() is public.
 """
 
+import logging
 import os
 from urllib.parse import quote as _quote
+
+logger = logging.getLogger('leiturgia.media')
 
 try:
     from mutagen.mp4 import MP4 as _MP4

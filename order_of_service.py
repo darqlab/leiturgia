@@ -5,6 +5,9 @@ Derives the display list from the loaded program + active item reference.
 Does not persist — regenerated on every item change or timer tick.
 """
 
+import logging
+
+logger = logging.getLogger('leiturgia.oos')
 
 _DEFAULT_MINUTES: dict[str, int] = {
     "song":        4,
