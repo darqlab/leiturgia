@@ -3,13 +3,20 @@ import eventlet
 eventlet.monkey_patch()
 
 import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
+
+logger = logging.getLogger(__name__)
 
 from flask import Flask, render_template, request, jsonify, send_file, session, redirect
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import json, os, copy, re, requests, uuid
+import json, os, copy, re, requests, uuid, time, glob
 from urllib.parse import quote as _url_quote
 from datetime import datetime, timedelta
 from functools import wraps
@@ -22,6 +29,7 @@ from timer import TimerManager
 from roles import RoleManager
 from order_of_service import OrderOfServiceManager
 from cloud_agent import agent as cloud_agent
+from jsonio import atomic_write_json
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024   # 200 MB upload limit
@@ -97,8 +105,7 @@ def _load_lyrics(path, hint_number=None, hint_title=None):
         data = {"stanzas": data}
         if hymn_number: data["hymn_number"] = hymn_number
         if hymn_title:  data["title"]       = hymn_title
-        with open(path, "w") as f:
-            json.dump(data, f, indent=2)
+        atomic_write_json(path, data)
 
     return data
 
@@ -160,8 +167,17 @@ def _migrate_items(items, prefix="item"):
 
 def load_program():
     if os.path.exists(DATA_FILE):
-        with open(DATA_FILE) as f:
-            data = json.load(f)
+        data = None
+        for attempt in range(3):
+            try:
+                with open(DATA_FILE) as f:
+                    data = json.load(f)
+                break
+            except json.JSONDecodeError:
+                if attempt == 2:
+                    raise
+                logger.warning("program.json read failed (attempt %d/3), retrying", attempt + 1)
+                time.sleep(0.1)
 
         # ── Migrate old schema (sabbath_school / divine_service keys) ──────────
         if "sabbath_school" in data and "divine_service" in data:
@@ -225,8 +241,8 @@ def _ensure_item_ids(program: dict) -> None:
 
 def save_program(data):
     _ensure_item_ids(data)
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+    atomic_write_json(DATA_FILE, data)
+    logger.info("program saved (%d program(s))", len(data.get("service_programs", [])))
 
 
 def _broadcast_order_of_service(program):
@@ -261,8 +277,7 @@ def save_history(program):
     }
     history.insert(0, snapshot)
     history = history[:HISTORY_MAX]
-    with open(HISTORY_FILE, "w") as f:
-        json.dump(history, f, indent=2)
+    atomic_write_json(HISTORY_FILE, history)
 
 
 def _prepare_lyrics(items):
@@ -421,8 +436,7 @@ def fetch_lyrics_route():
         lyrics_data = {"stanzas": stanzas, "lang": lang}
         if hymn_number: lyrics_data["hymn_number"] = hymn_number
         if hymn_title:  lyrics_data["title"]       = hymn_title
-        with open(path, "w") as f:
-            json.dump(lyrics_data, f, indent=2)
+        atomic_write_json(path, lyrics_data)
         resp = {"status": "ok", "key": key, "count": len(stanzas), "source": "db", "lang": lang}
         if hymn_number: resp["hymn_number"] = hymn_number
         if hymn_title:  resp["title"]       = hymn_title
@@ -1150,8 +1164,7 @@ def api_settings_pin():
     with open('config.json') as f:
         cfg = json.load(f)
     cfg['pin'] = pin
-    with open('config.json', 'w') as f:
-        json.dump(cfg, f, indent=2)
+    atomic_write_json('config.json', cfg)
     return jsonify({'status': 'ok'})
 
 
@@ -1199,8 +1212,7 @@ def api_cloud_link():
         cfg['cloud_enabled'] = True
         cfg['cloud_url']     = cloud_url
         cfg['cloud_token']   = cloud_token
-        with open('config.json', 'w') as f:
-            json.dump(cfg, f, indent=2)
+        atomic_write_json('config.json', cfg)
         cloud_agent.restart()
         return jsonify({'status': 'linked', 'church_name': church_name})
 
@@ -1221,8 +1233,7 @@ def api_cloud_unlink():
     cfg['cloud_enabled'] = False
     cfg['cloud_token']   = ''
     cfg['cloud_url']     = ''
-    with open('config.json', 'w') as f:
-        json.dump(cfg, f, indent=2)
+    atomic_write_json('config.json', cfg)
     return jsonify({'status': 'ok'})
 
 
@@ -1291,10 +1302,11 @@ def api_cloud_sync():
         return jsonify({'ok': False, 'error': str(exc)}), 502
 
     try:
-        with open(DATA_FILE, 'w') as f:
-            json.dump(program_data, f, indent=2)
+        atomic_write_json(DATA_FILE, program_data)
+        logger.info("cloud applied program update")
         _on_cloud_program_update(program_data)
     except Exception as exc:
+        logger.exception("cloud-apply program write failed")
         return jsonify({'ok': False, 'error': str(exc)}), 500
 
     return jsonify({'ok': True})
@@ -1419,10 +1431,9 @@ def _yt_cache_write(source_url, filename, local_url):
             with open(_YT_CACHE_PATH) as f:
                 cache = json.load(f)
         cache[key] = {'filename': filename, 'local_url': local_url, 'source_url': source_url}
-        with open(_YT_CACHE_PATH, 'w') as f:
-            json.dump(cache, f, indent=2)
+        atomic_write_json(_YT_CACHE_PATH, cache)
     except Exception:
-        pass
+        logger.warning("yt_cache write failed", exc_info=True)
 
 def _yt_download_task(url, quality, item_id, sid):
     import yt_dlp
@@ -1534,4 +1545,9 @@ if __name__ == "__main__":
     os.makedirs("output",      exist_ok=True)
     os.makedirs("media/images", exist_ok=True)
     os.makedirs("media/videos", exist_ok=True)
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    for _p in glob.glob(os.path.join(os.path.dirname(DATA_FILE), ".tmp-*.json")):
+        try:
+            os.unlink(_p)
+        except OSError:
+            pass
+    socketio.run(app, host="0.0.0.0", port=5000, debug=False)
