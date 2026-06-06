@@ -8,9 +8,12 @@ DB schema (Hymns table):
 Returns stanzas as: [{"number": N, "type": "verse"|"refrain", "lines": [...]}]
 The refrain appears once; _hymn_slide_sequence() in generator.py handles interleaving.
 """
+import logging
 import sqlite3
 import os
 import re
+
+logger = logging.getLogger('leiturgia.hymnal')
 
 VERSE_COLS = ["verse1", "verse2", "verse3", "verse4", "verse5", "verse6", "verse7"]
 

@@ -9,7 +9,7 @@ from jsonio import atomic_write_json
 
 import websockets
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('leiturgia.cloud')
 
 CONFIG_FILE = "config.json"
 DATA_FILE = "data/program.json"
