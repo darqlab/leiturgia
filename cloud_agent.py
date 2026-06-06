@@ -5,6 +5,8 @@ import os
 import threading
 import time
 
+from jsonio import atomic_write_json
+
 import websockets
 
 logger = logging.getLogger(__name__)
@@ -222,8 +224,7 @@ class CloudAgent:
 
     async def _apply_program(self, data, version: int = 0):
         try:
-            with open(DATA_FILE, "w") as f:
-                json.dump(data, f, indent=2)
+            atomic_write_json(DATA_FILE, data)
             self._cloud_version = version
             logger.info("sync:program applied from cloud (version %s)", version)
         except Exception as exc:

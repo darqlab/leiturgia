@@ -1304,7 +1304,7 @@ def api_cloud_sync():
     try:
         atomic_write_json(DATA_FILE, program_data)
         logger.info("cloud applied program update")
-        _on_cloud_program_update(program_data)
+        cloud_agent._pending_ui_notify = True
     except Exception as exc:
         logger.exception("cloud-apply program write failed")
         return jsonify({'ok': False, 'error': str(exc)}), 500
