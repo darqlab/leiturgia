@@ -7,6 +7,7 @@ Any role can be mirrored to multiple channels. Persists to data/role_assignments
 
 import json
 import os
+from jsonio import atomic_write_json
 
 _PERSIST_FILE = "data/role_assignments.json"
 _VALID_ROLES    = ('main', 'order_of_service', 'timer', 'announcement')
@@ -54,8 +55,7 @@ class RoleManager:
     def _save(self) -> None:
         try:
             os.makedirs(os.path.dirname(_PERSIST_FILE), exist_ok=True)
-            with open(_PERSIST_FILE, 'w') as f:
-                json.dump(self._assignments, f, indent=2)
+            atomic_write_json(_PERSIST_FILE, self._assignments)
         except Exception:
             pass
 
@@ -70,8 +70,7 @@ class RoleManager:
                         data['order_of_service'] = data.pop('rundown')
                         try:
                             os.makedirs(os.path.dirname(_PERSIST_FILE), exist_ok=True)
-                            with open(_PERSIST_FILE, 'w') as f:
-                                json.dump(data, f, indent=2)
+                            atomic_write_json(_PERSIST_FILE, data)
                         except Exception:
                             pass
                     # Ensure all roles are present

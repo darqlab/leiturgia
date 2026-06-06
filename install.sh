@@ -28,27 +28,9 @@ echo "==> Installing/updating Python dependencies..."
 pip install --upgrade pip -q
 pip install -r requirements.txt
 
-# ── .env file ────────────────────────────────────────────────────────────────
-if [ ! -f ".env" ]; then
-  echo "==> Creating .env from env.example..."
-  if [ -f "/home/dennis/devops/projects/leiturgia/env.example" ]; then
-    cp /home/dennis/devops/projects/leiturgia/env.example .env
-  else
-    cat > .env <<'EOF'
-# Leiturgia — Environment Variables
-# ANTHROPIC_API_KEY is optional; without it, raw scraped lyrics are used.
-ANTHROPIC_API_KEY=
-GOOGLE_SHEET_ID=
-EOF
-  fi
-  echo "     -> Edit .env and fill in your API keys before running the app."
-else
-  echo "==> .env already exists, skipping."
-fi
-
 # ── Data directories ─────────────────────────────────────────────────────────
 echo "==> Ensuring data directories exist..."
-mkdir -p data/media/images data/media/videos output
+mkdir -p media/images media/videos data/lyrics output
 
 # ── Done ─────────────────────────────────────────────────────────────────────
 echo ""
