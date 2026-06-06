@@ -5,9 +5,12 @@ Tracks which channels carry each output role (MAIN, ORDER_OF_SERVICE, TIMER, ANN
 Any role can be mirrored to multiple channels. Persists to data/role_assignments.json.
 """
 
+import logging
 import json
 import os
 from jsonio import atomic_write_json
+
+logger = logging.getLogger('leiturgia.auth')
 
 _PERSIST_FILE = "data/role_assignments.json"
 _VALID_ROLES    = ('main', 'order_of_service', 'timer', 'announcement')
