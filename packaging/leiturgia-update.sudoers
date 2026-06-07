@@ -1,0 +1,27 @@
+# =============================================================================
+# Template for /etc/sudoers.d/leiturgia-update  (Cantor host artifact)
+#
+# This is NOT installed automatically — Castellan/Dennis copies this file to
+# /etc/sudoers.d/leiturgia-update on the host (Cantor only) as part of
+# provisioning, then:
+#
+#   sudo install -m 0440 leiturgia-update.sudoers /etc/sudoers.d/leiturgia-update
+#   sudo visudo -c
+#
+# Mode MUST be 0440, and the file MUST be validated with `visudo -c` before
+# (and after) installing — sudoers syntax errors can lock out sudo entirely.
+#
+# Why `pi`: the rule targets the `leiturgia` service's current `User=`, which
+# is `pi` (see packaging/leiturgia.service). OQ-1 decided the target end state
+# is a dedicated, unprivileged `leiturgia` system account — `pi` is the
+# accepted interim per task 5.6, a follow-up migration that has not landed
+# yet. When that migration lands, this rule must be retargeted from `pi` to
+# `leiturgia` (and `User=` updated in both leiturgia.service and
+# leiturgia-update.service to match).
+#
+# This is the security hinge of the whole feature: it grants the web user
+# (running as `pi`) passwordless root privilege to start EXACTLY ONE systemd
+# unit — leiturgia-update.service — and nothing else. Do not widen this rule.
+# =============================================================================
+
+pi ALL=(root) NOPASSWD: /usr/bin/systemctl start leiturgia-update.service
