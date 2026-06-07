@@ -132,7 +132,8 @@ if [ ! -f "${CONFIG_FILE}" ]; then
   "max_login_attempts": 5,
   "cloud_enabled": false,
   "cloud_url": "",
-  "cloud_token": ""
+  "cloud_token": "",
+  "enable_self_update": false
 }
 EOF
   chown "${APP_USER}:${APP_USER}" "${CONFIG_FILE}"
