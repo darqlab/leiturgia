@@ -1344,12 +1344,33 @@ def api_cloud_sync():
     return jsonify({'ok': True})
 
 
+def _origin_reachable():
+    """Timeout-bounded reachability probe to `origin` (TDD §6.4, D5).
+
+    Some church Pis have no internet at all; the preflight must fail fast and
+    cleanly (no lock, no request, no destructive action) rather than let a
+    `git fetch`/checkout start and hang or half-complete offline.
+    """
+    repo_dir = os.path.dirname(os.path.abspath(__file__))
+    try:
+        result = subprocess.run(
+            ["git", "ls-remote", "--heads", "origin"],
+            cwd=repo_dir, capture_output=True, text=True, timeout=5,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
 @app.route('/api/update/start', methods=['POST'])
 @operator_required
 def api_update_start():
     cfg = cloud_agent._load_config()
     if not cfg.get('enable_self_update', False):
         return jsonify({'status': 'error', 'message': 'not found'}), 404
+
+    if not _origin_reachable():
+        return jsonify({'status': 'offline', 'message': 'no internet connection'}), 503
 
     data       = request.get_json() or {}
     target_tag = data.get('target_tag')
@@ -1407,6 +1428,9 @@ def api_update_check():
     cfg = cloud_agent._load_config()
     if not cfg.get('enable_self_update', False):
         return jsonify({'status': 'error', 'message': 'not found'}), 404
+
+    if not _origin_reachable():
+        return jsonify({'status': 'offline', 'current': get_version()}), 503
 
     repo_dir = os.path.dirname(os.path.abspath(__file__))
     try:
