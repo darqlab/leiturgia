@@ -16,7 +16,7 @@ from flask import Flask, render_template, request, jsonify, send_file, session, 
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import json, os, copy, re, requests, uuid, time, glob
+import json, os, copy, re, requests, uuid, time, glob, subprocess
 from urllib.parse import quote as _url_quote
 from datetime import datetime, timedelta
 from functools import wraps
@@ -1343,6 +1343,63 @@ def api_cloud_sync():
     return jsonify({'ok': True})
 
 
+@app.route('/api/update/start', methods=['POST'])
+@operator_required
+def api_update_start():
+    cfg = cloud_agent._load_config()
+    if not cfg.get('enable_self_update', False):
+        return jsonify({'status': 'error', 'message': 'not found'}), 404
+
+    data       = request.get_json() or {}
+    target_tag = data.get('target_tag')
+    if not target_tag or not re.match(r'^v\d+\.\d+\.\d+$', target_tag):
+        return jsonify({'status': 'error', 'message': 'invalid target_tag'}), 400
+
+    lock_path = os.path.join('data', 'update', 'lock')
+    try:
+        fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.close(fd)
+    except FileExistsError:
+        return jsonify({'status': 'error', 'message': 'update already in progress'}), 409
+
+    try:
+        request_path = os.path.join('data', 'update', 'request.json')
+        atomic_write_json(request_path, {
+            'target_tag': target_tag,
+            'requested_by': 'operator',
+            'ts': time.time(),
+        })
+    except Exception:
+        try:
+            os.unlink(lock_path)
+        except OSError:
+            pass
+        logger.exception("update request write failed")
+        return jsonify({'status': 'error', 'message': 'failed to write update request'}), 500
+
+    try:
+        subprocess.run(["sudo", "systemctl", "start", "leiturgia-update.service"], check=False)
+    except Exception:
+        logger.warning("failed to launch leiturgia-update.service", exc_info=True)
+
+    return jsonify({'status': 'started'}), 202
+
+
+@app.route('/api/update/status', methods=['GET'])
+@operator_required
+def api_update_status():
+    cfg = cloud_agent._load_config()
+    if not cfg.get('enable_self_update', False):
+        return jsonify({'status': 'error', 'message': 'not found'}), 404
+
+    status_path = os.path.join('data', 'update', 'status.json')
+    try:
+        with open(status_path) as f:
+            return jsonify(json.load(f))
+    except Exception:
+        return jsonify({'status': 'idle'})
+
+
 def _sanitize_filename(name: str) -> str:
     stem, ext = os.path.splitext(name)
     stem = stem.replace('-', '_')
@@ -1583,6 +1640,7 @@ cloud_agent.start()
 
 if __name__ == "__main__":
     os.makedirs("data",        exist_ok=True)
+    os.makedirs("data/update", exist_ok=True)
     os.makedirs(LYRICS_DIR,    exist_ok=True)
     os.makedirs("output",      exist_ok=True)
     os.makedirs("media/images", exist_ok=True)
