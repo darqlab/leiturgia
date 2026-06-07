@@ -1202,7 +1202,8 @@ def api_settings_pin():
 @app.route('/settings')
 @operator_required
 def settings():
-    return render_template('settings.html')
+    cfg = cloud_agent._load_config()
+    return render_template('settings.html', enable_self_update=cfg.get('enable_self_update', False))
 
 
 @app.route('/api/cloud/status')
@@ -1398,6 +1399,40 @@ def api_update_status():
             return jsonify(json.load(f))
     except Exception:
         return jsonify({'status': 'idle'})
+
+
+@app.route('/api/update/check', methods=['GET'])
+@operator_required
+def api_update_check():
+    cfg = cloud_agent._load_config()
+    if not cfg.get('enable_self_update', False):
+        return jsonify({'status': 'error', 'message': 'not found'}), 404
+
+    repo_dir = os.path.dirname(os.path.abspath(__file__))
+    try:
+        subprocess.run(
+            ["git", "fetch", "--tags", "--quiet"],
+            cwd=repo_dir, capture_output=True, text=True, timeout=30, check=True,
+        )
+        result = subprocess.run(
+            ["git", "tag", "--list", "v*"],
+            cwd=repo_dir, capture_output=True, text=True, timeout=10, check=True,
+        )
+        latest = None
+        latest_parts = None
+        for tag in result.stdout.splitlines():
+            tag = tag.strip()
+            m = re.match(r'^v(\d+)\.(\d+)\.(\d+)$', tag)
+            if not m:
+                continue
+            parts = tuple(int(g) for g in m.groups())
+            if latest_parts is None or parts > latest_parts:
+                latest_parts = parts
+                latest = tag
+        return jsonify({'latest': latest, 'current': get_version()})
+    except Exception:
+        logger.warning("update check failed", exc_info=True)
+        return jsonify({'latest': None, 'current': get_version()})
 
 
 def _sanitize_filename(name: str) -> str:
