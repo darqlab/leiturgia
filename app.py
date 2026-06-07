@@ -30,6 +30,7 @@ from roles import RoleManager
 from order_of_service import OrderOfServiceManager
 from cloud_agent import agent as cloud_agent
 from jsonio import atomic_write_json
+from version import get_version
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024   # 200 MB upload limit
@@ -353,6 +354,34 @@ def _server_ip() -> str:
 def index():
     program = load_program()
     return render_template("index.html", program=program, server_ip=_server_ip())
+
+
+@app.route("/api/health")
+def health():
+    checks = {}
+    healthy = True
+
+    try:
+        load_program()
+        checks["program"] = True
+    except Exception:
+        logger.warning("health check: load_program failed", exc_info=True)
+        checks["program"] = False
+        healthy = False
+
+    try:
+        roles.to_dict()
+        checks["roles"] = True
+    except Exception:
+        logger.warning("health check: roles manager failed", exc_info=True)
+        checks["roles"] = False
+        healthy = False
+
+    # Soft signal: cloud is LAN-only by design, so an offline cloud must not flip the box unhealthy.
+    checks["cloud"] = cloud_agent.status
+
+    body = {"status": "ok" if healthy else "error", "version": get_version(), "checks": checks}
+    return jsonify(body), 200 if healthy else 503
 
 
 @app.route("/api/program", methods=["GET"])
