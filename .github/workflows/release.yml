@@ -30,15 +30,14 @@ jobs:
           mkdir -p "${PKG_DIR}/opt/leiturgia/data"
           mkdir -p "${PKG_DIR}/etc/systemd/system"
 
-          # App source files
-          cp app.py hymnal.py media_manager.py projection.py \
-             roles.py rundown.py timer.py \
+          # App source files (*.py picks up all root modules automatically)
+          cp *.py \
              requirements.txt config.example.json \
              "${PKG_DIR}/opt/leiturgia/"
 
           # Bundled assets
           cp -r templates static "${PKG_DIR}/opt/leiturgia/"
-          cp data/hymns.db "${PKG_DIR}/opt/leiturgia/data/"
+          cp data/hymns_en.db data/hymns_tl.db "${PKG_DIR}/opt/leiturgia/data/"
 
           # systemd unit
           cp packaging/leiturgia.service "${PKG_DIR}/etc/systemd/system/leiturgia.service"
