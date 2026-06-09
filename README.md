@@ -48,13 +48,13 @@ http://<pi-ip>:5000/remote   Mobile remote
 
 ### Debian package (.deb)
 
-Pre-built `.deb` packages for `armhf` are available on the
+Pre-built `.deb` packages for `all` are available on the
 [Releases](https://github.com/darqlab/leiturgia/releases) page.
 
 ```bash
 # Download the latest release and install
-wget https://github.com/darqlab/leiturgia/releases/latest/download/leiturgia_<version>_armhf.deb
-sudo dpkg -i leiturgia_<version>_armhf.deb
+wget https://github.com/darqlab/leiturgia/releases/latest/download/leiturgia_<version>_all.deb
+sudo dpkg -i leiturgia_<version>_all.deb
 ```
 
 ### Manual setup (development)
@@ -130,7 +130,7 @@ git tag v1.2.3
 git push origin v1.2.3
 ```
 
-The workflow builds a `.deb` package (`leiturgia_<version>_armhf.deb`) and publishes it
+The workflow builds a `.deb` package (`leiturgia_<version>_all.deb`) and publishes it
 as a GitHub Release. The package includes all app files, the hymnal databases, and the
 bundled welcome image. The `postinst` script handles virtualenv setup, directory creation,
 program seeding, and service activation on the target Pi.
@@ -139,7 +139,7 @@ program seeding, and service activation on the target Pi.
 
 ```bash
 VERSION=1.2.3
-PKG_DIR="leiturgia_${VERSION}_armhf"
+PKG_DIR="leiturgia_${VERSION}_all"
 
 mkdir -p "${PKG_DIR}/DEBIAN"
 mkdir -p "${PKG_DIR}/opt/leiturgia/data"
