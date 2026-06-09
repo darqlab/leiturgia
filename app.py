@@ -10,7 +10,9 @@ logging.basicConfig(
 )
 logging.getLogger('eventlet.wsgi.server').setLevel(logging.ERROR)
 
-logger = logging.getLogger('leiturgia.program')
+logger        = logging.getLogger('leiturgia.program')
+logger_socket = logging.getLogger('leiturgia.socket')
+logger_media  = logging.getLogger('leiturgia.media')
 
 from flask import Flask, render_template, request, jsonify, send_file, session, redirect
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
@@ -263,6 +265,7 @@ def save_history(program):
             with open(HISTORY_FILE) as f:
                 history = json.load(f)
         except Exception:
+            logger.warning("history file unreadable, starting empty", exc_info=True)
             history = []
 
     snapshot = {
@@ -410,6 +413,7 @@ def get_history():
         with open(HISTORY_FILE) as f:
             return jsonify(json.load(f))
     except Exception:
+        logger.warning("history file unreadable", exc_info=True)
         return jsonify([])
 
 
@@ -473,6 +477,7 @@ def fetch_lyrics_route():
         if hymn_title:  resp["title"]       = hymn_title
         return jsonify(resp)
     except Exception as e:
+        logger.exception("lyrics fetch failed: %s", q)
         return jsonify({"status": "error", "message": str(e)}), 500
 
 
@@ -767,11 +772,22 @@ def api_themes():
 
 
 # ── SocketIO event handlers ──────────────────────────────────────────────────
+@socketio.on('connect')
+def on_connect():
+    logger_socket.debug("connect: sid=%s", request.sid)
+
+
+@socketio.on('disconnect')
+def on_disconnect():
+    logger_socket.debug("disconnect: sid=%s", request.sid)
+
+
 @socketio.on('join')
 def on_join(data):
     channel = data.get('channel', 'ch1')
     join_room(channel)
     role = roles.get_role(channel)
+    logger_socket.info("join: sid=%s channel=%s role=%s", request.sid, channel, role)
     if role == 'order_of_service':
         program    = load_program()
         timer_fs   = timer.get_full_state('timer')
@@ -796,6 +812,7 @@ def on_remote_join():
         disconnect()
         return
     join_room('remote-clients')
+    logger_socket.info("join: sid=%s channel=remote-clients role=remote", request.sid)
     emit('remote:sync', build_remote_sync())
 
 @socketio.on('console:join')
@@ -805,6 +822,7 @@ def on_console_join():
         return
     join_room('console')
     join_room('ch1')  # default channel; switched via console:watch
+    logger_socket.info("join: sid=%s channel=console role=operator", request.sid)
 
 @socketio.on('console:watch')
 def on_console_watch(data):
@@ -1157,6 +1175,7 @@ def delete_media_file(media_type, filename):
         os.remove(path)
         return jsonify({"status": "ok"})
     except OSError as e:
+        logger.exception("media delete failed: %s", path)
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route("/api/yt-title")
@@ -1174,7 +1193,7 @@ def api_yt_title():
         if r.ok:
             return jsonify({"title": r.json().get("title")})
     except Exception:
-        pass
+        logger.debug("yt title fetch failed for %s", url, exc_info=True)
     return jsonify({"title": None})
 
 @app.route("/api/yt-cache")
@@ -1278,6 +1297,7 @@ def api_cloud_sync_status():
         sps = local.get('service_programs', [])
         pi_info = {'has_data': len(sps) > 0, 'count': len(sps)}
     except Exception:
+        logger.warning("cloud sync status: failed to read local program", exc_info=True)
         pi_info = {'has_data': False, 'count': 0}
 
     cfg = cloud_agent._load_config()
@@ -1295,6 +1315,7 @@ def api_cloud_sync_status():
         resp.raise_for_status()
         cloud_info = resp.json()
     except Exception as exc:
+        logger.warning("cloud sync status: cloud request failed: %s", exc)
         return jsonify({'linked': True, 'pi': pi_info, 'cloud': None, 'error': str(exc)})
 
     return jsonify({'linked': True, 'pi': pi_info, 'cloud': cloud_info})
@@ -1317,6 +1338,7 @@ def api_cloud_sync():
             with open(DATA_FILE) as f:
                 local = json.load(f)
         except Exception as exc:
+            logger.exception("cloud sync: failed to read local program")
             return jsonify({'ok': False, 'error': str(exc)}), 500
         cloud_agent.force_push_program(local)
         return jsonify({'ok': True})
@@ -1331,6 +1353,7 @@ def api_cloud_sync():
         resp.raise_for_status()
         program_data = resp.json()
     except Exception as exc:
+        logger.warning("cloud sync: failed to fetch from cloud: %s", exc)
         return jsonify({'ok': False, 'error': str(exc)}), 502
 
     try:
@@ -1419,6 +1442,7 @@ def api_update_status():
         with open(status_path) as f:
             return jsonify(json.load(f))
     except Exception:
+        logger.warning("update status read failed", exc_info=True)
         return jsonify({'status': 'idle'})
 
 
@@ -1624,12 +1648,14 @@ def _yt_download_task(url, quality, item_id, sid):
                 final = sanitized
             final_url = f'/media/videos/{_url_quote(final, safe="")}'
         _yt_cache_write(url, final, final_url)
+        logger_media.info("media download complete: item_id=%s file=%s", item_id, final)
         socketio.emit('yt:done', {
             'item_id':  item_id,
             'url':      final_url,
             'filename': final,
         }, room=sid)
     except Exception as exc:
+        logger_media.exception("yt download failed: %s", url)
         socketio.emit('yt:error', {
             'item_id': item_id,
             'message': str(exc),
@@ -1649,6 +1675,7 @@ def on_yt_download_start(data):
         emit('yt:error', {'item_id': item_id, 'message': 'Invalid URL — must start with http:// or https://'})
         return
 
+    logger_media.info("media download start: item_id=%s quality=%s url=%s", item_id, quality, url)
     socketio.start_background_task(_yt_download_task, url, quality, item_id, sid)
 
 
