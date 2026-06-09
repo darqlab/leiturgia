@@ -24,7 +24,7 @@ jobs:
       - name: Build .deb package
         run: |
           VERSION=${{ steps.version.outputs.VERSION }}
-          PKG_DIR="leiturgia_${VERSION}_armhf"
+          PKG_DIR="leiturgia_${VERSION}_all"
 
           mkdir -p "${PKG_DIR}/DEBIAN"
           mkdir -p "${PKG_DIR}/opt/leiturgia/data"
@@ -57,7 +57,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: leiturgia_${{ steps.version.outputs.VERSION }}_armhf.deb
+          files: leiturgia_${{ steps.version.outputs.VERSION }}_all.deb
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
