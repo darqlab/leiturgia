@@ -1,0 +1,16 @@
+# Cantor host artifact — installed by Castellan/Dennis as part of host
+# provisioning. Never enabled / auto-started: it is started on demand only,
+# via the sudoers-gated `sudo systemctl start leiturgia-update.service` call
+# made by the web layer (see scripts/update.sh header for the full flow).
+
+[Unit]
+Description=Leiturgia in-place updater (operator-triggered)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/leiturgia
+ExecStart=/opt/leiturgia/scripts/update.sh
+StandardOutput=journal
+StandardError=journal

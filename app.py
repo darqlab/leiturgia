@@ -16,7 +16,7 @@ from flask import Flask, render_template, request, jsonify, send_file, session, 
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import json, os, copy, re, requests, uuid, time, glob
+import json, os, copy, re, requests, uuid, time, glob, subprocess
 from urllib.parse import quote as _url_quote
 from datetime import datetime, timedelta
 from functools import wraps
@@ -30,6 +30,7 @@ from roles import RoleManager
 from order_of_service import OrderOfServiceManager
 from cloud_agent import agent as cloud_agent
 from jsonio import atomic_write_json
+from version import get_version
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024   # 200 MB upload limit
@@ -353,6 +354,34 @@ def _server_ip() -> str:
 def index():
     program = load_program()
     return render_template("index.html", program=program, server_ip=_server_ip())
+
+
+@app.route("/api/health")
+def health():
+    checks = {}
+    healthy = True
+
+    try:
+        load_program()
+        checks["program"] = True
+    except Exception:
+        logger.warning("health check: load_program failed", exc_info=True)
+        checks["program"] = False
+        healthy = False
+
+    try:
+        roles.to_dict()
+        checks["roles"] = True
+    except Exception:
+        logger.warning("health check: roles manager failed", exc_info=True)
+        checks["roles"] = False
+        healthy = False
+
+    # Soft signal: cloud is LAN-only by design, so an offline cloud must not flip the box unhealthy.
+    checks["cloud"] = cloud_agent.status
+
+    body = {"status": "ok" if healthy else "error", "version": get_version(), "checks": checks}
+    return jsonify(body), 200 if healthy else 503
 
 
 @app.route("/api/program", methods=["GET"])
@@ -1173,7 +1202,8 @@ def api_settings_pin():
 @app.route('/settings')
 @operator_required
 def settings():
-    return render_template('settings.html')
+    cfg = cloud_agent._load_config()
+    return render_template('settings.html', enable_self_update=cfg.get('enable_self_update', False))
 
 
 @app.route('/api/cloud/status')
@@ -1312,6 +1342,121 @@ def api_cloud_sync():
         return jsonify({'ok': False, 'error': str(exc)}), 500
 
     return jsonify({'ok': True})
+
+
+def _origin_reachable():
+    """Timeout-bounded reachability probe to `origin` (TDD §6.4, D5).
+
+    Some church Pis have no internet at all; the preflight must fail fast and
+    cleanly (no lock, no request, no destructive action) rather than let a
+    `git fetch`/checkout start and hang or half-complete offline.
+    """
+    repo_dir = os.path.dirname(os.path.abspath(__file__))
+    try:
+        result = subprocess.run(
+            ["git", "ls-remote", "--heads", "origin"],
+            cwd=repo_dir, capture_output=True, text=True, timeout=5,
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
+@app.route('/api/update/start', methods=['POST'])
+@operator_required
+def api_update_start():
+    cfg = cloud_agent._load_config()
+    if not cfg.get('enable_self_update', False):
+        return jsonify({'status': 'error', 'message': 'not found'}), 404
+
+    if not _origin_reachable():
+        return jsonify({'status': 'offline', 'message': 'no internet connection'}), 503
+
+    data       = request.get_json() or {}
+    target_tag = data.get('target_tag')
+    if not target_tag or not re.match(r'^v\d+\.\d+\.\d+$', target_tag):
+        return jsonify({'status': 'error', 'message': 'invalid target_tag'}), 400
+
+    lock_path = os.path.join('data', 'update', 'lock')
+    try:
+        fd = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        os.close(fd)
+    except FileExistsError:
+        return jsonify({'status': 'error', 'message': 'update already in progress'}), 409
+
+    try:
+        request_path = os.path.join('data', 'update', 'request.json')
+        atomic_write_json(request_path, {
+            'target_tag': target_tag,
+            'requested_by': 'operator',
+            'ts': time.time(),
+        })
+    except Exception:
+        try:
+            os.unlink(lock_path)
+        except OSError:
+            pass
+        logger.exception("update request write failed")
+        return jsonify({'status': 'error', 'message': 'failed to write update request'}), 500
+
+    try:
+        subprocess.run(["sudo", "systemctl", "start", "leiturgia-update.service"], check=False)
+    except Exception:
+        logger.warning("failed to launch leiturgia-update.service", exc_info=True)
+
+    return jsonify({'status': 'started'}), 202
+
+
+@app.route('/api/update/status', methods=['GET'])
+@operator_required
+def api_update_status():
+    cfg = cloud_agent._load_config()
+    if not cfg.get('enable_self_update', False):
+        return jsonify({'status': 'error', 'message': 'not found'}), 404
+
+    status_path = os.path.join('data', 'update', 'status.json')
+    try:
+        with open(status_path) as f:
+            return jsonify(json.load(f))
+    except Exception:
+        return jsonify({'status': 'idle'})
+
+
+@app.route('/api/update/check', methods=['GET'])
+@operator_required
+def api_update_check():
+    cfg = cloud_agent._load_config()
+    if not cfg.get('enable_self_update', False):
+        return jsonify({'status': 'error', 'message': 'not found'}), 404
+
+    if not _origin_reachable():
+        return jsonify({'status': 'offline', 'current': get_version()}), 503
+
+    repo_dir = os.path.dirname(os.path.abspath(__file__))
+    try:
+        subprocess.run(
+            ["git", "fetch", "--tags", "--quiet"],
+            cwd=repo_dir, capture_output=True, text=True, timeout=30, check=True,
+        )
+        result = subprocess.run(
+            ["git", "tag", "--list", "v*"],
+            cwd=repo_dir, capture_output=True, text=True, timeout=10, check=True,
+        )
+        latest = None
+        latest_parts = None
+        for tag in result.stdout.splitlines():
+            tag = tag.strip()
+            m = re.match(r'^v(\d+)\.(\d+)\.(\d+)$', tag)
+            if not m:
+                continue
+            parts = tuple(int(g) for g in m.groups())
+            if latest_parts is None or parts > latest_parts:
+                latest_parts = parts
+                latest = tag
+        return jsonify({'latest': latest, 'current': get_version()})
+    except Exception:
+        logger.warning("update check failed", exc_info=True)
+        return jsonify({'latest': None, 'current': get_version()})
 
 
 def _sanitize_filename(name: str) -> str:
@@ -1554,6 +1699,7 @@ cloud_agent.start()
 
 if __name__ == "__main__":
     os.makedirs("data",        exist_ok=True)
+    os.makedirs("data/update", exist_ok=True)
     os.makedirs(LYRICS_DIR,    exist_ok=True)
     os.makedirs("output",      exist_ok=True)
     os.makedirs("media/images", exist_ok=True)
