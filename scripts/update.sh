@@ -20,6 +20,10 @@ set -euo pipefail
 
 cd /opt/leiturgia
 
+# Release the update lock on any exit — including early failures (invalid-tag,
+# unknown-tag, bad-signature) that would otherwise leave the lock permanently.
+trap 'rm -f data/update/lock' EXIT
+
 REQ=data/update/request.json
 ST=data/update/status.json
 
@@ -66,7 +70,7 @@ write_status updating "$CURRENT" "$TAG"
 
 # Backstop only — the web layer's connectivity preflight (TDD §6.4, D5)
 # normally catches an offline box before this script ever starts.
-git fetch --tags --force || { write_status offline; rm -f data/update/lock; exit 1; }
+git fetch --tags --force || { write_status offline; exit 1; }
 
 git rev-parse "refs/tags/$TAG" >/dev/null 2>&1 || { write_status unknown-tag; exit 1; }
 
@@ -85,7 +89,6 @@ for i in $(seq 1 15); do
   sleep 2
   if curl -fsS http://127.0.0.1:5000/api/health | jq -e '.status=="ok"' >/dev/null; then
     write_status success "$TAG"
-    rm -f data/update/lock
     exit 0
   fi
 done
@@ -100,5 +103,3 @@ if curl -fsS http://127.0.0.1:5000/api/health >/dev/null; then
 else
   write_status revert-failed "$CURRENT"
 fi
-
-rm -f data/update/lock
