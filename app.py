@@ -15,6 +15,7 @@ logger_socket = logging.getLogger('leiturgia.socket')
 logger_media  = logging.getLogger('leiturgia.media')
 
 from flask import Flask, render_template, request, jsonify, send_file, session, redirect
+from werkzeug.exceptions import HTTPException
 from flask_socketio import SocketIO, emit, join_room, leave_room, disconnect
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -1702,6 +1703,8 @@ socketio.start_background_task(_timer_tick_loop)
 
 @app.errorhandler(Exception)
 def _handle_unexpected_error(exc):
+    if isinstance(exc, HTTPException):
+        return exc
     logger.exception("unhandled exception: %s %s", request.method, request.path)
     return jsonify({'error': 'internal server error'}), 500
 
