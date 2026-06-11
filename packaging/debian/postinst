@@ -84,3 +84,11 @@ fi
 systemctl daemon-reload
 systemctl enable leiturgia
 systemctl start leiturgia
+
+# PROV-1 / ADR-0002 D6: provision self-update host plumbing if this tree is a
+# git checkout (Path A). On a .deb tree (non-git) this is a clean no-op. The
+# `|| true` is extra defense so an optional provisioning step never fails the
+# package install — the script itself already exits 0 on the no-op path.
+if [ -f "${APP_DIR}/scripts/provision-self-update.sh" ]; then
+  bash "${APP_DIR}/scripts/provision-self-update.sh" || true
+fi
