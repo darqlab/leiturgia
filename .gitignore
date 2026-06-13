@@ -33,4 +33,6 @@ data/*
 !data/hymns.db
 !data/hymns_en.db
 !data/hymns_tl.db
-CLAUDE.md
+
+# Personal notes (not the tracked CLAUDE.md)
+CLAUDE.local.md
