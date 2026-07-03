@@ -56,7 +56,7 @@ class OrderOfServiceManager:
         if service is None:
             return self._empty(program)
 
-        items     = service.get("items", [])
+        items     = [it for it in service.get("items", []) if it.get("enabled", True)]
         active_id = self._active_item_id
         found_active = False
         display_items = []

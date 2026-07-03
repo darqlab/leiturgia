@@ -1040,6 +1040,10 @@
     }
     .btn-live:hover { background: var(--gold); color: var(--bg); border-color: var(--gold); }
     .btn-live.active { background: var(--gold); color: var(--bg); border-color: var(--gold); }
+    .item-enabled-toggle { display: flex; align-items: center; flex-shrink: 0; }
+    .program-item.disabled .item-header { opacity: 0.45; }
+    .program-item.disabled .btn-live { pointer-events: none; cursor: not-allowed; }
+    .program-item.disabled .item-enabled-toggle { opacity: 1; }
     .allotted-input {
       flex: 0 0 70px;
       width: 70px;
@@ -1624,7 +1628,7 @@
         {% set _is_content = _type == "content" %}
         {% set _is_video = _type == "video" %}
         {% set _is_image = _type == "image" %}
-        <div class="program-item" data-index="{{ loop.index0 }}" data-item-type="{{ _type }}" data-item-id="{{ item.get('item_id', '') }}" id="{{ sp.id }}-item-{{ sp_idx.n }}">
+        <div class="program-item{{ '' if item.get('enabled', True) else ' disabled' }}" data-index="{{ loop.index0 }}" data-item-type="{{ _type }}" data-item-id="{{ item.get('item_id', '') }}" id="{{ sp.id }}-item-{{ sp_idx.n }}">
         {% set sp_idx.n = sp_idx.n + 1 %}
           <div class="item-header" onclick="selectItem(this)">
             <div class="drag-handle" draggable="true" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
@@ -1644,6 +1648,9 @@
             </div>
             <span class="item-type-badge {{ 'badge-song' if _is_song else ('badge-content' if _is_content else ('badge-video' if _is_video else ('badge-image' if _is_image else 'badge-participant'))) }}">{{ 'Song' if _is_song else ('Content' if _is_content else ('Video' if _is_video else ('Image' if _is_image else 'Participant'))) }}</span>
             <button class="duplicate-hint" onclick="event.stopPropagation();duplicateItem(this.closest('.program-item'))" title="Duplicate item">⧉</button>
+            <label class="item-enabled-toggle" onclick="event.stopPropagation()" title="Enable/disable this item">
+              <input type="checkbox" class="item-enabled" {{ 'checked' if item.get('enabled', True) else '' }}>
+            </label>
             <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
             <div class="item-chevron">▼</div>
             <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -2203,6 +2210,9 @@
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
           <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
           <span class="edit-hint">✎</span>
+          <label class="item-enabled-toggle" onclick="event.stopPropagation()" title="Enable/disable this item">
+            <input type="checkbox" class="item-enabled" checked>
+          </label>
           <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
           <div class="item-chevron">▼</div>
           <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -2264,6 +2274,15 @@
     if (!cb) return;
     const allottedEl = cb.closest('.timed-row')?.querySelector('.item-allotted');
     if (allottedEl) allottedEl.disabled = !cb.checked;
+  });
+
+  document.addEventListener('change', function(e) {
+    const cb = e.target.closest('.item-enabled');
+    if (!cb) return;
+    const itemEl = cb.closest('.program-item');
+    if (!itemEl) return;
+    itemEl.classList.toggle('disabled', !cb.checked);
+    scheduleAutoSave();
   });
 
   document.addEventListener('click', function(e) {
@@ -2332,6 +2351,9 @@
           <div style="flex:1"><div class="item-title-text"></div><div class="item-detail-text"></div></div>
           <span class="item-type-badge ${badgeClass}">${badgeLabel}</span>
           <button class="duplicate-hint" onclick="event.stopPropagation();duplicateItem(this.closest('.program-item'))" title="Duplicate item">⧉</button>
+          <label class="item-enabled-toggle" onclick="event.stopPropagation()" title="Enable/disable this item">
+            <input type="checkbox" class="item-enabled" checked>
+          </label>
           <button class="btn-live" onclick="event.stopPropagation();sendLive(this.closest('.program-item'))" title="Send to projection">▶ Live</button>
           <div class="item-chevron">▼</div>
           <button class="item-delete" onclick="event.stopPropagation();deleteItem(this)" title="Remove item">✕</button>
@@ -2349,6 +2371,11 @@
       const s = src.querySelector(cls), d = dest?.querySelector(cls);
       if (s && d) d.value = s.value;
     });
+    // Copy enabled state from src (preserve disabled-ness across duplication)
+    const srcEnabled = src.querySelector('.item-enabled')?.checked ?? true;
+    const destEnabledCb = dest?.querySelector('.item-enabled');
+    if (destEnabledCb) destEnabledCb.checked = srcEnabled;
+    if (dest) dest.classList.toggle('disabled', !srcEnabled);
     // Sync toolbar active states for duplicated content items
     _syncContentToolbar(dest);
 
@@ -2381,12 +2408,14 @@
     const title         = el.querySelector(".item-title")?.value || "";
     const timedCb       = el.querySelector(".item-timed");
     const timed         = timedCb ? timedCb.checked : true;
+    const enabled       = el.querySelector(".item-enabled")?.checked ?? true;
     const allottedRaw   = el.querySelector(".item-allotted")?.value;
     const allotted_minutes = allottedRaw ? parseInt(allottedRaw, 10) || null : null;
 
     function _base(item) {
       if (id) item.item_id = id;
       item.timed = timed;
+      item.enabled = enabled;
       if (allotted_minutes) item.allotted_minutes = allotted_minutes;
       return item;
     }
@@ -4071,6 +4100,7 @@
 
     let slideNum = 0;
     for (const itemEl of spEl.querySelectorAll('.program-item')) {
+      if (itemEl.classList.contains('disabled')) continue;
       const type  = itemEl.dataset.itemType || 'participant';
       const title = itemEl.querySelector('.item-title')?.value || '';
       const part  = itemEl.querySelector('.item-part')?.value  || '';
@@ -4289,6 +4319,7 @@
 
   async function sendLive(itemEl, startFromEnd = false) {
     if (!itemEl) return;
+    if (itemEl.classList.contains('disabled')) { toast('This item is disabled', 'error'); return; }
     const ch         = _getChannel();
     const type       = itemEl.dataset.itemType || 'participant';
     const title      = itemEl.querySelector('.item-title')?.value || '';
@@ -4429,8 +4460,10 @@
   function _projNextItem(dir) {
     const items = Array.from(document.querySelectorAll('.service-program:not([style*="none"]) .program-item'));
     if (!items.length) return;
-    const idx = _projItem ? items.indexOf(_projItem) : -1;
-    const next = items[idx + dir];
+    let idx = _projItem ? items.indexOf(_projItem) : -1;
+    idx += dir;
+    while (idx >= 0 && idx < items.length && items[idx].classList.contains('disabled')) idx += dir;
+    const next = items[idx];
     if (next) sendLive(next, dir < 0);  // going backwards → start from last stanza
   }
 
