@@ -631,8 +631,10 @@ def _next_sequence_slide(program: dict, item_id: str,
             # Skip duplicate item_ids that don't match by URL
             if slide_url and it.get('url') and it['url'] != slide_url:
                 continue
-            if i + 1 < len(items):
-                return _item_to_slide_state(items[i + 1])
+            for nxt in items[i + 1:]:
+                if nxt.get('enabled', True):
+                    return _item_to_slide_state(nxt)
+            return None
     return None
 
 
@@ -1065,6 +1067,16 @@ def on_program_item_set(data):
                     break
     if item is None:
         emit('error', {'message': 'Item not found'})
+        return
+
+    if not item.get('enabled', True):
+        # Single choke point: this is the only socket handler that looks up an
+        # item by id before sending it live. `slide:show`/`media:image`/
+        # `media:video` forward pre-assembled slide payloads from a trusted
+        # single-operator client and don't perform item lookups — a deliberate
+        # scope decision (not an oversight) given this app's LAN-only,
+        # single-operator, trusted-client threat model.
+        emit('error', {'message': 'Item is disabled'})
         return
 
     is_timed = item.get('timed', True)
