@@ -20,6 +20,13 @@ set -euo pipefail
 
 cd /opt/leiturgia
 
+# Defensive, not a substitute for provisioning: normally set once by
+# provision-self-update.sh, but this runs as root against a repo owned by the
+# `leiturgia` service user, and any host where that step was skipped, redone
+# manually, or had root's gitconfig reset would otherwise hard-fail every git
+# command below with "detected dubious ownership".
+git config --global --add safe.directory /opt/leiturgia
+
 # Release the update lock on any exit — including early failures (invalid-tag,
 # unknown-tag, bad-signature) that would otherwise leave the lock permanently.
 trap 'rm -f data/update/lock' EXIT
