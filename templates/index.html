@@ -703,7 +703,7 @@
     .ctb-btn:hover { border-color: var(--gold); color: var(--gold); }
     .ctb-btn.active { background: rgba(212,168,67,0.15); border-color: var(--gold); color: var(--gold); }
 
-    .media-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .media-list-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
     .media-search-input {
       width: 100%; padding: 5px 8px; font-size: 12px;
       background: rgba(0,0,0,0.2); border: 1px solid var(--border);
@@ -747,13 +747,14 @@
       font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
       color: var(--muted);
     }
-    .media-usage-meter { margin: 4px 0 6px; }
-    .media-usage-label {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-      font-size: 11px; color: var(--muted); margin-bottom: 3px;
+    .media-usage-meter {
+      display: flex; align-items: center; gap: 8px;
+      flex: 1 1 160px; min-width: 120px; margin: 0;
+      font-size: 11px; color: var(--muted);
     }
+    .media-usage-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .media-usage-bar {
-      width: 100%; height: 6px; background: var(--card);
+      flex: 1 1 50px; min-width: 40px; height: 6px; background: var(--card);
       border: 1px solid var(--border); border-radius: 3px; overflow: hidden;
     }
     .media-usage-fill {
@@ -812,7 +813,15 @@
     .export-progress-pct { width: 36px; text-align: right; color: var(--muted); font-size: 11px; }
 
     .item-body { padding: 14px; border-top: 1px solid var(--border); display: none; }
-    .item-body.open { display: block; max-height: calc(100vh - 280px); overflow-y: auto; }
+    .item-body.open {
+      display: flex; flex-direction: column;
+      max-height: calc(100vh - 280px); overflow-y: auto;
+    }
+    .item-body.open > * { flex-shrink: 0; }
+    .item-body.open > .media-list-wrap { flex: 1 1 auto; min-height: 0; }
+    .media-list-wrap > .media-list-header,
+    .media-list-wrap > .media-warn-banner { flex-shrink: 0; }
+    .media-list-wrap > .media-file-list { flex: 1 1 auto; min-height: 0; max-height: none; }
 
     /* ── YouTube download controls ── */
     .yt-download-controls {
@@ -1736,13 +1745,20 @@
                 <input type="text" class="item-title" value="{{ item.title }}" placeholder="e.g. Welcome Slide">
               </div>
             </div>
-            <div class="field" style="margin-top:8px">
+            <input type="text" class="media-search-input" style="margin-top:8px" placeholder="Search files…"
+                   oninput="filterMediaList(this.closest('.program-item'))">
+            <div class="field media-list-wrap" style="margin-top:8px">
               <div class="media-list-header">
                 <label class="media-select-all-label">
                   <input type="checkbox" class="media-select-all"
                          onchange="toggleSelectAllMedia(this.closest('.program-item'), this.checked)">
                   Video Files
                 </label>
+                <div class="media-usage-meter">
+                  <span class="media-usage-text"></span>
+                  <div class="media-usage-bar"><div class="media-usage-fill"></div></div>
+                  <a href="/settings" class="media-settings-link">Storage settings…</a>
+                </div>
                 <div class="media-list-header-actions">
                   <div class="media-bulk-toolbar">
                     <span class="media-bulk-info"></span>
@@ -1755,21 +1771,12 @@
                           onclick="loadMediaListFor(this.closest('.program-item'), 'video')">↺ Refresh</button>
                 </div>
               </div>
-              <div class="media-usage-meter">
-                <div class="media-usage-label">
-                  <span class="media-usage-text"></span>
-                  <a href="/settings" class="media-settings-link">Storage settings…</a>
-                </div>
-                <div class="media-usage-bar"><div class="media-usage-fill"></div></div>
-              </div>
               <div class="media-warn-banner">
                 <span class="media-warn-text"></span>
                 <button class="media-warn-export-btn"
                         onclick="openExportModal(this.closest('.program-item'))">Export to USB…</button>
                 <a href="/settings" class="media-settings-link">Storage settings…</a>
               </div>
-              <input type="text" class="media-search-input" placeholder="Search files…"
-                     oninput="filterMediaList(this.closest('.program-item'))">
               <div class="media-file-list"></div>
             </div>
             <div class="field" style="margin-top:8px">
@@ -1832,14 +1839,14 @@
                 <input type="text" class="item-title" value="{{ item.title }}" placeholder="e.g. Background Image">
               </div>
             </div>
+            <input type="text" class="media-search-input" style="margin-top:8px" placeholder="Search files…"
+                   oninput="filterMediaList(this.closest('.program-item'))">
             <div class="field" style="margin-top:8px">
               <div class="media-list-header">
                 <label>Image Files</label>
                 <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
                         onclick="loadMediaListFor(this.closest('.program-item'), 'image')">↺ Refresh</button>
               </div>
-              <input type="text" class="media-search-input" placeholder="Search files…"
-                     oninput="filterMediaList(this.closest('.program-item'))">
               <div class="media-file-list"></div>
             </div>
             <div class="field" style="margin-top:8px">
@@ -2185,13 +2192,20 @@
         <div class="form-row single">
           <div class="field"><label>Title</label><input type="text" class="item-title" value="" placeholder="e.g. Welcome Slide"></div>
         </div>
-        <div class="field" style="margin-top:8px">
+        <input type='text' class='media-search-input' style='margin-top:8px' placeholder='Search files…'
+               oninput='filterMediaList(this.closest(".program-item"))'>
+        <div class="field media-list-wrap" style="margin-top:8px">
           <div class='media-list-header'>
             <label class='media-select-all-label'>
               <input type='checkbox' class='media-select-all'
                      onchange='toggleSelectAllMedia(this.closest(".program-item"), this.checked)'>
               Media Files
             </label>
+            <div class='media-usage-meter'>
+              <span class='media-usage-text'></span>
+              <div class='media-usage-bar'><div class='media-usage-fill'></div></div>
+              <a href='/settings' class='media-settings-link'>Storage settings…</a>
+            </div>
             <div class='media-list-header-actions'>
               <div class='media-bulk-toolbar'>
                 <span class='media-bulk-info'></span>
@@ -2204,21 +2218,12 @@
                       onclick='loadMediaListFor(this.closest(".program-item"), "video")'>↺ Refresh</button>
             </div>
           </div>
-          <div class='media-usage-meter'>
-            <div class='media-usage-label'>
-              <span class='media-usage-text'></span>
-              <a href='/settings' class='media-settings-link'>Storage settings…</a>
-            </div>
-            <div class='media-usage-bar'><div class='media-usage-fill'></div></div>
-          </div>
           <div class='media-warn-banner'>
             <span class='media-warn-text'></span>
             <button class='media-warn-export-btn'
                     onclick='openExportModal(this.closest(".program-item"))'>Export to USB…</button>
             <a href='/settings' class='media-settings-link'>Storage settings…</a>
           </div>
-          <input type='text' class='media-search-input' placeholder='Search files…'
-                 oninput='filterMediaList(this.closest(".program-item"))'>
           <div class='media-file-list'></div>
         </div>
         <div class="field" style="margin-top:8px">
@@ -2277,14 +2282,14 @@
         <div class="form-row single">
           <div class="field"><label>Title</label><input type="text" class="item-title" value="" placeholder="e.g. Background Image"></div>
         </div>
+        <input type='text' class='media-search-input' style='margin-top:8px' placeholder='Search files…'
+               oninput='filterMediaList(this.closest(".program-item"))'>
         <div class="field" style="margin-top:8px">
           <div class='media-list-header'>
             <label>Image Files</label>
             <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
                     onclick='loadMediaListFor(this.closest(".program-item"), "image")'>↺ Refresh</button>
           </div>
-          <input type='text' class='media-search-input' placeholder='Search files…'
-                 oninput='filterMediaList(this.closest(".program-item"))'>
           <div class='media-file-list'></div>
         </div>
         <div class="field" style="margin-top:8px">
@@ -3581,56 +3586,6 @@
     });
   }
 
-  _socket.on('media:export:progress', function (data) {
-    const row = document.querySelector(`.export-progress-row[data-export-file="${CSS.escape(data.filename)}"]`);
-    if (!row) return;
-    const pct = data.total ? Math.min(100, Math.round(data.bytes / data.total * 100)) : 0;
-    row.querySelector('.export-progress-fill').style.width = pct + '%';
-    row.querySelector('.export-progress-pct').textContent = pct + '%';
-  });
-
-  _socket.on('media:export:done', function (data) {
-    _exportBusy = false;
-    const moved      = data.moved      || [];
-    const copied     = data.copied     || [];
-    const keptLocal  = data.kept_local || [];
-    const failed     = data.failed     || [];
-
-    const parts = [];
-    if (moved.length)  parts.push(`${moved.length} moved`);
-    if (copied.length) parts.push(`${copied.length} copied`);
-    if (keptLocal.length) parts.push(`${keptLocal.length} copied (kept locally, in use)`);
-    if (failed.length) parts.push(`${failed.length} failed`);
-    toast(parts.length ? `Export complete: ${parts.join(', ')}` : 'Export complete', 'success');
-
-    keptLocal.forEach(k => {
-      const usedBy = (k.used_by || []).map(u => `${u.program} › ${u.item}`).join(', ');
-      toast(`"${k.name}" copied to USB, kept locally — in use by ${usedBy}`, 'success');
-    });
-    failed.forEach(f => toast(`"${f.name}" export failed: ${f.reason}`, 'error'));
-
-    document.getElementById('exportModal').classList.remove('open');
-    if (_exportItemEl) {
-      _exportItemEl._selectedVideos = new Set();
-      loadMediaListFor(_exportItemEl, _exportItemEl.dataset.itemType);
-    }
-    _exportItemEl = null;
-  });
-
-  _socket.on('media:export:error', function (data) {
-    _exportBusy = false;
-    if (data.code === 'usb_target_full') {
-      const name = data.name ? `"${data.name}"` : 'A file';
-      toast(`${name} didn't fit on the USB drive (need ${data.need_label}, free ${data.free_label})`, 'error');
-    } else {
-      toast(data.message || 'Export failed', 'error');
-    }
-    // Return to the picker so the operator can retry with a different target
-    // or selection rather than being stuck on a dead progress screen.
-    document.getElementById('exportPickerBody').style.display = '';
-    document.getElementById('exportProgressWrap').style.display = 'none';
-  });
-
   // Platform URL detection
   const PLATFORM_URL_RE = /youtube\.com|youtu\.be|vimeo\.com|facebook\.com|fb\.watch|twitter\.com|x\.com|tiktok\.com|instagram\.com|dailymotion\.com|twitch\.tv/i;
 
@@ -4298,6 +4253,56 @@
 
   const _socket = io({ transports: ['websocket', 'polling'] });
   const _DEFAULT_ALLOTTED = { song: 4, prayer: 3, content: 5, participant: 5, media: 5 };
+
+  _socket.on('media:export:progress', function (data) {
+    const row = document.querySelector(`.export-progress-row[data-export-file="${CSS.escape(data.filename)}"]`);
+    if (!row) return;
+    const pct = data.total ? Math.min(100, Math.round(data.bytes / data.total * 100)) : 0;
+    row.querySelector('.export-progress-fill').style.width = pct + '%';
+    row.querySelector('.export-progress-pct').textContent = pct + '%';
+  });
+
+  _socket.on('media:export:done', function (data) {
+    _exportBusy = false;
+    const moved      = data.moved      || [];
+    const copied     = data.copied     || [];
+    const keptLocal  = data.kept_local || [];
+    const failed     = data.failed     || [];
+
+    const parts = [];
+    if (moved.length)  parts.push(`${moved.length} moved`);
+    if (copied.length) parts.push(`${copied.length} copied`);
+    if (keptLocal.length) parts.push(`${keptLocal.length} copied (kept locally, in use)`);
+    if (failed.length) parts.push(`${failed.length} failed`);
+    toast(parts.length ? `Export complete: ${parts.join(', ')}` : 'Export complete', 'success');
+
+    keptLocal.forEach(k => {
+      const usedBy = (k.used_by || []).map(u => `${u.program} › ${u.item}`).join(', ');
+      toast(`"${k.name}" copied to USB, kept locally — in use by ${usedBy}`, 'success');
+    });
+    failed.forEach(f => toast(`"${f.name}" export failed: ${f.reason}`, 'error'));
+
+    document.getElementById('exportModal').classList.remove('open');
+    if (_exportItemEl) {
+      _exportItemEl._selectedVideos = new Set();
+      loadMediaListFor(_exportItemEl, _exportItemEl.dataset.itemType);
+    }
+    _exportItemEl = null;
+  });
+
+  _socket.on('media:export:error', function (data) {
+    _exportBusy = false;
+    if (data.code === 'usb_target_full') {
+      const name = data.name ? `"${data.name}"` : 'A file';
+      toast(`${name} didn't fit on the USB drive (need ${data.need_label}, free ${data.free_label})`, 'error');
+    } else {
+      toast(data.message || 'Export failed', 'error');
+    }
+    // Return to the picker so the operator can retry with a different target
+    // or selection rather than being stuck on a dead progress screen.
+    document.getElementById('exportPickerBody').style.display = '';
+    document.getElementById('exportProgressWrap').style.display = 'none';
+  });
 
   _socket.on('connect', function () {
     const el = document.getElementById('live-status');
