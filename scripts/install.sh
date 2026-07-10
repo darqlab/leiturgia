@@ -205,8 +205,12 @@ systemctl enable leiturgia
 # -----------------------------------------------------------------------------
 # 10. Start the app
 # -----------------------------------------------------------------------------
+# `restart`, not `start`: on a re-run against an already-active unit (e.g.
+# migrating an existing install to a new APP_USER), `start` is a no-op and
+# leaves the old process running under the old user against newly-chowned
+# files.
 info "Starting Leiturgia service..."
-systemctl start leiturgia
+systemctl restart leiturgia
 
 # -----------------------------------------------------------------------------
 # Done

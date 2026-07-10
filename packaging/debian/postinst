@@ -69,7 +69,10 @@ chown -R "${APP_USER}:${APP_USER}" "${APP_DIR}"
 
 systemctl daemon-reload
 systemctl enable leiturgia
-systemctl start leiturgia
+# `restart`, not `start`: on package upgrade the unit is typically already
+# active, and `start` is a no-op that leaves the old process running against
+# newly-chowned/updated files.
+systemctl restart leiturgia
 
 # PROV-1 / ADR-0002 D6: provision self-update host plumbing if this tree is a
 # git checkout (Path A). On a .deb tree (non-git) this is a clean no-op. The
