@@ -58,6 +58,9 @@ mkdir -p "${APP_DIR}"
 # -----------------------------------------------------------------------------
 if [ -d "${APP_DIR}/.git" ]; then
   info "Existing installation found — updating..."
+  # Repo may be owned by a pre-migration user (e.g. pi/dennis); git refuses to
+  # operate on a repo owned by someone other than the running user otherwise.
+  git config --global --add safe.directory "${APP_DIR}"
   git -C "${APP_DIR}" pull origin "${BRANCH}"
 else
   info "Cloning Leiturgia repository..."
