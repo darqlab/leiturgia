@@ -9,7 +9,7 @@ set -e
 
 APP_NAME="leiturgia"
 APP_DIR="/opt/leiturgia"
-APP_USER="pi"
+APP_USER="leiturgia"
 REPO="darqlab/leiturgia"
 BRANCH="main"
 
@@ -26,9 +26,9 @@ if [ "$EUID" -ne 0 ]; then
   error "Please run with sudo: curl -fsSL .../install.sh | sudo bash"
 fi
 
-# Resolve actual user when called via sudo
-if [ -n "$SUDO_USER" ]; then
-  APP_USER="$SUDO_USER"
+# Dedicated, unprivileged system account for the service (mirrors packaging/debian/postinst)
+if ! id -u "${APP_USER}" >/dev/null 2>&1; then
+  useradd --system --no-create-home --shell /usr/sbin/nologin "${APP_USER}"
 fi
 
 info "Starting Leiturgia installation (user: ${APP_USER})..."
@@ -52,32 +52,31 @@ info "Note: Chromium is pre-installed on Raspberry Pi OS. If missing, run: sudo 
 # -----------------------------------------------------------------------------
 info "Setting up application directory at ${APP_DIR}..."
 mkdir -p "${APP_DIR}"
-chown "${APP_USER}:${APP_USER}" "${APP_DIR}"
 
 # -----------------------------------------------------------------------------
 # 3. Clone or update repository
 # -----------------------------------------------------------------------------
 if [ -d "${APP_DIR}/.git" ]; then
   info "Existing installation found — updating..."
-  sudo -u "${APP_USER}" git -C "${APP_DIR}" pull origin "${BRANCH}"
+  git -C "${APP_DIR}" pull origin "${BRANCH}"
 else
   info "Cloning Leiturgia repository..."
-  sudo -u "${APP_USER}" git clone "https://github.com/${REPO}.git" "${APP_DIR}"
+  git clone "https://github.com/${REPO}.git" "${APP_DIR}"
 fi
 
 # -----------------------------------------------------------------------------
 # 4. Python virtual environment
 # -----------------------------------------------------------------------------
 info "Setting up Python virtual environment..."
-sudo -u "${APP_USER}" python3 -m venv "${APP_DIR}/.venv"
-sudo -u "${APP_USER}" "${APP_DIR}/.venv/bin/pip" install --upgrade pip -q
-sudo -u "${APP_USER}" "${APP_DIR}/.venv/bin/pip" install -r "${APP_DIR}/requirements.txt" -q
+python3 -m venv "${APP_DIR}/.venv"
+"${APP_DIR}/.venv/bin/pip" install --upgrade pip -q
+"${APP_DIR}/.venv/bin/pip" install -r "${APP_DIR}/requirements.txt" -q
 
 # -----------------------------------------------------------------------------
 # 5. Data and media directories
 # -----------------------------------------------------------------------------
 info "Creating data and media directories..."
-sudo -u "${APP_USER}" mkdir -p \
+mkdir -p \
   "${APP_DIR}/data/media/images" \
   "${APP_DIR}/data/media/videos" \
   "${APP_DIR}/data/lyrics" \
@@ -144,13 +143,15 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 8. Desktop shortcut
+# 8. Desktop shortcut (for the interactive user who ran this installer, if any —
+#    the leiturgia service account has no home directory to put one in)
 # -----------------------------------------------------------------------------
-DESKTOP_DIR="/home/${APP_USER}/Desktop"
-SHORTCUT="${DESKTOP_DIR}/Leiturgia.desktop"
-if [ -d "${DESKTOP_DIR}" ]; then
-  info "Creating desktop shortcut..."
-  cat > "${SHORTCUT}" <<EOF
+if [ -n "${SUDO_USER:-}" ]; then
+  DESKTOP_DIR="/home/${SUDO_USER}/Desktop"
+  SHORTCUT="${DESKTOP_DIR}/Leiturgia.desktop"
+  if [ -d "${DESKTOP_DIR}" ]; then
+    info "Creating desktop shortcut..."
+    cat > "${SHORTCUT}" <<EOF
 [Desktop Entry]
 Version=1.0
 Type=Application
@@ -161,11 +162,19 @@ Icon=${APP_DIR}/static/leiturgia-icon.png
 Terminal=false
 Categories=Application;
 EOF
-  chmod +x "${SHORTCUT}"
-  chown "${APP_USER}:${APP_USER}" "${SHORTCUT}"
+    chmod +x "${SHORTCUT}"
+    chown "${SUDO_USER}:${SUDO_USER}" "${SHORTCUT}"
+  else
+    info "No Desktop directory found — skipping shortcut (headless install)."
+  fi
 else
-  info "No Desktop directory found — skipping shortcut (headless install)."
+  info "No interactive sudo user detected — skipping desktop shortcut (headless install)."
 fi
+
+# -----------------------------------------------------------------------------
+# 8b. Fix ownership — app files were written as root above
+# -----------------------------------------------------------------------------
+chown -R "${APP_USER}:${APP_USER}" "${APP_DIR}"
 
 # -----------------------------------------------------------------------------
 # 9. systemd services
