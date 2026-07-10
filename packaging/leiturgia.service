@@ -3,7 +3,7 @@ Description=Leiturgia Projection App
 After=network.target
 
 [Service]
-User=pi
+User=leiturgia
 WorkingDirectory=/opt/leiturgia
 ExecStart=/opt/leiturgia/.venv/bin/python app.py
 Restart=always
