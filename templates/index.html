@@ -739,6 +739,60 @@
     }
     .btn-media-remove:hover { background: rgba(180,50,50,0.2); color: #e07070; border-color: #7a3030; }
     .media-file-list-empty { padding: 12px; text-align: center; font-size: 12px; color: var(--muted); }
+
+    /* ── Media storage budget: meter, warn banner, bulk toolbar (video lists only) ── */
+    .media-list-header-actions { display: flex; align-items: center; gap: 8px; }
+    .media-select-all-label {
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .media-usage-meter { margin: 4px 0 6px; }
+    .media-usage-label {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      font-size: 11px; color: var(--muted); margin-bottom: 3px;
+    }
+    .media-usage-bar {
+      width: 100%; height: 6px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 3px; overflow: hidden;
+    }
+    .media-usage-fill {
+      height: 100%; width: 0%; background: var(--gold-dim);
+      border-radius: 3px; transition: width 0.3s ease;
+    }
+    .media-usage-fill.warn { background: #b8860b; }
+    .media-usage-fill.full { background: var(--error); }
+    .media-settings-link { font-size: 11px; color: var(--gold); text-decoration: none; white-space: nowrap; }
+    .media-settings-link:hover { text-decoration: underline; }
+    .media-warn-banner {
+      display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 6px 8px; margin-bottom: 6px;
+      background: rgba(224,82,82,0.12); border: 1px solid rgba(224,82,82,0.4);
+      border-radius: 5px; font-size: 11px; color: var(--white);
+    }
+    .media-warn-banner.visible { display: flex; }
+    .media-warn-export-btn {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: transparent; border: 1px solid var(--error); color: #f0a0a0;
+      cursor: pointer;
+    }
+    .media-warn-export-btn:hover { background: rgba(224,82,82,0.2); }
+    .media-bulk-toolbar {
+      display: none; align-items: center; gap: 8px; font-size: 11px; color: var(--white);
+    }
+    .media-bulk-toolbar.visible { display: flex; }
+    .media-bulk-info { white-space: nowrap; }
+    .media-bulk-delete-btn { color: #f0a0a0; border-color: #7a3030; }
+    .media-bulk-delete-btn:hover { background: rgba(180,50,50,0.2); border-color: #7a3030; color: #f0a0a0; }
+    .media-bulk-export-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .media-file-row.video-row { grid-template-columns: 18px 20px 1fr auto auto auto; }
+    .media-file-checkbox { cursor: pointer; }
+    .media-in-use-badge {
+      display: inline-block; margin-left: 6px; padding: 1px 5px;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+      background: rgba(212,168,67,0.18); color: var(--gold); border-radius: 3px;
+    }
+
     .item-body { padding: 14px; border-top: 1px solid var(--border); display: none; }
     .item-body.open { display: block; max-height: calc(100vh - 280px); overflow-y: auto; }
 
@@ -1666,9 +1720,36 @@
             </div>
             <div class="field" style="margin-top:8px">
               <div class="media-list-header">
-                <label>Video Files</label>
-                <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
-                        onclick="loadMediaListFor(this.closest('.program-item'), 'video')">↺ Refresh</button>
+                <label class="media-select-all-label">
+                  <input type="checkbox" class="media-select-all"
+                         onchange="toggleSelectAllMedia(this.closest('.program-item'), this.checked)">
+                  Video Files
+                </label>
+                <div class="media-list-header-actions">
+                  <div class="media-bulk-toolbar">
+                    <span class="media-bulk-info"></span>
+                    <button class="btn btn-ghost media-bulk-delete-btn" style="font-size:10px;padding:2px 8px"
+                            onclick="bulkDeleteVideos(this.closest('.program-item'))">Delete</button>
+                    <button class="btn btn-ghost media-bulk-export-btn" style="font-size:10px;padding:2px 8px" disabled
+                            title="USB export — coming soon"
+                            onclick="stubExport(this.closest('.program-item'))">Export…</button>
+                  </div>
+                  <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
+                          onclick="loadMediaListFor(this.closest('.program-item'), 'video')">↺ Refresh</button>
+                </div>
+              </div>
+              <div class="media-usage-meter">
+                <div class="media-usage-label">
+                  <span class="media-usage-text"></span>
+                  <a href="/settings" class="media-settings-link">Storage settings…</a>
+                </div>
+                <div class="media-usage-bar"><div class="media-usage-fill"></div></div>
+              </div>
+              <div class="media-warn-banner">
+                <span class="media-warn-text"></span>
+                <button class="media-warn-export-btn"
+                        onclick="stubExport(this.closest('.program-item'))">Export to USB…</button>
+                <a href="/settings" class="media-settings-link">Storage settings…</a>
               </div>
               <input type="text" class="media-search-input" placeholder="Search files…"
                      oninput="filterMediaList(this.closest('.program-item'))">
@@ -2089,9 +2170,36 @@
         </div>
         <div class="field" style="margin-top:8px">
           <div class='media-list-header'>
-            <label>Media Files</label>
-            <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
-                    onclick='loadMediaListFor(this.closest(".program-item"), "video")'>↺ Refresh</button>
+            <label class='media-select-all-label'>
+              <input type='checkbox' class='media-select-all'
+                     onchange='toggleSelectAllMedia(this.closest(".program-item"), this.checked)'>
+              Media Files
+            </label>
+            <div class='media-list-header-actions'>
+              <div class='media-bulk-toolbar'>
+                <span class='media-bulk-info'></span>
+                <button class='btn btn-ghost media-bulk-delete-btn' style='font-size:10px;padding:2px 8px'
+                        onclick='bulkDeleteVideos(this.closest(".program-item"))'>Delete</button>
+                <button class='btn btn-ghost media-bulk-export-btn' style='font-size:10px;padding:2px 8px' disabled
+                        title='USB export — coming soon'
+                        onclick='stubExport(this.closest(".program-item"))'>Export…</button>
+              </div>
+              <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
+                      onclick='loadMediaListFor(this.closest(".program-item"), "video")'>↺ Refresh</button>
+            </div>
+          </div>
+          <div class='media-usage-meter'>
+            <div class='media-usage-label'>
+              <span class='media-usage-text'></span>
+              <a href='/settings' class='media-settings-link'>Storage settings…</a>
+            </div>
+            <div class='media-usage-bar'><div class='media-usage-fill'></div></div>
+          </div>
+          <div class='media-warn-banner'>
+            <span class='media-warn-text'></span>
+            <button class='media-warn-export-btn'
+                    onclick='stubExport(this.closest(".program-item"))'>Export to USB…</button>
+            <a href='/settings' class='media-settings-link'>Storage settings…</a>
           </div>
           <input type='text' class='media-search-input' placeholder='Search files…'
                  oninput='filterMediaList(this.closest(".program-item"))'>
@@ -3003,6 +3111,9 @@
     list.innerHTML = '<div class="media-file-list-empty">Loading…</div>';
     const search = itemEl.querySelector('.media-search-input');
     if (search) search.value = '';
+    list.dataset.typeFilter = typeFilter || '';
+    itemEl._selectedVideos = new Set();   // selection doesn't survive a reload
+    _updateBulkToolbar(itemEl);
     try {
       const res  = await fetch('/api/media');
       const data = await res.json();
@@ -3016,7 +3127,9 @@
                  ...(data.videos || []).map(f => ({...f, media_type: 'video'}))];
       }
       list._allFiles = files;
+      list._inUse    = data.in_use || {};
       _renderMediaList(itemEl, files);
+      _renderMediaUsage(itemEl, data.usage || null, typeFilter);
     } catch (e) {
       list.innerHTML = '<div class="media-file-list-empty">Failed to load files.</div>';
     }
@@ -3033,10 +3146,15 @@
   }
 
   function _renderMediaList(itemEl, files) {
-    const list       = itemEl.querySelector('.media-file-list');
-    const currentUrl = itemEl.querySelector('.item-media-url')?.value || '';
+    const list        = itemEl.querySelector('.media-file-list');
+    const currentUrl  = itemEl.querySelector('.item-media-url')?.value || '';
+    const isVideoList = list.dataset.typeFilter === 'video';
+    const selected    = itemEl._selectedVideos || new Set();
+    const inUse       = list._inUse || {};
     if (!files.length) {
       list.innerHTML = '<div class="media-file-list-empty">No files match.</div>';
+      _updateBulkToolbar(itemEl);
+      _updateSelectAllCheckbox(itemEl, []);
       return;
     }
     list.innerHTML = files.map(f => {
@@ -3046,6 +3164,28 @@
                       : '<span></span>';
       const sel     = f.url === currentUrl ? ' selected' : '';
       const dirType = f.media_type === 'video' ? 'videos' : 'images';
+
+      // Video rows in a video-only list: checkbox for bulk select, "in use"
+      // badge, no per-row ✕ (deletion is bulk-only — TDD §5.5). Image rows
+      // (and any video row rendered outside a video-only list) keep the
+      // original single-row layout with per-row ✕ delete.
+      if (isVideoList && f.media_type === 'video') {
+        const checked = selected.has(f.name) ? ' checked' : '';
+        const usedBy  = inUse[f.name];
+        const badge   = usedBy && usedBy.length
+                        ? `<span class="media-in-use-badge" title="Used by ${usedBy.map(u => `${u.program} › ${u.item}`).join(', ')}">in use</span>`
+                        : '';
+        return `<div class="media-file-row video-row${sel}">
+          <input type="checkbox" class="media-file-checkbox"${checked}
+                 onchange="toggleMediaSelection(this.closest('.program-item'),'${f.name}',this.checked)">
+          <span class="media-file-icon">${icon}</span>
+          <span class="media-file-name" title="${f.name}">${f.name}${badge}</span>
+          ${dur}
+          <span class="media-file-size">${f.size_label}</span>
+          <button class="btn-media-use"
+                  onclick="_setMediaItem(this.closest('.program-item'),'${f.url}','${f.media_type}');loadMediaListFor(this.closest('.program-item'),this.closest('.program-item').dataset.itemType)">Use</button>
+        </div>`;
+      }
       return `<div class="media-file-row${sel}">
         <span class="media-file-icon">${icon}</span>
         <span class="media-file-name" title="${f.name}">${f.name}</span>
@@ -3057,6 +3197,8 @@
                 onclick="deleteMediaFile('${dirType}','${f.name}',this.closest('.program-item'))">✕</button>
       </div>`;
     }).join('');
+    _updateBulkToolbar(itemEl);
+    _updateSelectAllCheckbox(itemEl, files.filter(f => f.media_type === 'video'));
   }
 
   async function deleteMediaFile(mediaType, filename, itemEl) {
@@ -3068,6 +3210,9 @@
       if (data.status === 'ok') {
         toast(`Removed ${filename}`, 'success');
         loadMediaListFor(itemEl, itemEl.dataset.itemType);
+      } else if (data.code === 'media_in_use') {
+        const usedBy = (data.used_by || []).map(u => `${u.program} › ${u.item}`).join(', ');
+        toast(`"${filename}" is used by ${usedBy} — not deleted`, 'error');
       } else {
         toast('Remove failed: ' + data.message, 'error');
       }
@@ -3093,6 +3238,177 @@
     } catch (e) {
       toast('Upload failed', 'error');
     }
+  }
+
+  // ── Media storage-budget meter, warn banner, full-state (TDD §5.2/§5.5) ───
+
+  // Byte-count formatter mirroring media_manager._fmt_size(), for the few
+  // values the API returns as raw bytes rather than a pre-formatted label
+  // (bulk-selection totals; the "free on disk" figure in the unlimited-budget
+  // variant). Everywhere else we use the *_label strings the API already
+  // formats — see task constraints.
+  function _fmtBytes(n) {
+    for (const unit of ['KB', 'MB', 'GB']) {
+      n /= 1024;
+      if (n < 1024) return `${n.toFixed(1)} ${unit}`;
+    }
+    return `${n.toFixed(1)} GB`;
+  }
+
+  function _renderMediaUsage(itemEl, usage, typeFilter) {
+    // Per TDD §5.5, only the video list gets a meter/warn banner/full-state —
+    // images get no proactive UI (413 on over-budget upload only).
+    const meter = itemEl.querySelector('.media-usage-meter');
+    if (!meter) return;
+    if (typeFilter !== 'video' || !usage) {
+      meter.style.display = 'none';
+      return;
+    }
+    meter.style.display = '';
+    const text = meter.querySelector('.media-usage-text');
+    const fill = meter.querySelector('.media-usage-fill');
+    const unlimited = usage.budget_bytes === 0;
+    if (unlimited) {
+      const freeBytes = Math.max((usage.fs_free_bytes || 0) - (usage.reserve_bytes || 0), 0);
+      text.textContent = `${usage.used_label} used · unlimited budget · ${_fmtBytes(freeBytes)} free on disk`;
+      fill.style.width = '0%';
+    } else {
+      // TODO Phase 4: append "· on USB (SANDISK)"-style location_label once
+      // configurable video storage (TDD §5.6) is built.
+      text.textContent = `${usage.used_label} of ${usage.budget_label} used`;
+      fill.style.width = Math.min(100, Math.max(0, usage.percent || 0)) + '%';
+    }
+    fill.classList.toggle('full', !!usage.full);
+    fill.classList.toggle('warn', !usage.full && !!usage.warn);
+
+    _renderMediaWarnBanner(itemEl, usage);
+    _applyMediaFullState(itemEl, usage);
+  }
+
+  function _renderMediaWarnBanner(itemEl, usage) {
+    const banner = itemEl.querySelector('.media-warn-banner');
+    if (!banner) return;
+    if (usage.full) {
+      banner.classList.add('visible');
+      banner.querySelector('.media-warn-text').textContent =
+        'Video storage is full. Delete unused videos or export them to a USB drive to free up space.';
+    } else if (usage.warn) {
+      banner.classList.add('visible');
+      banner.querySelector('.media-warn-text').textContent =
+        'Video storage is nearly full. Delete unused videos or export them to a USB drive.';
+    } else {
+      banner.classList.remove('visible');
+    }
+  }
+
+  // Task 2.4 — advisory-only UI block at full; the server remains the
+  // authoritative enforcement (413 on upload, yt:error on download).
+  function _applyMediaFullState(itemEl, usage) {
+    const full         = !!usage.full;
+    const tip          = 'Video storage is full — delete or export videos first.';
+    const uploadInput  = itemEl.querySelector('.media-upload-input');
+    const ytBtn        = itemEl.querySelector('.yt-download-btn');
+    if (uploadInput) {
+      uploadInput.disabled = full;
+      uploadInput.title    = full ? tip : '';
+    }
+    if (ytBtn) {
+      ytBtn.disabled = full;
+      ytBtn.title    = full ? tip : '';
+    }
+  }
+
+  // ── Video multi-select + bulk delete (TDD §5.5, tasks 2.5/2.6) ─────────────
+
+  function toggleMediaSelection(itemEl, filename, checked) {
+    if (!itemEl._selectedVideos) itemEl._selectedVideos = new Set();
+    if (checked) itemEl._selectedVideos.add(filename);
+    else itemEl._selectedVideos.delete(filename);
+    _updateBulkToolbar(itemEl);
+    const list = itemEl.querySelector('.media-file-list');
+    _updateSelectAllCheckbox(itemEl, (list?._allFiles || []).filter(f => f.media_type === 'video'));
+  }
+
+  function toggleSelectAllMedia(itemEl, checked) {
+    const list  = itemEl.querySelector('.media-file-list');
+    const files = (list?._allFiles || []).filter(f => f.media_type === 'video');
+    itemEl._selectedVideos = checked ? new Set(files.map(f => f.name)) : new Set();
+    _renderMediaList(itemEl, list?._allFiles || []);
+  }
+
+  function _updateSelectAllCheckbox(itemEl, videoFiles) {
+    const cb = itemEl.querySelector('.media-select-all');
+    if (!cb) return;
+    const selected = itemEl._selectedVideos || new Set();
+    const selectedCount = videoFiles.filter(f => selected.has(f.name)).length;
+    cb.checked       = videoFiles.length > 0 && selectedCount === videoFiles.length;
+    cb.indeterminate = selectedCount > 0 && selectedCount < videoFiles.length;
+  }
+
+  function _updateBulkToolbar(itemEl) {
+    const toolbar = itemEl.querySelector('.media-bulk-toolbar');
+    if (!toolbar) return;
+    const selected = itemEl._selectedVideos || new Set();
+    if (!selected.size) {
+      toolbar.classList.remove('visible');
+      return;
+    }
+    toolbar.classList.add('visible');
+    const list  = itemEl.querySelector('.media-file-list');
+    const files = list?._allFiles || [];
+    const totalBytes = files
+      .filter(f => selected.has(f.name))
+      .reduce((sum, f) => sum + (f.size || 0), 0);
+    toolbar.querySelector('.media-bulk-info').textContent =
+      `${selected.size} selected · ${_fmtBytes(totalBytes)}`;
+  }
+
+  async function bulkDeleteVideos(itemEl) {
+    const selected = itemEl._selectedVideos || new Set();
+    if (!selected.size) return;
+    const list  = itemEl.querySelector('.media-file-list');
+    const files = list?._allFiles || [];
+    const totalBytes = files
+      .filter(f => selected.has(f.name))
+      .reduce((sum, f) => sum + (f.size || 0), 0);
+    const count = selected.size;
+    const label = `${count} video${count === 1 ? '' : 's'} (${_fmtBytes(totalBytes)})`;
+    if (!confirm(`Delete ${label}? This cannot be undone.`)) return;
+
+    try {
+      const res = await fetch('/api/media/videos/delete', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ filenames: [...selected] }),
+      });
+      const data    = await res.json();
+      const deleted = data.deleted || [];
+      const failed  = data.failed  || [];
+      if (deleted.length) {
+        toast(`Removed ${deleted.length} video${deleted.length === 1 ? '' : 's'}`, 'success');
+      }
+      failed.forEach(f => {
+        if (f.reason === 'in_use') {
+          const usedBy = (f.used_by || []).map(u => `${u.program} › ${u.item}`).join(', ');
+          toast(`"${f.name}" is used by ${usedBy} — not deleted`, 'error');
+        } else if (f.reason !== 'not_found') {
+          toast(`"${f.name}" could not be removed: ${f.reason}`, 'error');
+        }
+      });
+      // Reload rather than splice the response's `usage` in by hand — this
+      // also refreshes `in_use` (for the badges) and the file list in one
+      // consistent round-trip.
+      loadMediaListFor(itemEl, itemEl.dataset.itemType);
+    } catch (e) {
+      toast('Network error', 'error');
+    }
+  }
+
+  // Task 2.3/2.5 — Export… / "Export to USB…" stub. Phase 3 wires this up to
+  // the real USB export flow (target picker, copy/move, progress); for now
+  // it's present but informational only, per task scope.
+  function stubExport(itemEl) {
+    toast('USB export is coming in a future update — for now, delete videos to free up space.', 'success');
   }
 
   // Platform URL detection

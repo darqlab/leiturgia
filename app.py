@@ -1172,7 +1172,10 @@ _VIDEO_EXTS = {'.mp4', '.webm', '.mov'}
 @app.route("/api/media")
 @operator_required
 def api_media():
-    return jsonify(list_media())
+    data = list_media()
+    data["usage"]  = media_manager.usage()
+    data["in_use"] = media_manager.referenced_media()
+    return jsonify(data)
 
 @app.route("/api/media/<media_type>/<filename>", methods=["DELETE"])
 @operator_required
@@ -1185,12 +1188,67 @@ def delete_media_file(media_type, filename):
     path = os.path.join(app.root_path, "media", media_type, safe)
     if not os.path.exists(path):
         return jsonify({"status": "error", "message": "File not found"}), 404
+    # In-use guard (TDD §5.3a) — a file still referenced by the current
+    # program.json is never removed from disk by any delete path.
+    used_by = media_manager.referenced_media().get(safe)
+    if used_by:
+        return jsonify({
+            "status":  "error",
+            "code":    "media_in_use",
+            "message": f'"{safe}" is used by a saved program item and cannot be deleted.',
+            "used_by": used_by,
+        }), 409
     try:
         os.remove(path)
         return jsonify({"status": "ok"})
     except OSError as e:
         logger.exception("media delete failed: %s", path)
         return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/media/videos/delete", methods=["POST"])
+@operator_required
+def delete_media_videos_bulk():
+    """Bulk-delete videos, per media-storage-budget TDD §5.4/§5.3a.
+    Body: {filenames: [...]}. Returns {deleted: [...], failed: [{name, reason,
+    used_by?}], usage: {...}}. One in-use or missing file never blocks the rest
+    of the batch."""
+    data = request.get_json() or {}
+    filenames = data.get("filenames")
+    if not isinstance(filenames, list) or not filenames:
+        return jsonify({"status": "error", "message": "No filenames provided"}), 400
+
+    in_use    = media_manager.referenced_media()
+    videos_dir = os.path.join(app.root_path, "media", "videos")
+    deleted, failed = [], []
+
+    for filename in filenames:
+        if not isinstance(filename, str):
+            failed.append({"name": str(filename), "reason": "invalid_filename"})
+            continue
+        safe = os.path.basename(filename)
+        if not safe or safe != filename:
+            failed.append({"name": filename, "reason": "invalid_filename"})
+            continue
+        used_by = in_use.get(safe)
+        if used_by:
+            failed.append({"name": safe, "reason": "in_use", "used_by": used_by})
+            continue
+        path = os.path.join(videos_dir, safe)
+        if not os.path.exists(path):
+            failed.append({"name": safe, "reason": "not_found"})
+            continue
+        try:
+            os.remove(path)
+            deleted.append(safe)
+        except OSError as e:
+            logger.exception("media bulk delete failed: %s", path)
+            failed.append({"name": safe, "reason": str(e)})
+
+    return jsonify({
+        "deleted": deleted,
+        "failed":  failed,
+        "usage":   media_manager.usage(),
+    })
 
 @app.route("/api/yt-title")
 @operator_required
