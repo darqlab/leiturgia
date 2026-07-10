@@ -7,5 +7,10 @@
   "cloud_url": "",
   "cloud_token": "",
   "enable_self_update": false,
-  "log_level": "INFO"
+  "log_level": "INFO",
+  "media_video_budget_gb": 2,
+  "media_image_budget_gb": 1,
+  "media_disk_reserve_gb": 1,
+  "media_warn_percent": 80,
+  "media_video_dir": ""
 }

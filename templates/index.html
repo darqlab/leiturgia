@@ -703,7 +703,7 @@
     .ctb-btn:hover { border-color: var(--gold); color: var(--gold); }
     .ctb-btn.active { background: rgba(212,168,67,0.15); border-color: var(--gold); color: var(--gold); }
 
-    .media-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .media-list-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
     .media-search-input {
       width: 100%; padding: 5px 8px; font-size: 12px;
       background: rgba(0,0,0,0.2); border: 1px solid var(--border);
@@ -739,8 +739,89 @@
     }
     .btn-media-remove:hover { background: rgba(180,50,50,0.2); color: #e07070; border-color: #7a3030; }
     .media-file-list-empty { padding: 12px; text-align: center; font-size: 12px; color: var(--muted); }
+
+    /* ── Media storage budget: meter, warn banner, bulk toolbar (video lists only) ── */
+    .media-list-header-actions { display: flex; align-items: center; gap: 8px; }
+    .media-select-all-label {
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .media-usage-meter {
+      display: flex; align-items: center; gap: 8px;
+      flex: 1 1 160px; min-width: 120px; margin: 0;
+      font-size: 11px; color: var(--muted);
+    }
+    .media-usage-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .media-usage-bar {
+      flex: 1 1 50px; min-width: 40px; height: 6px; background: var(--card);
+      border: 1px solid var(--border); border-radius: 3px; overflow: hidden;
+    }
+    .media-usage-fill {
+      height: 100%; width: 0%; background: var(--gold-dim);
+      border-radius: 3px; transition: width 0.3s ease;
+    }
+    .media-usage-fill.warn { background: #b8860b; }
+    .media-usage-fill.full { background: var(--error); }
+    .media-settings-link { font-size: 11px; color: var(--gold); text-decoration: none; white-space: nowrap; }
+    .media-settings-link:hover { text-decoration: underline; }
+    .media-warn-banner {
+      display: none; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 6px 8px; margin-bottom: 6px;
+      background: rgba(224,82,82,0.12); border: 1px solid rgba(224,82,82,0.4);
+      border-radius: 5px; font-size: 11px; color: var(--white);
+    }
+    .media-warn-banner.visible { display: flex; }
+    .media-warn-export-btn {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: transparent; border: 1px solid var(--error); color: #f0a0a0;
+      cursor: pointer;
+    }
+    .media-warn-export-btn:hover { background: rgba(224,82,82,0.2); }
+    .media-bulk-toolbar {
+      display: none; align-items: center; gap: 8px; font-size: 11px; color: var(--white);
+    }
+    .media-bulk-toolbar.visible { display: flex; }
+    .media-bulk-info { white-space: nowrap; }
+    .media-bulk-delete-btn { color: #f0a0a0; border-color: #7a3030; }
+    .media-bulk-delete-btn:hover { background: rgba(180,50,50,0.2); border-color: #7a3030; color: #f0a0a0; }
+    .media-bulk-export-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .media-file-row.video-row { grid-template-columns: 18px 20px 1fr auto auto auto; }
+    .media-file-checkbox { cursor: pointer; }
+    .media-in-use-badge {
+      display: inline-block; margin-left: 6px; padding: 1px 5px;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+      background: rgba(212,168,67,0.18); color: var(--gold); border-radius: 3px;
+    }
+
+    /* ── USB export modal (media-storage-budget TDD §5.5) ── */
+    .export-target-list { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; }
+    .export-target-row {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--white);
+    }
+    .export-target-row:hover { border-color: var(--gold-dim); }
+    .export-target-label { flex: 1; }
+    .export-target-free { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .export-progress-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--white); }
+    .export-progress-name { flex: 0 0 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .export-progress-bar {
+      flex: 1; height: 6px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 3px; overflow: hidden;
+    }
+    .export-progress-fill { height: 100%; width: 0%; background: var(--gold-dim); border-radius: 3px; transition: width 0.2s ease; }
+    .export-progress-pct { width: 36px; text-align: right; color: var(--muted); font-size: 11px; }
+
     .item-body { padding: 14px; border-top: 1px solid var(--border); display: none; }
-    .item-body.open { display: block; max-height: calc(100vh - 280px); overflow-y: auto; }
+    .item-body.open {
+      display: flex; flex-direction: column;
+      max-height: calc(100vh - 280px); overflow-y: auto;
+    }
+    .item-body.open > * { flex-shrink: 0; }
+    .item-body.open > .media-list-wrap { flex: 1 1 auto; min-height: 0; }
+    .media-list-wrap > .media-list-header,
+    .media-list-wrap > .media-warn-banner { flex-shrink: 0; }
+    .media-list-wrap > .media-file-list { flex: 1 1 auto; min-height: 0; max-height: none; }
 
     /* ── YouTube download controls ── */
     .yt-download-controls {
@@ -1664,14 +1745,38 @@
                 <input type="text" class="item-title" value="{{ item.title }}" placeholder="e.g. Welcome Slide">
               </div>
             </div>
-            <div class="field" style="margin-top:8px">
+            <input type="text" class="media-search-input" style="margin-top:8px" placeholder="Search files…"
+                   oninput="filterMediaList(this.closest('.program-item'))">
+            <div class="field media-list-wrap" style="margin-top:8px">
               <div class="media-list-header">
-                <label>Video Files</label>
-                <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
-                        onclick="loadMediaListFor(this.closest('.program-item'), 'video')">↺ Refresh</button>
+                <label class="media-select-all-label">
+                  <input type="checkbox" class="media-select-all"
+                         onchange="toggleSelectAllMedia(this.closest('.program-item'), this.checked)">
+                  Video Files
+                </label>
+                <div class="media-usage-meter">
+                  <span class="media-usage-text"></span>
+                  <div class="media-usage-bar"><div class="media-usage-fill"></div></div>
+                  <a href="/settings" class="media-settings-link">Storage settings…</a>
+                </div>
+                <div class="media-list-header-actions">
+                  <div class="media-bulk-toolbar">
+                    <span class="media-bulk-info"></span>
+                    <button class="btn btn-ghost media-bulk-delete-btn" style="font-size:10px;padding:2px 8px"
+                            onclick="bulkDeleteVideos(this.closest('.program-item'))">Delete</button>
+                    <button class="btn btn-ghost media-bulk-export-btn" style="font-size:10px;padding:2px 8px"
+                            onclick="openExportModal(this.closest('.program-item'))">Export…</button>
+                  </div>
+                  <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
+                          onclick="loadMediaListFor(this.closest('.program-item'), 'video')">↺ Refresh</button>
+                </div>
               </div>
-              <input type="text" class="media-search-input" placeholder="Search files…"
-                     oninput="filterMediaList(this.closest('.program-item'))">
+              <div class="media-warn-banner">
+                <span class="media-warn-text"></span>
+                <button class="media-warn-export-btn"
+                        onclick="openExportModal(this.closest('.program-item'))">Export to USB…</button>
+                <a href="/settings" class="media-settings-link">Storage settings…</a>
+              </div>
               <div class="media-file-list"></div>
             </div>
             <div class="field" style="margin-top:8px">
@@ -1734,14 +1839,14 @@
                 <input type="text" class="item-title" value="{{ item.title }}" placeholder="e.g. Background Image">
               </div>
             </div>
+            <input type="text" class="media-search-input" style="margin-top:8px" placeholder="Search files…"
+                   oninput="filterMediaList(this.closest('.program-item'))">
             <div class="field" style="margin-top:8px">
               <div class="media-list-header">
                 <label>Image Files</label>
                 <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
                         onclick="loadMediaListFor(this.closest('.program-item'), 'image')">↺ Refresh</button>
               </div>
-              <input type="text" class="media-search-input" placeholder="Search files…"
-                     oninput="filterMediaList(this.closest('.program-item'))">
               <div class="media-file-list"></div>
             </div>
             <div class="field" style="margin-top:8px">
@@ -2087,14 +2192,38 @@
         <div class="form-row single">
           <div class="field"><label>Title</label><input type="text" class="item-title" value="" placeholder="e.g. Welcome Slide"></div>
         </div>
-        <div class="field" style="margin-top:8px">
+        <input type='text' class='media-search-input' style='margin-top:8px' placeholder='Search files…'
+               oninput='filterMediaList(this.closest(".program-item"))'>
+        <div class="field media-list-wrap" style="margin-top:8px">
           <div class='media-list-header'>
-            <label>Media Files</label>
-            <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
-                    onclick='loadMediaListFor(this.closest(".program-item"), "video")'>↺ Refresh</button>
+            <label class='media-select-all-label'>
+              <input type='checkbox' class='media-select-all'
+                     onchange='toggleSelectAllMedia(this.closest(".program-item"), this.checked)'>
+              Media Files
+            </label>
+            <div class='media-usage-meter'>
+              <span class='media-usage-text'></span>
+              <div class='media-usage-bar'><div class='media-usage-fill'></div></div>
+              <a href='/settings' class='media-settings-link'>Storage settings…</a>
+            </div>
+            <div class='media-list-header-actions'>
+              <div class='media-bulk-toolbar'>
+                <span class='media-bulk-info'></span>
+                <button class='btn btn-ghost media-bulk-delete-btn' style='font-size:10px;padding:2px 8px'
+                        onclick='bulkDeleteVideos(this.closest(".program-item"))'>Delete</button>
+                <button class='btn btn-ghost media-bulk-export-btn' style='font-size:10px;padding:2px 8px'
+                        onclick='openExportModal(this.closest(".program-item"))'>Export…</button>
+              </div>
+              <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
+                      onclick='loadMediaListFor(this.closest(".program-item"), "video")'>↺ Refresh</button>
+            </div>
           </div>
-          <input type='text' class='media-search-input' placeholder='Search files…'
-                 oninput='filterMediaList(this.closest(".program-item"))'>
+          <div class='media-warn-banner'>
+            <span class='media-warn-text'></span>
+            <button class='media-warn-export-btn'
+                    onclick='openExportModal(this.closest(".program-item"))'>Export to USB…</button>
+            <a href='/settings' class='media-settings-link'>Storage settings…</a>
+          </div>
           <div class='media-file-list'></div>
         </div>
         <div class="field" style="margin-top:8px">
@@ -2153,14 +2282,14 @@
         <div class="form-row single">
           <div class="field"><label>Title</label><input type="text" class="item-title" value="" placeholder="e.g. Background Image"></div>
         </div>
+        <input type='text' class='media-search-input' style='margin-top:8px' placeholder='Search files…'
+               oninput='filterMediaList(this.closest(".program-item"))'>
         <div class="field" style="margin-top:8px">
           <div class='media-list-header'>
             <label>Image Files</label>
             <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
                     onclick='loadMediaListFor(this.closest(".program-item"), "image")'>↺ Refresh</button>
           </div>
-          <input type='text' class='media-search-input' placeholder='Search files…'
-                 oninput='filterMediaList(this.closest(".program-item"))'>
           <div class='media-file-list'></div>
         </div>
         <div class="field" style="margin-top:8px">
@@ -3003,6 +3132,9 @@
     list.innerHTML = '<div class="media-file-list-empty">Loading…</div>';
     const search = itemEl.querySelector('.media-search-input');
     if (search) search.value = '';
+    list.dataset.typeFilter = typeFilter || '';
+    itemEl._selectedVideos = new Set();   // selection doesn't survive a reload
+    _updateBulkToolbar(itemEl);
     try {
       const res  = await fetch('/api/media');
       const data = await res.json();
@@ -3016,7 +3148,9 @@
                  ...(data.videos || []).map(f => ({...f, media_type: 'video'}))];
       }
       list._allFiles = files;
+      list._inUse    = data.in_use || {};
       _renderMediaList(itemEl, files);
+      _renderMediaUsage(itemEl, data.usage || null, typeFilter);
     } catch (e) {
       list.innerHTML = '<div class="media-file-list-empty">Failed to load files.</div>';
     }
@@ -3033,10 +3167,15 @@
   }
 
   function _renderMediaList(itemEl, files) {
-    const list       = itemEl.querySelector('.media-file-list');
-    const currentUrl = itemEl.querySelector('.item-media-url')?.value || '';
+    const list        = itemEl.querySelector('.media-file-list');
+    const currentUrl  = itemEl.querySelector('.item-media-url')?.value || '';
+    const isVideoList = list.dataset.typeFilter === 'video';
+    const selected    = itemEl._selectedVideos || new Set();
+    const inUse       = list._inUse || {};
     if (!files.length) {
       list.innerHTML = '<div class="media-file-list-empty">No files match.</div>';
+      _updateBulkToolbar(itemEl);
+      _updateSelectAllCheckbox(itemEl, []);
       return;
     }
     list.innerHTML = files.map(f => {
@@ -3046,6 +3185,28 @@
                       : '<span></span>';
       const sel     = f.url === currentUrl ? ' selected' : '';
       const dirType = f.media_type === 'video' ? 'videos' : 'images';
+
+      // Video rows in a video-only list: checkbox for bulk select, "in use"
+      // badge, no per-row ✕ (deletion is bulk-only — TDD §5.5). Image rows
+      // (and any video row rendered outside a video-only list) keep the
+      // original single-row layout with per-row ✕ delete.
+      if (isVideoList && f.media_type === 'video') {
+        const checked = selected.has(f.name) ? ' checked' : '';
+        const usedBy  = inUse[f.name];
+        const badge   = usedBy && usedBy.length
+                        ? `<span class="media-in-use-badge" title="Used by ${usedBy.map(u => `${u.program} › ${u.item}`).join(', ')}">in use</span>`
+                        : '';
+        return `<div class="media-file-row video-row${sel}">
+          <input type="checkbox" class="media-file-checkbox"${checked}
+                 onchange="toggleMediaSelection(this.closest('.program-item'),'${f.name}',this.checked)">
+          <span class="media-file-icon">${icon}</span>
+          <span class="media-file-name" title="${f.name}">${f.name}${badge}</span>
+          ${dur}
+          <span class="media-file-size">${f.size_label}</span>
+          <button class="btn-media-use"
+                  onclick="_setMediaItem(this.closest('.program-item'),'${f.url}','${f.media_type}');loadMediaListFor(this.closest('.program-item'),this.closest('.program-item').dataset.itemType)">Use</button>
+        </div>`;
+      }
       return `<div class="media-file-row${sel}">
         <span class="media-file-icon">${icon}</span>
         <span class="media-file-name" title="${f.name}">${f.name}</span>
@@ -3057,6 +3218,8 @@
                 onclick="deleteMediaFile('${dirType}','${f.name}',this.closest('.program-item'))">✕</button>
       </div>`;
     }).join('');
+    _updateBulkToolbar(itemEl);
+    _updateSelectAllCheckbox(itemEl, files.filter(f => f.media_type === 'video'));
   }
 
   async function deleteMediaFile(mediaType, filename, itemEl) {
@@ -3068,6 +3231,9 @@
       if (data.status === 'ok') {
         toast(`Removed ${filename}`, 'success');
         loadMediaListFor(itemEl, itemEl.dataset.itemType);
+      } else if (data.code === 'media_in_use') {
+        const usedBy = (data.used_by || []).map(u => `${u.program} › ${u.item}`).join(', ');
+        toast(`"${filename}" is used by ${usedBy} — not deleted`, 'error');
       } else {
         toast('Remove failed: ' + data.message, 'error');
       }
@@ -3093,6 +3259,331 @@
     } catch (e) {
       toast('Upload failed', 'error');
     }
+  }
+
+  // ── Media storage-budget meter, warn banner, full-state (TDD §5.2/§5.5) ───
+
+  // Byte-count formatter mirroring media_manager._fmt_size(), for the few
+  // values the API returns as raw bytes rather than a pre-formatted label
+  // (bulk-selection totals; the "free on disk" figure in the unlimited-budget
+  // variant). Everywhere else we use the *_label strings the API already
+  // formats — see task constraints.
+  function _fmtBytes(n) {
+    for (const unit of ['KB', 'MB', 'GB']) {
+      n /= 1024;
+      if (n < 1024) return `${n.toFixed(1)} ${unit}`;
+    }
+    return `${n.toFixed(1)} GB`;
+  }
+
+  function _renderMediaUsage(itemEl, usage, typeFilter) {
+    // Per TDD §5.5, only the video list gets a meter/warn banner/full-state —
+    // images get no proactive UI (413 on over-budget upload only).
+    const meter = itemEl.querySelector('.media-usage-meter');
+    if (!meter) return;
+    if (typeFilter !== 'video' || !usage) {
+      meter.style.display = 'none';
+      return;
+    }
+    // Drive-disconnected degradation (TDD §5.6): no meter to show — the
+    // banner alone communicates the unavailable state.
+    if (usage.videos_unavailable) {
+      meter.style.display = 'none';
+      _renderMediaWarnBanner(itemEl, usage);
+      _applyMediaFullState(itemEl, usage);
+      return;
+    }
+    meter.style.display = '';
+    const text = meter.querySelector('.media-usage-text');
+    const fill = meter.querySelector('.media-usage-fill');
+    const unlimited = usage.budget_bytes === 0;
+    // Phase 4 (TDD §5.6): name the external location when videos don't live
+    // in the built-in internal dir.
+    const locationSuffix = (usage.location_label && usage.location_label !== 'Internal')
+      ? ` · on ${usage.location_label}` : '';
+    if (unlimited) {
+      const freeBytes = Math.max((usage.fs_free_bytes || 0) - (usage.reserve_bytes || 0), 0);
+      text.textContent = `${usage.used_label} used · unlimited budget · ${_fmtBytes(freeBytes)} free on disk${locationSuffix}`;
+      fill.style.width = '0%';
+    } else {
+      text.textContent = `${usage.used_label} of ${usage.budget_label} used${locationSuffix}`;
+      fill.style.width = Math.min(100, Math.max(0, usage.percent || 0)) + '%';
+    }
+    fill.classList.toggle('full', !!usage.full);
+    fill.classList.toggle('warn', !usage.full && !!usage.warn);
+
+    _renderMediaWarnBanner(itemEl, usage);
+    _applyMediaFullState(itemEl, usage);
+  }
+
+  function _renderMediaWarnBanner(itemEl, usage) {
+    const banner = itemEl.querySelector('.media-warn-banner');
+    if (!banner) return;
+    const exportBtn = banner.querySelector('.media-warn-export-btn');
+    if (usage.videos_unavailable) {
+      banner.classList.add('visible');
+      banner.querySelector('.media-warn-text').textContent =
+        'Video storage unavailable — is the drive connected?';
+      if (exportBtn) exportBtn.style.display = 'none';
+    } else if (usage.full) {
+      banner.classList.add('visible');
+      banner.querySelector('.media-warn-text').textContent =
+        'Video storage is full. Delete unused videos or export them to a USB drive to free up space.';
+      if (exportBtn) exportBtn.style.display = '';
+    } else if (usage.warn) {
+      banner.classList.add('visible');
+      banner.querySelector('.media-warn-text').textContent =
+        'Video storage is nearly full. Delete unused videos or export them to a USB drive.';
+      if (exportBtn) exportBtn.style.display = '';
+    } else {
+      banner.classList.remove('visible');
+    }
+  }
+
+  // Task 2.4 — advisory-only UI block at full; the server remains the
+  // authoritative enforcement (413 on upload, yt:error on download).
+  // Also covers the drive-disconnected state (TDD §5.6) — ingest is blocked
+  // client-side the same way, with the server refusing it either way.
+  function _applyMediaFullState(itemEl, usage) {
+    const full         = !!usage.full || !!usage.videos_unavailable;
+    const tip          = usage.videos_unavailable
+      ? 'Video storage is unavailable — check the drive connection.'
+      : 'Video storage is full — delete or export videos first.';
+    const uploadInput  = itemEl.querySelector('.media-upload-input');
+    const ytBtn        = itemEl.querySelector('.yt-download-btn');
+    if (uploadInput) {
+      uploadInput.disabled = full;
+      uploadInput.title    = full ? tip : '';
+    }
+    if (ytBtn) {
+      ytBtn.disabled = full;
+      ytBtn.title    = full ? tip : '';
+    }
+  }
+
+  // ── Video multi-select + bulk delete (TDD §5.5, tasks 2.5/2.6) ─────────────
+
+  function toggleMediaSelection(itemEl, filename, checked) {
+    if (!itemEl._selectedVideos) itemEl._selectedVideos = new Set();
+    if (checked) itemEl._selectedVideos.add(filename);
+    else itemEl._selectedVideos.delete(filename);
+    _updateBulkToolbar(itemEl);
+    const list = itemEl.querySelector('.media-file-list');
+    _updateSelectAllCheckbox(itemEl, (list?._allFiles || []).filter(f => f.media_type === 'video'));
+  }
+
+  function toggleSelectAllMedia(itemEl, checked) {
+    const list  = itemEl.querySelector('.media-file-list');
+    const files = (list?._allFiles || []).filter(f => f.media_type === 'video');
+    itemEl._selectedVideos = checked ? new Set(files.map(f => f.name)) : new Set();
+    _renderMediaList(itemEl, list?._allFiles || []);
+  }
+
+  function _updateSelectAllCheckbox(itemEl, videoFiles) {
+    const cb = itemEl.querySelector('.media-select-all');
+    if (!cb) return;
+    const selected = itemEl._selectedVideos || new Set();
+    const selectedCount = videoFiles.filter(f => selected.has(f.name)).length;
+    cb.checked       = videoFiles.length > 0 && selectedCount === videoFiles.length;
+    cb.indeterminate = selectedCount > 0 && selectedCount < videoFiles.length;
+  }
+
+  function _updateBulkToolbar(itemEl) {
+    const toolbar = itemEl.querySelector('.media-bulk-toolbar');
+    if (!toolbar) return;
+    const selected = itemEl._selectedVideos || new Set();
+    if (!selected.size) {
+      toolbar.classList.remove('visible');
+      return;
+    }
+    toolbar.classList.add('visible');
+    const list  = itemEl.querySelector('.media-file-list');
+    const files = list?._allFiles || [];
+    const totalBytes = files
+      .filter(f => selected.has(f.name))
+      .reduce((sum, f) => sum + (f.size || 0), 0);
+    toolbar.querySelector('.media-bulk-info').textContent =
+      `${selected.size} selected · ${_fmtBytes(totalBytes)}`;
+  }
+
+  async function bulkDeleteVideos(itemEl) {
+    const selected = itemEl._selectedVideos || new Set();
+    if (!selected.size) return;
+    const list  = itemEl.querySelector('.media-file-list');
+    const files = list?._allFiles || [];
+    const totalBytes = files
+      .filter(f => selected.has(f.name))
+      .reduce((sum, f) => sum + (f.size || 0), 0);
+    const count = selected.size;
+    const label = `${count} video${count === 1 ? '' : 's'} (${_fmtBytes(totalBytes)})`;
+    if (!confirm(`Delete ${label}? This cannot be undone.`)) return;
+
+    try {
+      const res = await fetch('/api/media/videos/delete', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ filenames: [...selected] }),
+      });
+      const data    = await res.json();
+      const deleted = data.deleted || [];
+      const failed  = data.failed  || [];
+      if (deleted.length) {
+        toast(`Removed ${deleted.length} video${deleted.length === 1 ? '' : 's'}`, 'success');
+      }
+      failed.forEach(f => {
+        if (f.reason === 'in_use') {
+          const usedBy = (f.used_by || []).map(u => `${u.program} › ${u.item}`).join(', ');
+          toast(`"${f.name}" is used by ${usedBy} — not deleted`, 'error');
+        } else if (f.reason !== 'not_found') {
+          toast(`"${f.name}" could not be removed: ${f.reason}`, 'error');
+        }
+      });
+      // Reload rather than splice the response's `usage` in by hand — this
+      // also refreshes `in_use` (for the badges) and the file list in one
+      // consistent round-trip.
+      loadMediaListFor(itemEl, itemEl.dataset.itemType);
+    } catch (e) {
+      toast('Network error', 'error');
+    }
+  }
+
+  // ── USB export (TDD §5.4/§5.5, Phase 3 task 3.3) ───────────────────────────
+  // Entered via the bulk toolbar's Export… button and the warn-banner Export
+  // button — both call openExportModal() and act on the current checkbox
+  // selection (the same selection model bulk delete uses).
+
+  let _exportItemEl   = null;   // the .program-item the export modal is acting on
+  let _exportTargets  = [];     // last-fetched /api/media/usb-targets response
+  let _exportBusy     = false;
+
+  function _exportSelectedFiles() {
+    if (!_exportItemEl) return [];
+    const selected = _exportItemEl._selectedVideos || new Set();
+    const list  = _exportItemEl.querySelector('.media-file-list');
+    const files = list?._allFiles || [];
+    return files.filter(f => selected.has(f.name));
+  }
+
+  async function openExportModal(itemEl) {
+    const selected = itemEl._selectedVideos || new Set();
+    if (!selected.size) { toast('Select at least one video to export', 'error'); return; }
+    _exportItemEl = itemEl;
+    _exportBusy   = false;
+
+    document.getElementById('exportModal').classList.add('open');
+    document.getElementById('exportProgressWrap').style.display = 'none';
+    document.getElementById('exportPickerBody').style.display = '';
+    document.getElementById('exportModeMove').checked = true;   // default Move (OQ-3)
+    document.getElementById('exportFat32Warning').style.display = 'none';
+    _renderExportSelectionSummary();
+
+    const list = document.getElementById('exportTargetList');
+    list.innerHTML = '<div class="media-file-list-empty">Looking for USB drives…</div>';
+    try {
+      const res  = await fetch('/api/media/usb-targets');
+      _exportTargets = await res.json();
+    } catch (e) {
+      _exportTargets = [];
+    }
+    _renderExportTargets();
+  }
+
+  function closeExportModal() {
+    if (_exportBusy) return;   // don't let an in-flight export be dismissed
+    document.getElementById('exportModal').classList.remove('open');
+    _exportItemEl = null;
+  }
+
+  function _renderExportSelectionSummary() {
+    const files = _exportSelectedFiles();
+    const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+    document.getElementById('exportSelectionSummary').textContent =
+      `${files.length} video${files.length === 1 ? '' : 's'} selected · ${_fmtBytes(totalBytes)}`;
+  }
+
+  function _renderExportTargets() {
+    const list = document.getElementById('exportTargetList');
+    if (!_exportTargets.length) {
+      list.innerHTML = '<div class="media-file-list-empty">No USB drive detected — insert one and refresh</div>';
+      _updateExportStartState();
+      return;
+    }
+    const files = _exportSelectedFiles();
+    const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+    list.innerHTML = _exportTargets.map((t, i) => `
+      <label class="export-target-row">
+        <input type="radio" name="exportTarget" value="${i}"
+               onchange="_updateExportStartState()"${i === 0 ? ' checked' : ''}>
+        <span class="export-target-label">${t.label}</span>
+        <span class="export-target-free">${t.free_label} free${t.fat32 ? ' · FAT32' : ''}</span>
+      </label>`).join('');
+    _updateExportStartState();
+  }
+
+  function _selectedExportTarget() {
+    const checked = document.querySelector('input[name="exportTarget"]:checked');
+    if (!checked) return null;
+    return _exportTargets[parseInt(checked.value, 10)] || null;
+  }
+
+  function _updateExportStartState() {
+    const startBtn = document.getElementById('exportStartBtn');
+    const reasonEl = document.getElementById('exportStartDisabledReason');
+    const fat32Warn = document.getElementById('exportFat32Warning');
+    const target = _selectedExportTarget();
+    const files  = _exportSelectedFiles();
+    const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+
+    if (!target) {
+      startBtn.disabled = true;
+      reasonEl.textContent = '';
+      fat32Warn.style.display = 'none';
+      return;
+    }
+
+    // FAT32 guard (TDD §5.5): warn if any selected file exceeds the 4 GiB
+    // FAT32 max file size, but don't block — it's advisory.
+    const FAT32_MAX = 4 * 1024 * 1024 * 1024;
+    const tooBig = target.fat32 ? files.filter(f => (f.size || 0) > FAT32_MAX) : [];
+    fat32Warn.style.display = tooBig.length ? '' : 'none';
+    if (tooBig.length) {
+      fat32Warn.textContent =
+        `⚠ ${tooBig.map(f => f.name).join(', ')} — over 4 GiB, FAT32 drives can't hold files that large.`;
+    }
+
+    if (totalBytes > (target.free_bytes || 0)) {
+      startBtn.disabled = true;
+      reasonEl.textContent =
+        `Not enough space on this drive (need ${_fmtBytes(totalBytes)}, free ${_fmtBytes(target.free_bytes || 0)})`;
+    } else {
+      startBtn.disabled = false;
+      reasonEl.textContent = '';
+    }
+  }
+
+  function startExport() {
+    const target = _selectedExportTarget();
+    const files  = _exportSelectedFiles();
+    if (!target || !files.length || !_exportItemEl) return;
+
+    const move = document.getElementById('exportModeMove').checked;
+    _exportBusy = true;
+
+    document.getElementById('exportPickerBody').style.display = 'none';
+    const progWrap = document.getElementById('exportProgressWrap');
+    progWrap.style.display = '';
+    progWrap.innerHTML = files.map(f => `
+      <div class="export-progress-row" data-export-file="${f.name}">
+        <span class="export-progress-name" title="${f.name}">${f.name}</span>
+        <div class="export-progress-bar"><div class="export-progress-fill" style="width:0%"></div></div>
+        <span class="export-progress-pct">0%</span>
+      </div>`).join('');
+
+    _socket.emit('media:export:start', {
+      filenames: files.map(f => f.name),
+      target:    target.path,
+      move,
+    });
   }
 
   // Platform URL detection
@@ -3762,6 +4253,56 @@
 
   const _socket = io({ transports: ['websocket', 'polling'] });
   const _DEFAULT_ALLOTTED = { song: 4, prayer: 3, content: 5, participant: 5, media: 5 };
+
+  _socket.on('media:export:progress', function (data) {
+    const row = document.querySelector(`.export-progress-row[data-export-file="${CSS.escape(data.filename)}"]`);
+    if (!row) return;
+    const pct = data.total ? Math.min(100, Math.round(data.bytes / data.total * 100)) : 0;
+    row.querySelector('.export-progress-fill').style.width = pct + '%';
+    row.querySelector('.export-progress-pct').textContent = pct + '%';
+  });
+
+  _socket.on('media:export:done', function (data) {
+    _exportBusy = false;
+    const moved      = data.moved      || [];
+    const copied     = data.copied     || [];
+    const keptLocal  = data.kept_local || [];
+    const failed     = data.failed     || [];
+
+    const parts = [];
+    if (moved.length)  parts.push(`${moved.length} moved`);
+    if (copied.length) parts.push(`${copied.length} copied`);
+    if (keptLocal.length) parts.push(`${keptLocal.length} copied (kept locally, in use)`);
+    if (failed.length) parts.push(`${failed.length} failed`);
+    toast(parts.length ? `Export complete: ${parts.join(', ')}` : 'Export complete', 'success');
+
+    keptLocal.forEach(k => {
+      const usedBy = (k.used_by || []).map(u => `${u.program} › ${u.item}`).join(', ');
+      toast(`"${k.name}" copied to USB, kept locally — in use by ${usedBy}`, 'success');
+    });
+    failed.forEach(f => toast(`"${f.name}" export failed: ${f.reason}`, 'error'));
+
+    document.getElementById('exportModal').classList.remove('open');
+    if (_exportItemEl) {
+      _exportItemEl._selectedVideos = new Set();
+      loadMediaListFor(_exportItemEl, _exportItemEl.dataset.itemType);
+    }
+    _exportItemEl = null;
+  });
+
+  _socket.on('media:export:error', function (data) {
+    _exportBusy = false;
+    if (data.code === 'usb_target_full') {
+      const name = data.name ? `"${data.name}"` : 'A file';
+      toast(`${name} didn't fit on the USB drive (need ${data.need_label}, free ${data.free_label})`, 'error');
+    } else {
+      toast(data.message || 'Export failed', 'error');
+    }
+    // Return to the picker so the operator can retry with a different target
+    // or selection rather than being stuck on a dead progress screen.
+    document.getElementById('exportPickerBody').style.display = '';
+    document.getElementById('exportProgressWrap').style.display = 'none';
+  });
 
   _socket.on('connect', function () {
     const el = document.getElementById('live-status');
@@ -4656,6 +5197,50 @@
     <div style="display:flex;justify-content:flex-end;gap:10px;padding:.8rem 1.4rem 1.2rem;">
       <button class="btn btn-outline" onclick="closeLogoutModal()">Cancel</button>
       <button class="btn btn-gold" onclick="window.location.href='/logout'">Log out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── USB Export Modal (media-storage-budget TDD §5.5, Phase 3) ──────────── -->
+<div id="exportModal" class="overlay-modal">
+  <div class="modal-box" style="max-width:440px;width:90%;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+    <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.4rem;border-bottom:1px solid var(--border);">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;">Export to USB</span>
+      <button class="btn btn-ghost" onclick="closeExportModal()">&#x2715;</button>
+    </div>
+    <div style="padding:1.4rem;display:flex;flex-direction:column;gap:1rem;">
+      <div id="exportSelectionSummary" style="font-size:12px;color:var(--muted);"></div>
+
+      <div id="exportPickerBody" style="display:flex;flex-direction:column;gap:1rem;">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+            <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">USB drive</span>
+            <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px" onclick="openExportModal(_exportItemEl)">↺ Refresh</button>
+          </div>
+          <div id="exportTargetList" class="export-target-list"></div>
+        </div>
+
+        <div>
+          <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Mode</span>
+          <div style="display:flex;gap:1.2rem;margin-top:0.4rem;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--white);">
+              <input type="radio" name="exportMode" id="exportModeMove" checked onchange="_updateExportStartState()"> Move (frees space)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--white);">
+              <input type="radio" name="exportMode" id="exportModeCopy" onchange="_updateExportStartState()"> Copy
+            </label>
+          </div>
+        </div>
+
+        <div id="exportFat32Warning" style="display:none;font-size:12px;color:var(--error);"></div>
+        <div id="exportStartDisabledReason" style="font-size:12px;color:var(--error);min-height:1em;"></div>
+      </div>
+
+      <div id="exportProgressWrap" style="display:none;flex-direction:column;gap:10px;"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;padding:1rem 1.4rem;border-top:1px solid var(--border);">
+      <button class="btn btn-outline" onclick="closeExportModal()">Cancel</button>
+      <button class="btn btn-gold" id="exportStartBtn" disabled onclick="startExport()">Start export</button>
     </div>
   </div>
 </div>

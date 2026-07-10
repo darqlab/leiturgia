@@ -85,6 +85,7 @@ git -C /home/dennis/Projects/Leiturgia ls-files | \
 - **Async backend:** `eventlet` (monkey-patched as the very first import in `app.py`); Socket.IO runs `async_mode='eventlet'`.
 - **State persistence:** all JSON state files are read/written via `jsonio.py`'s `atomic_write_json` (temp file + `fsync` + `os.replace`) to avoid the read/write races fixed in issue #80.
 - **Health check:** `/api/health` (no auth, localhost-only) — used by the operator self-update auto-revert.
+- **Media storage budget:** configurable cap on `media/videos` (+ minimal `media/images` cap) enforced at upload and yt-dlp ingestion, plus a hard filesystem-free reserve. Config keys (`config.json`, all optional with defaults): `media_video_budget_gb` (2), `media_image_budget_gb` (1), `media_disk_reserve_gb` (1), `media_warn_percent` (80), `media_video_dir` (unset = built-in `media/videos`; otherwise an absolute path on a mounted/writable/allowlisted drive, set via `POST /api/settings/video-dir` rather than hand-edited). All video-path logic goes through `media_manager.videos_dir()`/`videos_unavailable()` — never hard-code `media/videos`. See planning docs `api-reference.md` → "Media", `data-schemas.md` → "Media Usage" / "Config File", `ref/modules.md` → `media_manager.py`, and `development/tdd/modules/media-storage-budget.md` for the full design.
 
 ---
 
