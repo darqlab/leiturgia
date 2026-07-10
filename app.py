@@ -28,6 +28,7 @@ load_dotenv()
 from hymnal import search_titles, get_by_title, get_by_number, search_by_number_prefix
 from projection import ProjectionStateManager
 from media_manager import list_media
+import media_manager
 from timer import TimerManager
 from roles import RoleManager
 from order_of_service import OrderOfServiceManager
@@ -1503,6 +1504,32 @@ def _sanitize_filename(name: str) -> str:
     return stem + ext
 
 
+def _effective_remaining_bytes(usage: dict, media_type: str) -> int:
+    """Effective remaining budget for 'video' or 'image', honoring the shared
+    filesystem reserve (min(budget - used, fs_room)) per the storage-budget TDD."""
+    fs_room = usage['fs_free_bytes'] - usage['reserve_bytes']
+    if media_type == 'video':
+        return usage['remaining_bytes']
+    images = usage['images']
+    if images['budget_bytes'] == 0:
+        return fs_room
+    return min(images['budget_bytes'] - images['used_bytes'], fs_room)
+
+
+_MEDIA_BUDGET_MESSAGES = {
+    'video': "Video storage is full. Delete unused videos or export them to a USB drive to free up space.",
+    'image': "Image storage is full. Delete unused images to free up space.",
+}
+
+
+def _media_budget_error(media_type: str):
+    return jsonify({
+        "status":  "error",
+        "code":    "media_budget_exceeded",
+        "message": _MEDIA_BUDGET_MESSAGES[media_type],
+    }), 413
+
+
 @app.route("/api/media/upload", methods=["POST"])
 @operator_required
 def upload_media():
@@ -1523,10 +1550,30 @@ def upload_media():
     else:
         return jsonify({"status": "error", "message": f"Unsupported file type: {ext}"}), 400
 
+    # Pre-check: client-declared content length vs effective remaining budget for
+    # this media type. request.content_length can be None on some clients — in
+    # that case we can't pre-check and rely on the post-save backstop below.
+    usage_before = media_manager.usage()
+    remaining_before = _effective_remaining_bytes(usage_before, media_type)
+    if request.content_length is not None and request.content_length > max(remaining_before, 0):
+        return _media_budget_error(media_type)
+
     filename  = _sanitize_filename(secure_filename(f.filename))
     save_dir  = os.path.join(app.root_path, "media", subdir)
     os.makedirs(save_dir, exist_ok=True)
-    f.save(os.path.join(save_dir, filename))
+    save_path = os.path.join(save_dir, filename)
+    f.save(save_path)
+
+    # Post-save backstop: the declared content-length may have been missing or
+    # wrong — recheck actual usage now that the file is on disk.
+    usage_after = media_manager.usage()
+    over_budget = usage_after['full'] if media_type == 'video' else usage_after['images']['full']
+    if over_budget:
+        try:
+            os.remove(save_path)
+        except OSError:
+            logger_media.warning("failed to remove over-budget upload: %s", save_path, exc_info=True)
+        return _media_budget_error(media_type)
 
     url = f"/media/{subdir}/{_url_quote(filename, safe='')}"
     return jsonify({"status": "ok", "url": url, "media_type": media_type})
@@ -1619,10 +1666,24 @@ def _yt_cache_write(source_url, filename, local_url):
     except Exception:
         logger.warning("yt_cache write failed", exc_info=True)
 
+def _yt_budget_error(item_id, sid):
+    socketio.emit('yt:error', {
+        'item_id': item_id,
+        'message': _MEDIA_BUDGET_MESSAGES['video'],
+    }, room=sid)
+
+
 def _yt_download_task(url, quality, item_id, sid):
     import yt_dlp
     videos_dir = os.path.join(app.root_path, 'media', 'videos')
     os.makedirs(videos_dir, exist_ok=True)
+
+    usage_before = media_manager.usage()
+    remaining_before = _effective_remaining_bytes(usage_before, 'video')
+    if remaining_before <= 0:
+        _yt_budget_error(item_id, sid)
+        return
+
     ydl_opts = {
         'format':         _get_format(quality),
         'outtmpl':        os.path.join(videos_dir, '%(title)s.%(ext)s'),
@@ -1637,6 +1698,28 @@ def _yt_download_task(url, quality, item_id, sid):
         ydl_opts['cookiefile'] = _cookies_path
     if _FFMPEG:
         ydl_opts['merge_output_format'] = 'mp4'
+
+    # Pre-flight: check yt-dlp's filesize estimate against effective remaining
+    # budget before downloading anything. A missing/failed estimate falls through
+    # to the normal download flow — the in-flight max_filesize backstop below
+    # covers that case.
+    try:
+        preflight_opts = {k: v for k, v in ydl_opts.items() if k != 'progress_hooks'}
+        preflight_opts['progress_hooks'] = []
+        with yt_dlp.YoutubeDL(preflight_opts) as ydl_probe:
+            info_probe = ydl_probe.extract_info(url, download=False)
+        estimate = info_probe.get('filesize') or info_probe.get('filesize_approx')
+        if estimate and estimate > remaining_before:
+            _yt_budget_error(item_id, sid)
+            return
+    except Exception:
+        logger_media.warning("yt-dlp pre-flight size estimate failed for %s", url, exc_info=True)
+
+    # In-flight backstop: cap the actual download at the effective remaining
+    # budget in case the estimate was missing or wrong.
+    if remaining_before > 0:
+        ydl_opts['max_filesize'] = remaining_before
+
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info     = ydl.extract_info(url, download=True)
@@ -1659,7 +1742,20 @@ def _yt_download_task(url, quality, item_id, sid):
                     os.path.join(videos_dir, sanitized),
                 )
                 final = sanitized
+            final_path = os.path.join(videos_dir, final)
             final_url = f'/media/videos/{_url_quote(final, safe="")}'
+
+        # Post-download backstop: recheck usage now that the file is on disk.
+        if os.path.exists(final_path):
+            usage_after = media_manager.usage()
+            if usage_after['full']:
+                try:
+                    os.remove(final_path)
+                except OSError:
+                    logger_media.warning("failed to remove over-budget download: %s", final_path, exc_info=True)
+                _yt_budget_error(item_id, sid)
+                return
+
         _yt_cache_write(url, final, final_url)
         logger_media.info("media download complete: item_id=%s file=%s", item_id, final)
         socketio.emit('yt:done', {
