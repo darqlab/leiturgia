@@ -1250,6 +1250,12 @@ def delete_media_videos_bulk():
         "usage":   media_manager.usage(),
     })
 
+@app.route("/api/media/usb-targets")
+@operator_required
+def api_media_usb_targets():
+    """List writable USB/removable mounts for the export flow. TDD §5.4."""
+    return jsonify(media_manager.usb_targets())
+
 @app.route("/api/yt-title")
 @operator_required
 def api_yt_title():
@@ -1844,6 +1850,183 @@ def on_yt_download_start(data):
 
     logger_media.info("media download start: item_id=%s quality=%s url=%s", item_id, quality, url)
     socketio.start_background_task(_yt_download_task, url, quality, item_id, sid)
+
+
+# ── USB media export (media-storage-budget TDD §5.3a/§5.4) ─────────────────
+
+_EXPORT_CHUNK_SIZE = 4 * 1024 * 1024  # 4 MiB
+
+
+def _export_copy_file(src_path, dst_path, size, filename, sid):
+    """Chunked manual copy (not one blocking shutil.copy2 call) so the
+    eventlet loop stays live during multi-GB copies — mirrors the yt-dlp
+    progress-hook pattern. Emits media:export:progress per chunk. Raises
+    OSError (including ENOSPC) on a write failure; the caller cleans up the
+    partial target file."""
+    copied = 0
+    with open(src_path, 'rb') as fsrc, open(dst_path, 'wb') as fdst:
+        while True:
+            chunk = fsrc.read(_EXPORT_CHUNK_SIZE)
+            if not chunk:
+                break
+            fdst.write(chunk)
+            copied += len(chunk)
+            socketio.emit('media:export:progress', {
+                'filename': filename,
+                'bytes':    copied,
+                'total':    size,
+            }, room=sid)
+            eventlet.sleep(0)
+    try:
+        _shutil.copystat(src_path, dst_path)
+    except OSError:
+        pass
+
+
+def _media_export_task(filenames, target, move, sid):
+    videos_dir = os.path.join(app.root_path, 'media', 'videos')
+
+    # Export security (TDD §5.4): target must resolve under an allowlisted
+    # mount root AND appear in a fresh /proc/mounts rescan — never trust a
+    # stale client-supplied path.
+    resolved_target = media_manager.resolve_usb_target(target)
+    if not resolved_target:
+        socketio.emit('media:export:error', {
+            'code':    'invalid_target',
+            'message': 'USB target is no longer available — insert the drive and refresh.',
+        }, room=sid)
+        return
+
+    # Same basename-equality check delete_media_file() uses — no path traversal.
+    safe_names = []
+    for name in filenames:
+        if not isinstance(name, str):
+            continue
+        safe = os.path.basename(name)
+        if not safe or safe != name:
+            continue
+        if os.path.isfile(os.path.join(videos_dir, safe)):
+            safe_names.append(safe)
+
+    if not safe_names:
+        socketio.emit('media:export:error', {
+            'code':    'no_files',
+            'message': 'No valid files to export.',
+        }, room=sid)
+        return
+
+    # Pre-start target-full check: total selected size vs target free space,
+    # before a single byte is copied.
+    total_size = sum(os.path.getsize(os.path.join(videos_dir, n)) for n in safe_names)
+    try:
+        target_free = _shutil.disk_usage(resolved_target).free
+    except OSError:
+        target_free = 0
+    if total_size > target_free:
+        socketio.emit('media:export:error', {
+            'code':       'usb_target_full',
+            'message':    'Not enough free space on the USB drive.',
+            'need_label': media_manager._fmt_size(total_size),
+            'free_label': media_manager._fmt_size(target_free),
+        }, room=sid)
+        return
+
+    in_use = media_manager.referenced_media()
+    moved, copied, kept_local, failed = [], [], [], []
+
+    for name in safe_names:
+        src_path = os.path.join(videos_dir, name)
+        dst_path = os.path.join(resolved_target, name)
+        try:
+            size = os.path.getsize(src_path)
+        except OSError:
+            failed.append({'name': name, 'reason': 'not_found'})
+            continue
+
+        try:
+            _export_copy_file(src_path, dst_path, size, name, sid)
+        except OSError:
+            # Mid-copy failure (e.g. ENOSPC) — delete the partial target file;
+            # files already completed (and their move-deletions) stand.
+            try:
+                if os.path.exists(dst_path):
+                    os.remove(dst_path)
+            except OSError:
+                logger_media.warning("failed to clean up partial export file: %s", dst_path, exc_info=True)
+            logger_media.warning("media export write failed for %s", name, exc_info=True)
+            try:
+                free_now = _shutil.disk_usage(resolved_target).free
+            except OSError:
+                free_now = 0
+            socketio.emit('media:export:error', {
+                'code':       'usb_target_full',
+                'message':    f'"{name}" did not fit on the USB drive — export stopped.',
+                'name':       name,
+                'need_label': media_manager._fmt_size(size),
+                'free_label': media_manager._fmt_size(free_now),
+            }, room=sid)
+            return
+
+        # Size-verify before any deletion — a failed verify never deletes the original.
+        try:
+            dst_size = os.path.getsize(dst_path)
+        except OSError:
+            dst_size = -1
+        if dst_size != size:
+            failed.append({'name': name, 'reason': 'verify_failed'})
+            try:
+                os.remove(dst_path)
+            except OSError:
+                pass
+            continue
+
+        used_by = in_use.get(name)
+        if move and used_by:
+            # In-use guard (§5.3a): Move degrades to Copy for a referenced file
+            # — copied to the target, local original kept.
+            kept_local.append({'name': name, 'note': 'in_use_kept_local', 'used_by': used_by})
+        elif move:
+            try:
+                os.remove(src_path)
+                moved.append(name)
+            except OSError:
+                logger_media.warning("failed to remove local original after export: %s", src_path, exc_info=True)
+                failed.append({'name': name, 'reason': 'delete_failed'})
+        else:
+            copied.append(name)
+
+    logger_media.info(
+        "media export done: target=%s moved=%d copied=%d kept_local=%d failed=%d",
+        resolved_target, len(moved), len(copied), len(kept_local), len(failed),
+    )
+    socketio.emit('media:export:done', {
+        'moved':      moved,
+        'copied':     copied,
+        'kept_local': kept_local,
+        'failed':     failed,
+        'usage':      media_manager.usage(),
+    }, room=sid)
+
+
+@socketio.on('media:export:start')
+def on_media_export_start(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    filenames = data.get('filenames') or []
+    target    = (data.get('target') or '').strip()
+    move      = bool(data.get('move'))
+    sid       = request.sid
+
+    if not isinstance(filenames, list) or not filenames:
+        emit('media:export:error', {'code': 'no_files', 'message': 'No files selected.'})
+        return
+    if not target:
+        emit('media:export:error', {'code': 'invalid_target', 'message': 'No USB target selected.'})
+        return
+
+    logger_media.info("media export start: sid=%s target=%s move=%s files=%d", sid, target, move, len(filenames))
+    socketio.start_background_task(_media_export_task, filenames, target, move, sid)
 
 
 def _timer_tick_loop():

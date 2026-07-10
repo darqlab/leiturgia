@@ -793,6 +793,24 @@
       background: rgba(212,168,67,0.18); color: var(--gold); border-radius: 3px;
     }
 
+    /* ── USB export modal (media-storage-budget TDD §5.5) ── */
+    .export-target-list { display: flex; flex-direction: column; gap: 6px; max-height: 160px; overflow-y: auto; }
+    .export-target-row {
+      display: flex; align-items: center; gap: 8px; cursor: pointer;
+      padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; color: var(--white);
+    }
+    .export-target-row:hover { border-color: var(--gold-dim); }
+    .export-target-label { flex: 1; }
+    .export-target-free { font-size: 11px; color: var(--muted); white-space: nowrap; }
+    .export-progress-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--white); }
+    .export-progress-name { flex: 0 0 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .export-progress-bar {
+      flex: 1; height: 6px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 3px; overflow: hidden;
+    }
+    .export-progress-fill { height: 100%; width: 0%; background: var(--gold-dim); border-radius: 3px; transition: width 0.2s ease; }
+    .export-progress-pct { width: 36px; text-align: right; color: var(--muted); font-size: 11px; }
+
     .item-body { padding: 14px; border-top: 1px solid var(--border); display: none; }
     .item-body.open { display: block; max-height: calc(100vh - 280px); overflow-y: auto; }
 
@@ -1730,9 +1748,8 @@
                     <span class="media-bulk-info"></span>
                     <button class="btn btn-ghost media-bulk-delete-btn" style="font-size:10px;padding:2px 8px"
                             onclick="bulkDeleteVideos(this.closest('.program-item'))">Delete</button>
-                    <button class="btn btn-ghost media-bulk-export-btn" style="font-size:10px;padding:2px 8px" disabled
-                            title="USB export — coming soon"
-                            onclick="stubExport(this.closest('.program-item'))">Export…</button>
+                    <button class="btn btn-ghost media-bulk-export-btn" style="font-size:10px;padding:2px 8px"
+                            onclick="openExportModal(this.closest('.program-item'))">Export…</button>
                   </div>
                   <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px"
                           onclick="loadMediaListFor(this.closest('.program-item'), 'video')">↺ Refresh</button>
@@ -1748,7 +1765,7 @@
               <div class="media-warn-banner">
                 <span class="media-warn-text"></span>
                 <button class="media-warn-export-btn"
-                        onclick="stubExport(this.closest('.program-item'))">Export to USB…</button>
+                        onclick="openExportModal(this.closest('.program-item'))">Export to USB…</button>
                 <a href="/settings" class="media-settings-link">Storage settings…</a>
               </div>
               <input type="text" class="media-search-input" placeholder="Search files…"
@@ -2180,9 +2197,8 @@
                 <span class='media-bulk-info'></span>
                 <button class='btn btn-ghost media-bulk-delete-btn' style='font-size:10px;padding:2px 8px'
                         onclick='bulkDeleteVideos(this.closest(".program-item"))'>Delete</button>
-                <button class='btn btn-ghost media-bulk-export-btn' style='font-size:10px;padding:2px 8px' disabled
-                        title='USB export — coming soon'
-                        onclick='stubExport(this.closest(".program-item"))'>Export…</button>
+                <button class='btn btn-ghost media-bulk-export-btn' style='font-size:10px;padding:2px 8px'
+                        onclick='openExportModal(this.closest(".program-item"))'>Export…</button>
               </div>
               <button class='btn btn-ghost' style='font-size:10px;padding:2px 8px'
                       onclick='loadMediaListFor(this.closest(".program-item"), "video")'>↺ Refresh</button>
@@ -2198,7 +2214,7 @@
           <div class='media-warn-banner'>
             <span class='media-warn-text'></span>
             <button class='media-warn-export-btn'
-                    onclick='stubExport(this.closest(".program-item"))'>Export to USB…</button>
+                    onclick='openExportModal(this.closest(".program-item"))'>Export to USB…</button>
             <a href='/settings' class='media-settings-link'>Storage settings…</a>
           </div>
           <input type='text' class='media-search-input' placeholder='Search files…'
@@ -3404,12 +3420,194 @@
     }
   }
 
-  // Task 2.3/2.5 — Export… / "Export to USB…" stub. Phase 3 wires this up to
-  // the real USB export flow (target picker, copy/move, progress); for now
-  // it's present but informational only, per task scope.
-  function stubExport(itemEl) {
-    toast('USB export is coming in a future update — for now, delete videos to free up space.', 'success');
+  // ── USB export (TDD §5.4/§5.5, Phase 3 task 3.3) ───────────────────────────
+  // Entered via the bulk toolbar's Export… button and the warn-banner Export
+  // button — both call openExportModal() and act on the current checkbox
+  // selection (the same selection model bulk delete uses).
+
+  let _exportItemEl   = null;   // the .program-item the export modal is acting on
+  let _exportTargets  = [];     // last-fetched /api/media/usb-targets response
+  let _exportBusy     = false;
+
+  function _exportSelectedFiles() {
+    if (!_exportItemEl) return [];
+    const selected = _exportItemEl._selectedVideos || new Set();
+    const list  = _exportItemEl.querySelector('.media-file-list');
+    const files = list?._allFiles || [];
+    return files.filter(f => selected.has(f.name));
   }
+
+  async function openExportModal(itemEl) {
+    const selected = itemEl._selectedVideos || new Set();
+    if (!selected.size) { toast('Select at least one video to export', 'error'); return; }
+    _exportItemEl = itemEl;
+    _exportBusy   = false;
+
+    document.getElementById('exportModal').classList.add('open');
+    document.getElementById('exportProgressWrap').style.display = 'none';
+    document.getElementById('exportPickerBody').style.display = '';
+    document.getElementById('exportModeMove').checked = true;   // default Move (OQ-3)
+    document.getElementById('exportFat32Warning').style.display = 'none';
+    _renderExportSelectionSummary();
+
+    const list = document.getElementById('exportTargetList');
+    list.innerHTML = '<div class="media-file-list-empty">Looking for USB drives…</div>';
+    try {
+      const res  = await fetch('/api/media/usb-targets');
+      _exportTargets = await res.json();
+    } catch (e) {
+      _exportTargets = [];
+    }
+    _renderExportTargets();
+  }
+
+  function closeExportModal() {
+    if (_exportBusy) return;   // don't let an in-flight export be dismissed
+    document.getElementById('exportModal').classList.remove('open');
+    _exportItemEl = null;
+  }
+
+  function _renderExportSelectionSummary() {
+    const files = _exportSelectedFiles();
+    const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+    document.getElementById('exportSelectionSummary').textContent =
+      `${files.length} video${files.length === 1 ? '' : 's'} selected · ${_fmtBytes(totalBytes)}`;
+  }
+
+  function _renderExportTargets() {
+    const list = document.getElementById('exportTargetList');
+    if (!_exportTargets.length) {
+      list.innerHTML = '<div class="media-file-list-empty">No USB drive detected — insert one and refresh</div>';
+      _updateExportStartState();
+      return;
+    }
+    const files = _exportSelectedFiles();
+    const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+    list.innerHTML = _exportTargets.map((t, i) => `
+      <label class="export-target-row">
+        <input type="radio" name="exportTarget" value="${i}"
+               onchange="_updateExportStartState()"${i === 0 ? ' checked' : ''}>
+        <span class="export-target-label">${t.label}</span>
+        <span class="export-target-free">${t.free_label} free${t.fat32 ? ' · FAT32' : ''}</span>
+      </label>`).join('');
+    _updateExportStartState();
+  }
+
+  function _selectedExportTarget() {
+    const checked = document.querySelector('input[name="exportTarget"]:checked');
+    if (!checked) return null;
+    return _exportTargets[parseInt(checked.value, 10)] || null;
+  }
+
+  function _updateExportStartState() {
+    const startBtn = document.getElementById('exportStartBtn');
+    const reasonEl = document.getElementById('exportStartDisabledReason');
+    const fat32Warn = document.getElementById('exportFat32Warning');
+    const target = _selectedExportTarget();
+    const files  = _exportSelectedFiles();
+    const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+
+    if (!target) {
+      startBtn.disabled = true;
+      reasonEl.textContent = '';
+      fat32Warn.style.display = 'none';
+      return;
+    }
+
+    // FAT32 guard (TDD §5.5): warn if any selected file exceeds the 4 GiB
+    // FAT32 max file size, but don't block — it's advisory.
+    const FAT32_MAX = 4 * 1024 * 1024 * 1024;
+    const tooBig = target.fat32 ? files.filter(f => (f.size || 0) > FAT32_MAX) : [];
+    fat32Warn.style.display = tooBig.length ? '' : 'none';
+    if (tooBig.length) {
+      fat32Warn.textContent =
+        `⚠ ${tooBig.map(f => f.name).join(', ')} — over 4 GiB, FAT32 drives can't hold files that large.`;
+    }
+
+    if (totalBytes > (target.free_bytes || 0)) {
+      startBtn.disabled = true;
+      reasonEl.textContent =
+        `Not enough space on this drive (need ${_fmtBytes(totalBytes)}, free ${_fmtBytes(target.free_bytes || 0)})`;
+    } else {
+      startBtn.disabled = false;
+      reasonEl.textContent = '';
+    }
+  }
+
+  function startExport() {
+    const target = _selectedExportTarget();
+    const files  = _exportSelectedFiles();
+    if (!target || !files.length || !_exportItemEl) return;
+
+    const move = document.getElementById('exportModeMove').checked;
+    _exportBusy = true;
+
+    document.getElementById('exportPickerBody').style.display = 'none';
+    const progWrap = document.getElementById('exportProgressWrap');
+    progWrap.style.display = '';
+    progWrap.innerHTML = files.map(f => `
+      <div class="export-progress-row" data-export-file="${f.name}">
+        <span class="export-progress-name" title="${f.name}">${f.name}</span>
+        <div class="export-progress-bar"><div class="export-progress-fill" style="width:0%"></div></div>
+        <span class="export-progress-pct">0%</span>
+      </div>`).join('');
+
+    _socket.emit('media:export:start', {
+      filenames: files.map(f => f.name),
+      target:    target.path,
+      move,
+    });
+  }
+
+  _socket.on('media:export:progress', function (data) {
+    const row = document.querySelector(`.export-progress-row[data-export-file="${CSS.escape(data.filename)}"]`);
+    if (!row) return;
+    const pct = data.total ? Math.min(100, Math.round(data.bytes / data.total * 100)) : 0;
+    row.querySelector('.export-progress-fill').style.width = pct + '%';
+    row.querySelector('.export-progress-pct').textContent = pct + '%';
+  });
+
+  _socket.on('media:export:done', function (data) {
+    _exportBusy = false;
+    const moved      = data.moved      || [];
+    const copied     = data.copied     || [];
+    const keptLocal  = data.kept_local || [];
+    const failed     = data.failed     || [];
+
+    const parts = [];
+    if (moved.length)  parts.push(`${moved.length} moved`);
+    if (copied.length) parts.push(`${copied.length} copied`);
+    if (keptLocal.length) parts.push(`${keptLocal.length} copied (kept locally, in use)`);
+    if (failed.length) parts.push(`${failed.length} failed`);
+    toast(parts.length ? `Export complete: ${parts.join(', ')}` : 'Export complete', 'success');
+
+    keptLocal.forEach(k => {
+      const usedBy = (k.used_by || []).map(u => `${u.program} › ${u.item}`).join(', ');
+      toast(`"${k.name}" copied to USB, kept locally — in use by ${usedBy}`, 'success');
+    });
+    failed.forEach(f => toast(`"${f.name}" export failed: ${f.reason}`, 'error'));
+
+    document.getElementById('exportModal').classList.remove('open');
+    if (_exportItemEl) {
+      _exportItemEl._selectedVideos = new Set();
+      loadMediaListFor(_exportItemEl, _exportItemEl.dataset.itemType);
+    }
+    _exportItemEl = null;
+  });
+
+  _socket.on('media:export:error', function (data) {
+    _exportBusy = false;
+    if (data.code === 'usb_target_full') {
+      const name = data.name ? `"${data.name}"` : 'A file';
+      toast(`${name} didn't fit on the USB drive (need ${data.need_label}, free ${data.free_label})`, 'error');
+    } else {
+      toast(data.message || 'Export failed', 'error');
+    }
+    // Return to the picker so the operator can retry with a different target
+    // or selection rather than being stuck on a dead progress screen.
+    document.getElementById('exportPickerBody').style.display = '';
+    document.getElementById('exportProgressWrap').style.display = 'none';
+  });
 
   // Platform URL detection
   const PLATFORM_URL_RE = /youtube\.com|youtu\.be|vimeo\.com|facebook\.com|fb\.watch|twitter\.com|x\.com|tiktok\.com|instagram\.com|dailymotion\.com|twitch\.tv/i;
@@ -4972,6 +5170,50 @@
     <div style="display:flex;justify-content:flex-end;gap:10px;padding:.8rem 1.4rem 1.2rem;">
       <button class="btn btn-outline" onclick="closeLogoutModal()">Cancel</button>
       <button class="btn btn-gold" onclick="window.location.href='/logout'">Log out</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── USB Export Modal (media-storage-budget TDD §5.5, Phase 3) ──────────── -->
+<div id="exportModal" class="overlay-modal">
+  <div class="modal-box" style="max-width:440px;width:90%;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+    <div class="modal-head" style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.4rem;border-bottom:1px solid var(--border);">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;">Export to USB</span>
+      <button class="btn btn-ghost" onclick="closeExportModal()">&#x2715;</button>
+    </div>
+    <div style="padding:1.4rem;display:flex;flex-direction:column;gap:1rem;">
+      <div id="exportSelectionSummary" style="font-size:12px;color:var(--muted);"></div>
+
+      <div id="exportPickerBody" style="display:flex;flex-direction:column;gap:1rem;">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.5rem;">
+            <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">USB drive</span>
+            <button class="btn btn-ghost" style="font-size:10px;padding:2px 8px" onclick="openExportModal(_exportItemEl)">↺ Refresh</button>
+          </div>
+          <div id="exportTargetList" class="export-target-list"></div>
+        </div>
+
+        <div>
+          <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Mode</span>
+          <div style="display:flex;gap:1.2rem;margin-top:0.4rem;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--white);">
+              <input type="radio" name="exportMode" id="exportModeMove" checked onchange="_updateExportStartState()"> Move (frees space)
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--white);">
+              <input type="radio" name="exportMode" id="exportModeCopy" onchange="_updateExportStartState()"> Copy
+            </label>
+          </div>
+        </div>
+
+        <div id="exportFat32Warning" style="display:none;font-size:12px;color:var(--error);"></div>
+        <div id="exportStartDisabledReason" style="font-size:12px;color:var(--error);min-height:1em;"></div>
+      </div>
+
+      <div id="exportProgressWrap" style="display:none;flex-direction:column;gap:10px;"></div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;padding:1rem 1.4rem;border-top:1px solid var(--border);">
+      <button class="btn btn-outline" onclick="closeExportModal()">Cancel</button>
+      <button class="btn btn-gold" id="exportStartBtn" disabled onclick="startExport()">Start export</button>
     </div>
   </div>
 </div>

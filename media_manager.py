@@ -2,12 +2,14 @@
 media_manager.py — Enumerate media files in media/images/ and media/videos/,
 and compute storage-budget usage against them.
 
-Public: list_media(), usage(), referenced_media().
+Public: list_media(), usage(), referenced_media(), usb_targets(),
+resolve_usb_target().
 """
 
 import json
 import logging
 import os
+import re
 import shutil
 from urllib.parse import quote as _quote, unquote as _unquote
 
@@ -210,3 +212,73 @@ def referenced_media() -> dict:
                 "item":    item_label,
             })
     return refs
+
+
+# ── USB export targets (TDD §5.4 / §5.7 "USB export") ─────────────────────
+
+USB_MOUNT_ROOTS = ("/media/", "/mnt/", "/run/media/")
+
+_MOUNT_OCTAL_RE = re.compile(r'\\([0-7]{3})')
+
+
+def _unescape_mount_field(s: str) -> str:
+    """/proc/mounts octal-escapes spaces/tabs/newlines/backslashes in paths
+    (e.g. a space becomes \\040) — undo that so mount points compare/display
+    correctly."""
+    return _MOUNT_OCTAL_RE.sub(lambda m: chr(int(m.group(1), 8)), s)
+
+
+def usb_targets() -> list:
+    """List writable removable-looking mounts for USB export, per TDD §5.4:
+    parse /proc/mounts, keep mount points under the allowlisted roots, require
+    os.access(W_OK). Returns [{path, label, free_bytes, free_label, fs_type,
+    fat32}, ...]. Linux-only (/proc/mounts); returns [] elsewhere."""
+    targets = []
+    try:
+        with open('/proc/mounts') as f:
+            lines = f.readlines()
+    except OSError:
+        return targets
+
+    for line in lines:
+        parts = line.split()
+        if len(parts) < 3:
+            continue
+        mount_point = _unescape_mount_field(parts[1])
+        fs_type     = parts[2]
+        if not any(mount_point.startswith(root) for root in USB_MOUNT_ROOTS):
+            continue
+        if not os.path.isdir(mount_point) or not os.access(mount_point, os.W_OK):
+            continue
+        try:
+            free_bytes = shutil.disk_usage(mount_point).free
+        except OSError:
+            continue
+        label = os.path.basename(mount_point.rstrip('/')) or mount_point
+        targets.append({
+            "path":       mount_point,
+            "label":      label,
+            "free_bytes": free_bytes,
+            "free_label": _fmt_size(free_bytes),
+            "fs_type":    fs_type,
+            "fat32":      fs_type.lower() in ("vfat", "fat32", "fat", "msdos"),
+        })
+    return targets
+
+
+def resolve_usb_target(target: str) -> str:
+    """Validate a client-supplied export target against a *fresh* rescan of
+    /proc/mounts (never trust a stale client-supplied path) — the target must
+    resolve (realpath) to a mount point currently listed by usb_targets().
+    Returns the canonical mount path, or None if invalid/not currently
+    mounted/writable. See TDD §5.4 "Export security"."""
+    if not target:
+        return None
+    try:
+        real = os.path.realpath(target)
+    except (OSError, ValueError):
+        return None
+    for entry in usb_targets():
+        if os.path.realpath(entry["path"]) == real:
+            return entry["path"]
+    return None
