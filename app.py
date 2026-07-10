@@ -1185,7 +1185,8 @@ def delete_media_file(media_type, filename):
     safe = os.path.basename(filename)
     if not safe or safe != filename:
         return jsonify({"status": "error", "message": "Invalid filename"}), 400
-    path = os.path.join(app.root_path, "media", media_type, safe)
+    type_dir = media_manager.videos_dir() if media_type == "videos" else os.path.join(app.root_path, "media", "images")
+    path = os.path.join(type_dir, safe)
     if not os.path.exists(path):
         return jsonify({"status": "error", "message": "File not found"}), 404
     # In-use guard (TDD §5.3a) — a file still referenced by the current
@@ -1218,7 +1219,7 @@ def delete_media_videos_bulk():
         return jsonify({"status": "error", "message": "No filenames provided"}), 400
 
     in_use    = media_manager.referenced_media()
-    videos_dir = os.path.join(app.root_path, "media", "videos")
+    videos_dir = media_manager.videos_dir()
     deleted, failed = [], []
 
     for filename in filenames:
@@ -1255,6 +1256,87 @@ def delete_media_videos_bulk():
 def api_media_usb_targets():
     """List writable USB/removable mounts for the export flow. TDD §5.4."""
     return jsonify(media_manager.usb_targets())
+
+
+# ── Configurable video storage location (media-storage-budget TDD §5.6) ────
+
+def _video_dir_status() -> dict:
+    """Shape shared by GET and POST responses for /api/settings/video-dir."""
+    vdir  = media_manager.videos_dir()
+    usage = media_manager.usage()
+    return {
+        "status":             "ok",
+        "location":           "internal" if vdir == media_manager.VIDEOS_DIR else "external",
+        "path":               os.path.abspath(vdir),
+        "label":              usage.get("location_label", "Internal"),
+        "usage":              usage,
+        "videos_unavailable": usage.get("videos_unavailable", False),
+    }
+
+
+@app.route("/api/settings/video-dir", methods=["GET", "POST"])
+@operator_required
+def api_settings_video_dir():
+    if request.method == "GET":
+        return jsonify(_video_dir_status())
+
+    data      = request.get_json() or {}
+    requested = (data.get("dir") or "").strip()
+    previous_path = media_manager.videos_dir()
+
+    if not requested:
+        new_dir = media_manager.VIDEOS_DIR
+    else:
+        if not os.path.isabs(requested):
+            return jsonify({"status": "error", "message": "Path must be absolute."}), 400
+
+        # UI picker sends a bare mount root (from /api/media/usb-targets) —
+        # nest under leiturgia-videos/ so videos never land in the drive
+        # root (TDD §5.6). A caller supplying an already-nested path (e.g.
+        # advanced use) is left as-is, still subject to the checks below.
+        mounted_roots = {os.path.realpath(t["path"]): t for t in media_manager.usb_targets()}
+        try:
+            real_requested = os.path.realpath(requested)
+        except (OSError, ValueError):
+            real_requested = requested
+        if real_requested in mounted_roots:
+            candidate = os.path.join(requested.rstrip("/"), "leiturgia-videos")
+        else:
+            candidate = requested
+
+        resolved = media_manager.resolve_export_target(candidate)
+        if not resolved:
+            return jsonify({
+                "status":  "error",
+                "message": "Path must be on a mounted, writable removable drive "
+                           "(/media, /mnt, or /run/media).",
+            }), 400
+
+        if os.path.exists(resolved):
+            if not os.path.isdir(resolved):
+                return jsonify({"status": "error", "message": "Path exists and is not a directory."}), 400
+        else:
+            try:
+                os.makedirs(resolved, exist_ok=True)
+            except OSError as e:
+                return jsonify({"status": "error", "message": f"Could not create directory: {e}"}), 400
+
+        if not os.access(resolved, os.W_OK):
+            return jsonify({"status": "error", "message": "Path is not writable."}), 400
+
+        new_dir = resolved
+
+    # Never half-applied: everything above is validated before this write.
+    with open("config.json") as f:
+        cfg = json.load(f)
+    cfg["media_video_dir"] = "" if new_dir == media_manager.VIDEOS_DIR else new_dir
+    atomic_write_json("config.json", cfg)
+
+    status = _video_dir_status()
+    status["previous_path"] = previous_path
+    logger_media.info("video storage location changed: %s -> %s", previous_path, status["path"])
+    return jsonify(status)
+
 
 @app.route("/api/yt-title")
 @operator_required
@@ -1614,6 +1696,15 @@ def upload_media():
     else:
         return jsonify({"status": "error", "message": f"Unsupported file type: {ext}"}), 400
 
+    # Drive-disconnected degradation (TDD §5.6): refuse video ingest with an
+    # actionable error rather than writing into a stale/missing directory.
+    if media_type == "video" and media_manager.videos_unavailable():
+        return jsonify({
+            "status":  "error",
+            "code":    "video_storage_unavailable",
+            "message": "Video storage is unavailable — check the drive connection.",
+        }), 503
+
     # Pre-check: client-declared content length vs effective remaining budget for
     # this media type. request.content_length can be None on some clients — in
     # that case we can't pre-check and rely on the post-save backstop below.
@@ -1623,7 +1714,7 @@ def upload_media():
         return _media_budget_error(media_type)
 
     filename  = _sanitize_filename(secure_filename(f.filename))
-    save_dir  = os.path.join(app.root_path, "media", subdir)
+    save_dir  = media_manager.videos_dir() if subdir == "videos" else os.path.join(app.root_path, "media", "images")
     os.makedirs(save_dir, exist_ok=True)
     save_path = os.path.join(save_dir, filename)
     f.save(save_path)
@@ -1646,7 +1737,10 @@ def upload_media():
 def serve_media(subdir, filename):
     if subdir not in ("images", "videos"):
         return "Not found", 404
-    media_dir = os.path.join(app.root_path, "media", subdir)
+    # videos_dir() may be missing entirely (drive unplugged) — send_from_directory
+    # already 404s cleanly on a missing dir/file, no special-casing needed here;
+    # the existing projection media-error fallback handles a 404 media URL.
+    media_dir = media_manager.videos_dir() if subdir == "videos" else os.path.join(app.root_path, "media", "images")
     return send_from_directory(media_dir, filename)
 
 
@@ -1739,7 +1833,17 @@ def _yt_budget_error(item_id, sid):
 
 def _yt_download_task(url, quality, item_id, sid):
     import yt_dlp
-    videos_dir = os.path.join(app.root_path, 'media', 'videos')
+
+    # Drive-disconnected degradation (TDD §5.6): refuse ingest with an
+    # actionable error rather than downloading into a stale/missing directory.
+    if media_manager.videos_unavailable():
+        socketio.emit('yt:error', {
+            'item_id': item_id,
+            'message': 'Video storage is unavailable — check the drive connection.',
+        }, room=sid)
+        return
+
+    videos_dir = media_manager.videos_dir()
     os.makedirs(videos_dir, exist_ok=True)
 
     usage_before = media_manager.usage()
@@ -1884,7 +1988,7 @@ def _export_copy_file(src_path, dst_path, size, filename, sid):
 
 
 def _media_export_task(filenames, target, move, sid):
-    videos_dir = os.path.join(app.root_path, 'media', 'videos')
+    videos_dir = media_manager.videos_dir()
 
     # Export security (TDD §5.4): target must resolve under an allowlisted
     # mount root AND appear in a fresh /proc/mounts rescan — never trust a
@@ -2027,6 +2131,130 @@ def on_media_export_start(data):
 
     logger_media.info("media export start: sid=%s target=%s move=%s files=%d", sid, target, move, len(filenames))
     socketio.start_background_task(_media_export_task, filenames, target, move, sid)
+
+
+# ── Video storage location migration (media-storage-budget TDD §5.6) ───────
+# Switching the location (POST /api/settings/video-dir) is a metadata-only,
+# instant change; migrating existing videos into the new location is a
+# separate, optional, resumable background copy that reuses the Phase 3
+# export machinery (_export_copy_file, media:export:* events) rather than a
+# second copy engine. The destination is always the server's own current
+# videos_dir() (post-switch) — never a client-supplied path — so this can
+# only ever copy into the already-validated, already-persisted location.
+
+def _video_dir_migrate_task(from_dir, sid):
+    to_dir = media_manager.videos_dir()
+
+    # Never trust a stale/arbitrary client-supplied source path: it must be
+    # either the built-in default or a path that still resolves under a
+    # currently-mounted allowlisted root (fresh /proc/mounts rescan).
+    valid_from = (from_dir == media_manager.VIDEOS_DIR) or bool(media_manager.resolve_export_target(from_dir))
+    if not valid_from or not os.path.isdir(from_dir):
+        socketio.emit('media:export:error', {
+            'code':    'invalid_target',
+            'message': 'Previous video location is not available — nothing to migrate.',
+        }, room=sid)
+        return
+
+    if os.path.realpath(from_dir) == os.path.realpath(to_dir):
+        socketio.emit('media:export:done', {
+            'moved': [], 'copied': [], 'kept_local': [], 'failed': [],
+            'usage': media_manager.usage(),
+        }, room=sid)
+        return
+
+    os.makedirs(to_dir, exist_ok=True)
+    safe_names = sorted(
+        n for n in os.listdir(from_dir)
+        if os.path.splitext(n)[1].lower() in media_manager.VIDEO_EXTS
+        and os.path.isfile(os.path.join(from_dir, n))
+    )
+
+    if not safe_names:
+        socketio.emit('media:export:done', {
+            'moved': [], 'copied': [], 'kept_local': [], 'failed': [],
+            'usage': media_manager.usage(),
+        }, room=sid)
+        return
+
+    in_use = media_manager.referenced_media()
+    moved, kept_local, failed = [], [], []
+
+    for name in safe_names:
+        src_path = os.path.join(from_dir, name)
+        dst_path = os.path.join(to_dir, name)
+        try:
+            size = os.path.getsize(src_path)
+        except OSError:
+            failed.append({'name': name, 'reason': 'not_found'})
+            continue
+
+        try:
+            _export_copy_file(src_path, dst_path, size, name, sid)
+        except OSError:
+            try:
+                if os.path.exists(dst_path):
+                    os.remove(dst_path)
+            except OSError:
+                logger_media.warning("failed to clean up partial migration file: %s", dst_path, exc_info=True)
+            logger_media.warning("video-dir migration write failed for %s", name, exc_info=True)
+            failed.append({'name': name, 'reason': 'write_failed'})
+            continue
+
+        # Size-verify before any deletion — a failed verify never deletes the
+        # source, leaving it to retry on a later migration pass.
+        try:
+            dst_size = os.path.getsize(dst_path)
+        except OSError:
+            dst_size = -1
+        if dst_size != size:
+            failed.append({'name': name, 'reason': 'verify_failed'})
+            try:
+                os.remove(dst_path)
+            except OSError:
+                pass
+            continue
+
+        used_by = in_use.get(name)
+        if used_by:
+            # In-use guard (§5.3a): keep the local original at the old
+            # location instead of deleting it — same rule as USB export.
+            kept_local.append({'name': name, 'note': 'in_use_kept_local', 'used_by': used_by})
+        else:
+            try:
+                os.remove(src_path)
+                moved.append(name)
+            except OSError:
+                logger_media.warning("failed to remove source after migration: %s", src_path, exc_info=True)
+                failed.append({'name': name, 'reason': 'delete_failed'})
+
+    logger_media.info(
+        "video-dir migration done: from=%s to=%s moved=%d kept_local=%d failed=%d",
+        from_dir, to_dir, len(moved), len(kept_local), len(failed),
+    )
+    socketio.emit('media:export:done', {
+        'moved':      moved,
+        'copied':     [],
+        'kept_local': kept_local,
+        'failed':     failed,
+        'usage':      media_manager.usage(),
+    }, room=sid)
+
+
+@socketio.on('media:migrate:start')
+def on_media_migrate_start(data):
+    if not session.get('operator'):
+        disconnect()
+        return
+    from_dir = (data.get('from') or '').strip()
+    sid      = request.sid
+
+    if not from_dir:
+        emit('media:export:error', {'code': 'invalid_target', 'message': 'No previous location to migrate from.'})
+        return
+
+    logger_media.info("video-dir migration start: sid=%s from=%s", sid, from_dir)
+    socketio.start_background_task(_video_dir_migrate_task, from_dir, sid)
 
 
 def _timer_tick_loop():

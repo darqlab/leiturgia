@@ -3280,18 +3280,28 @@
       meter.style.display = 'none';
       return;
     }
+    // Drive-disconnected degradation (TDD §5.6): no meter to show — the
+    // banner alone communicates the unavailable state.
+    if (usage.videos_unavailable) {
+      meter.style.display = 'none';
+      _renderMediaWarnBanner(itemEl, usage);
+      _applyMediaFullState(itemEl, usage);
+      return;
+    }
     meter.style.display = '';
     const text = meter.querySelector('.media-usage-text');
     const fill = meter.querySelector('.media-usage-fill');
     const unlimited = usage.budget_bytes === 0;
+    // Phase 4 (TDD §5.6): name the external location when videos don't live
+    // in the built-in internal dir.
+    const locationSuffix = (usage.location_label && usage.location_label !== 'Internal')
+      ? ` · on ${usage.location_label}` : '';
     if (unlimited) {
       const freeBytes = Math.max((usage.fs_free_bytes || 0) - (usage.reserve_bytes || 0), 0);
-      text.textContent = `${usage.used_label} used · unlimited budget · ${_fmtBytes(freeBytes)} free on disk`;
+      text.textContent = `${usage.used_label} used · unlimited budget · ${_fmtBytes(freeBytes)} free on disk${locationSuffix}`;
       fill.style.width = '0%';
     } else {
-      // TODO Phase 4: append "· on USB (SANDISK)"-style location_label once
-      // configurable video storage (TDD §5.6) is built.
-      text.textContent = `${usage.used_label} of ${usage.budget_label} used`;
+      text.textContent = `${usage.used_label} of ${usage.budget_label} used${locationSuffix}`;
       fill.style.width = Math.min(100, Math.max(0, usage.percent || 0)) + '%';
     }
     fill.classList.toggle('full', !!usage.full);
@@ -3304,14 +3314,22 @@
   function _renderMediaWarnBanner(itemEl, usage) {
     const banner = itemEl.querySelector('.media-warn-banner');
     if (!banner) return;
-    if (usage.full) {
+    const exportBtn = banner.querySelector('.media-warn-export-btn');
+    if (usage.videos_unavailable) {
+      banner.classList.add('visible');
+      banner.querySelector('.media-warn-text').textContent =
+        'Video storage unavailable — is the drive connected?';
+      if (exportBtn) exportBtn.style.display = 'none';
+    } else if (usage.full) {
       banner.classList.add('visible');
       banner.querySelector('.media-warn-text').textContent =
         'Video storage is full. Delete unused videos or export them to a USB drive to free up space.';
+      if (exportBtn) exportBtn.style.display = '';
     } else if (usage.warn) {
       banner.classList.add('visible');
       banner.querySelector('.media-warn-text').textContent =
         'Video storage is nearly full. Delete unused videos or export them to a USB drive.';
+      if (exportBtn) exportBtn.style.display = '';
     } else {
       banner.classList.remove('visible');
     }
@@ -3319,9 +3337,13 @@
 
   // Task 2.4 — advisory-only UI block at full; the server remains the
   // authoritative enforcement (413 on upload, yt:error on download).
+  // Also covers the drive-disconnected state (TDD §5.6) — ingest is blocked
+  // client-side the same way, with the server refusing it either way.
   function _applyMediaFullState(itemEl, usage) {
-    const full         = !!usage.full;
-    const tip          = 'Video storage is full — delete or export videos first.';
+    const full         = !!usage.full || !!usage.videos_unavailable;
+    const tip          = usage.videos_unavailable
+      ? 'Video storage is unavailable — check the drive connection.'
+      : 'Video storage is full — delete or export videos first.';
     const uploadInput  = itemEl.querySelector('.media-upload-input');
     const ytBtn        = itemEl.querySelector('.yt-download-btn');
     if (uploadInput) {

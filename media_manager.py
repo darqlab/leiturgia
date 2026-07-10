@@ -3,7 +3,7 @@ media_manager.py — Enumerate media files in media/images/ and media/videos/,
 and compute storage-budget usage against them.
 
 Public: list_media(), usage(), referenced_media(), usb_targets(),
-resolve_usb_target().
+resolve_usb_target(), videos_dir(), videos_unavailable(), resolve_export_target().
 """
 
 import json
@@ -32,11 +32,57 @@ CONFIG_FILE = "config.json"
 DATA_FILE   = os.path.join("data", "program.json")
 
 
+def videos_dir() -> str:
+    """Resolve the physical video storage directory (TDD §5.6): `media_video_dir`
+    from config if set, else the built-in `media/videos` path. Every video-path
+    consumer (list/scan, usage, upload, yt-dlp, serve_media, export) must call
+    this rather than hard-coding the videos directory."""
+    cfg = _load_config()
+    configured = (cfg.get('media_video_dir') or '').strip()
+    return configured if configured else VIDEOS_DIR
+
+
+def videos_unavailable() -> bool:
+    """True only when an *externally configured* video dir (not the built-in
+    default) is missing/unmounted right now — e.g. a USB drive got unplugged.
+    The built-in dir simply not existing yet (fresh install, nothing uploaded)
+    is normal and is NOT reported as unavailable. See TDD §5.6 'Drive-disconnected
+    degradation'."""
+    vdir = videos_dir()
+    return vdir != VIDEOS_DIR and not os.path.isdir(vdir)
+
+
+def _location_label(vdir: str) -> str:
+    """Human label for where videos currently live — 'Internal' for the
+    built-in dir, else the matching USB target's label, else the basename of
+    the configured dir. Feeds `usage()['location_label']` (TDD §5.2)."""
+    if vdir == VIDEOS_DIR:
+        return "Internal"
+    try:
+        real = os.path.realpath(vdir)
+    except (OSError, ValueError):
+        real = vdir
+    for entry in usb_targets():
+        try:
+            entry_real = os.path.realpath(entry["path"])
+        except (OSError, ValueError):
+            continue
+        if real == entry_real or real.startswith(entry_real.rstrip('/') + '/'):
+            return entry["label"]
+    return os.path.basename(vdir.rstrip('/')) or vdir
+
+
 def list_media() -> dict:
-    """Return { "images": [...], "videos": [...] } with filename, URL, and metadata."""
+    """Return { "images": [...], "videos": [...], "videos_unavailable": bool }
+    with filename, URL, and metadata. When the configured video dir is
+    disconnected, "videos" comes back empty and "videos_unavailable" is True
+    instead of raising (TDD §5.6)."""
+    vdir = videos_dir()
+    unavailable = videos_unavailable()
     return {
-        "images": _scan(IMAGES_DIR, IMAGE_EXTS, "images"),
-        "videos": _scan(VIDEOS_DIR, VIDEO_EXTS, "videos"),
+        "images":             _scan(IMAGES_DIR, IMAGE_EXTS, "images"),
+        "videos":             [] if unavailable else _scan(vdir, VIDEO_EXTS, "videos"),
+        "videos_unavailable": unavailable,
     }
 
 
@@ -117,11 +163,14 @@ def usage() -> dict:
     reserve_bytes       = int(float(cfg.get('media_disk_reserve_gb', 1)) * 1024 ** 3)
     warn_percent        = float(cfg.get('media_warn_percent', 80))
 
-    used_bytes = _dir_used_bytes(VIDEOS_DIR)
+    vdir = videos_dir()
+    unavailable = videos_unavailable()
+    used_bytes = 0 if unavailable else _dir_used_bytes(vdir)
 
     # shutil.disk_usage needs an existing path — fall back to MEDIA_ROOT, then cwd,
-    # if VIDEOS_DIR doesn't exist yet (fresh install, no media uploaded).
-    du_path = VIDEOS_DIR if os.path.isdir(VIDEOS_DIR) else (
+    # if the resolved video dir doesn't exist yet (fresh install, no media
+    # uploaded, or — for an external dir — the drive is currently unplugged).
+    du_path = vdir if os.path.isdir(vdir) else (
         MEDIA_ROOT if os.path.isdir(MEDIA_ROOT) else "."
     )
     fs_free_bytes = shutil.disk_usage(du_path).free
@@ -170,6 +219,8 @@ def usage() -> dict:
         "used_label":      _fmt_size(used_bytes),
         "budget_label":    "Unlimited" if video_budget_bytes == 0 else _fmt_size(video_budget_bytes),
         "images":          images,
+        "location_label":       _location_label(vdir),
+        "videos_unavailable":   unavailable,
     }
 
 
@@ -281,4 +332,29 @@ def resolve_usb_target(target: str) -> str:
     for entry in usb_targets():
         if os.path.realpath(entry["path"]) == real:
             return entry["path"]
+    return None
+
+
+def resolve_export_target(target: str) -> str:
+    """Broader sibling of resolve_usb_target(): validates a client-supplied
+    path against a *fresh* /proc/mounts rescan, accepting the path if its
+    realpath sits AT or BELOW a currently-mounted, writable, allowlisted root
+    — not just equal to it. Used by the configurable video storage location
+    (TDD §5.6), whose target is typically `<mount>/leiturgia-videos`, a
+    subdirectory of the mount root rather than the root itself. Returns the
+    resolved absolute path, or None if invalid/not currently mounted/writable.
+    See TDD §5.6 "Validation (server, on POST)"."""
+    if not target or not os.path.isabs(target):
+        return None
+    try:
+        real = os.path.realpath(target)
+    except (OSError, ValueError):
+        return None
+    for entry in usb_targets():
+        try:
+            entry_real = os.path.realpath(entry["path"])
+        except (OSError, ValueError):
+            continue
+        if real == entry_real or real.startswith(entry_real.rstrip('/') + '/'):
+            return real
     return None
