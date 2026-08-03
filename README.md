@@ -46,6 +46,16 @@ http://<pi-ip>:5000/remote   Mobile remote
 > sudo systemctl restart leiturgia
 > ```
 
+### One-line installer (headless SBCs — DietPi, Orange Pi, etc.)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/darqlab/leiturgia/main/scripts/install-headless.sh | sudo bash
+```
+
+Same as the Raspberry Pi installer above, but runs the service as the device's existing
+`dietpi` user instead of creating a dedicated `leiturgia` account, and skips all
+Chromium/kiosk/desktop-shortcut setup since these boards never run a local browser.
+
 ### Debian package (.deb)
 
 Pre-built `.deb` packages for `all` are available on the
