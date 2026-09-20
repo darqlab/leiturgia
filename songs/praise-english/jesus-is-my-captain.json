@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "title": "Jesus Is My Captain",
+  "language": "en",
+  "author": "African-American Spiritual",
+  "copyright": "Public Domain",
+  "ccli": "",
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "verse",
+      "lines": [
+        "Jesus is my captain, I shall not be moved",
+        "Jesus is my captain, I shall not be moved",
+        "Just like a tree that's planted by the water",
+        "I shall not be moved"
+      ]
+    },
+    {
+      "number": 1,
+      "type": "chorus",
+      "lines": [
+        "I shall not be, I shall not be moved",
+        "I shall not be, I shall not be moved",
+        "Just like a tree that's planted by the water",
+        "I shall not be moved"
+      ]
+    }
+  ]
+}

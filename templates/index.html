@@ -822,6 +822,8 @@
     .media-list-wrap > .media-list-header,
     .media-list-wrap > .media-warn-banner { flex-shrink: 0; }
     .media-list-wrap > .media-file-list { flex: 1 1 auto; min-height: 0; max-height: none; }
+    .program-item[data-item-type="song"] .item-body.open { height: calc(100vh - 360px); }
+    .item-body.open > .lyrics-display { flex: 1 1 auto; min-height: 0; max-height: none; }
 
     /* ── YouTube download controls ── */
     .yt-download-controls {
@@ -1937,7 +1939,7 @@
                 <select class="item-hymn-lang hymn-lang-select" data-lang="{{ item.get('hymn_lang', 'en') }}"></select>
                 <input type="text" class="lyrics-query"
                        placeholder="Hymn # or song title…"
-                       value="{{ ('#' ~ item.hymn_number|string ~ ' — ' ~ item.title) if (item.get('hymn_number') and item.get('title') and 'lyrics_key' in item) else (item.get('hymn_number', '') or item.get('lyrics_key', '')) }}"
+                       value="{{ ('#' ~ item.hymn_number|string ~ ' — ' ~ item.title) if (item.get('hymn_number') and item.get('title') and 'lyrics_key' in item) else (item.get('title', '') if item.get('lyrics_key', '').startswith('lib:') else (item.get('hymn_number', '') or item.get('lyrics_key', ''))) }}"
                        oninput="hymnalSuggest(this)" onblur="closeSuggest(this)" onkeydown="hymnalSuggestKeydown(event, this)">
                 <div class="hymnal-suggest"></div>
                 <button class="btn btn-outline" onclick="searchLyrics(this)" style="height:38px; white-space:nowrap">Search Lyrics</button>
@@ -1946,7 +1948,7 @@
                   {% if 'lyrics_key' in item %}
                     onclick="openLyricsModal('{{ item['lyrics_key'] }}', '{{ item.get('hymn_number','') }}')"
                   {% endif %}>
-                  {% if "lyrics_key" in item %}✓ Lyrics saved ({{ item["lyrics_key"] }}){% endif %}
+                  {% if "lyrics_key" in item %}{% if item["lyrics_key"].startswith('lib:') %}✓ Library — {{ item["lyrics_key"].split(':')[1] if item["lyrics_key"].split(':')|length > 1 else item["lyrics_key"] }}{% else %}✓ Lyrics saved ({{ item["lyrics_key"] }}){% endif %}{% endif %}
                 </span>
               </div>
               <input type="hidden" class="lyrics-key" value="{{ item['lyrics_key'] if 'lyrics_key' in item else '' }}">
@@ -4150,17 +4152,46 @@
 
     _suggestTimer = setTimeout(async () => {
       const langSel = row.closest(".program-item")?.querySelector(".item-hymn-lang");
-      const lang = langSel?.value || "en";
-      const res  = await fetch(`/api/hymnal/search?q=${encodeURIComponent(q)}&lang=${lang}`);
-      const data = await res.json();
-      if (!data.length) { drop.classList.remove("open"); return; }
+      const source = langSel?.value || "en";
+      const isLib  = source.startsWith("lib:");
 
-      drop.innerHTML = data.map(h => `
+      let hymnalRows = [];
+      let libraryRows = [];
+      if (isLib) {
+        const collection = source.slice(4);
+        const url = collection
+          ? `/api/songlib/search?q=${encodeURIComponent(q)}&collection=${encodeURIComponent(collection)}&limit=8`
+          : `/api/songlib/search?q=${encodeURIComponent(q)}&limit=8`;
+        const res  = await fetch(url);
+        libraryRows = await res.json();
+      } else {
+        const [hymnalRes, libRes] = await Promise.all([
+          fetch(`/api/hymnal/search?q=${encodeURIComponent(q)}&lang=${source}`),
+          fetch(`/api/songlib/search?q=${encodeURIComponent(q)}&limit=8`),
+        ]);
+        [hymnalRows, libraryRows] = await Promise.all([hymnalRes.json(), libRes.json()]);
+      }
+
+      if (!hymnalRows.length && !libraryRows.length) { drop.classList.remove("open"); return; }
+
+      const hymnalHtml = hymnalRows.map(h => `
         <div class="hymnal-suggest-item" onmousedown="pickSuggest(this)"
-             data-title="${h.title}" data-number="${h.number}">
-          <span class="hymnal-suggest-num">#${h.number}</span>
-          <span class="hymnal-suggest-title">${h.title}</span>
+             data-title="${_escSuggest(h.title)}" data-number="${_escSuggest(h.number)}">
+          <span class="hymnal-suggest-num">#${_escSuggest(h.number)}</span>
+          <span class="hymnal-suggest-title">${_escSuggest(h.title)}</span>
         </div>`).join("");
+
+      const libraryHtml = libraryRows.length ? (
+        (hymnalHtml ? `<div class="hymnal-suggest-group">Library</div>` : "") +
+        libraryRows.map(s => `
+          <div class="hymnal-suggest-item" onmousedown="pickSuggest(this)"
+               data-title="${_escSuggest(s.title)}" data-key="${_escSuggest(s.key)}">
+            <span class="hymnal-suggest-num">${_escSuggest(s.collection)}</span>
+            <span class="hymnal-suggest-title">${_escSuggest(s.title)}</span>
+          </div>`).join("")
+      ) : "";
+
+      drop.innerHTML = hymnalHtml + libraryHtml;
 
       // Position below the input using fixed coords so overflow:hidden parents can't clip it
       const rect = input.getBoundingClientRect();
@@ -4171,6 +4202,14 @@
     }, 250);
   }
 
+  // Song titles come from contributor-authored files under songs/, so they are not
+  // trusted markup — escape before interpolating into suggestion rows.
+  function _escSuggest(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
   function pickSuggest(item) {
     const row         = item.closest(".lyrics-search-row");
     const input       = row.querySelector(".lyrics-query");
@@ -4178,8 +4217,33 @@
     const programItem = row.closest(".program-item");
     const hymnInput   = programItem?.querySelector(".item-hymn");
     const titleInput  = programItem?.querySelector(".item-title");
+    // .lyrics-key is a sibling of .lyrics-search-row, not a child — scope to the item.
+    const keyInput    = programItem?.querySelector(".lyrics-key");
     const outline     = document.querySelector(`.outline-item[data-for="${programItem?.id}"]`);
     if (programItem) delete programItem.dataset.new;
+
+    if (item.dataset.key) {
+      // Library song: the key already resolves — no fetch needed.
+      input.value = item.dataset.title;
+      if (hymnInput)  hymnInput.value  = "";
+      if (titleInput) titleInput.value = item.dataset.title;
+      if (keyInput)   keyInput.value   = item.dataset.key;
+      const status = row.querySelector(".lyrics-status-text");
+      if (status) {
+        const collection = item.querySelector(".hymnal-suggest-num")?.textContent || "";
+        status.textContent = `✓ Library — ${collection}`;
+        status.className = "lyrics-status-text ok";
+        status.onclick = () => openLyricsModal(item.dataset.key, item.dataset.title);
+      }
+      if (outline) {
+        const partVal = programItem?.querySelector(".item-part")?.value || "";
+        outline.querySelector(".outline-title").textContent = partVal || item.dataset.title;
+      }
+      const disp = programItem?.querySelector(".lyrics-display");
+      if (disp) { disp.innerHTML = ""; delete disp.dataset.loaded; loadLyricsDisplay(programItem); }
+      drop.classList.remove("open");
+      return;
+    }
 
     input.value = item.dataset.number;
     if (hymnInput)  hymnInput.value  = item.dataset.number;
@@ -5110,23 +5174,34 @@
     renderLivePreview(data);
   }
 
-  // ── Hymnal language selector ─────────────────────────────────────────────
+  // ── Hymnal language / song source selector ────────────────────────────────
   let _hymnLangs = [];
+  let _songCollections = [];
 
   async function _loadHymnLangs() {
     try {
       const res = await fetch('/api/hymnal/languages');
       _hymnLangs = await res.json();
-      _populateLangSelects();
     } catch (e) { _hymnLangs = [{code: 'en', label: 'English'}]; }
+    try {
+      const res2 = await fetch('/api/songlib/collections');
+      _songCollections = await res2.json();
+    } catch (e) { _songCollections = []; }
+    _populateLangSelects();
   }
 
   function _populateLangSelects() {
     document.querySelectorAll('.item-hymn-lang').forEach(sel => {
       const cur = sel.dataset.lang || sel.value || 'en';
-      sel.innerHTML = _hymnLangs.map(l =>
+      const hymnalOpts = _hymnLangs.map(l =>
         `<option value="${l.code}"${l.code === cur ? ' selected' : ''}>${l.label}</option>`
       ).join('');
+      const libraryOpts = _songCollections.map(c => {
+        const val = `lib:${c.slug}`;
+        return `<option value="${_escSuggest(val)}"${val === cur ? ' selected' : ''}>${_escSuggest(c.name)}</option>`;
+      }).join('');
+      sel.innerHTML = `<optgroup label="Hymnal">${hymnalOpts}</optgroup>` +
+        (libraryOpts ? `<optgroup label="Library">${libraryOpts}</optgroup>` : '');
     });
   }
 

@@ -26,6 +26,7 @@ from functools import wraps
 from dotenv import load_dotenv
 load_dotenv()
 from hymnal import search_titles, get_by_title, get_by_number, search_by_number_prefix
+import songlib
 from projection import ProjectionStateManager
 from media_manager import list_media
 import media_manager
@@ -294,7 +295,15 @@ def _prepare_lyrics(items):
         if item.get("type") != "song":
             continue
         if item.get("lyrics_key"):
-            path = _lyrics_path(item["lyrics_key"])
+            key = item["lyrics_key"]
+            if key.startswith("lib:"):
+                ref = songlib.parse_ref(key)
+                if ref:
+                    song = songlib.get_song(*ref)
+                    if song:
+                        item["lyrics"] = song.get("stanzas", [])
+                continue
+            path = _lyrics_path(key)
             if os.path.exists(path):
                 data = _load_lyrics(path,
                                     hint_number=item.get("hymn_number"),
@@ -486,6 +495,16 @@ def fetch_lyrics_route():
 @app.route("/api/lyrics/<key>")
 @operator_required
 def get_lyrics(key):
+    if key.startswith("lib:"):
+        ref = songlib.parse_ref(key)
+        if not ref:
+            return jsonify({"status": "error", "message": "Lyrics file not found"}), 404
+        song = songlib.get_song(*ref)
+        if not song:
+            return jsonify({"status": "error", "message": "Lyrics file not found"}), 404
+        return jsonify({"status": "ok", "stanzas": song.get("stanzas", []),
+                        "hymn_number": None,
+                        "title": song.get("title")})
     path = _lyrics_path(key)
     if not os.path.exists(path):
         return jsonify({"status": "error", "message": "Lyrics file not found"}), 404
@@ -522,6 +541,39 @@ def hymnal_languages():
         code = os.path.basename(path)[len("hymns_"):-len(".db")]
         langs.append({"code": code, "label": LANG_LABELS.get(code, code.upper())})
     return jsonify(langs)
+
+
+_SONGLIB_SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
+
+
+@app.route("/api/songlib/search")
+@operator_required
+def songlib_search():
+    q = request.args.get("q", "").strip()
+    collection = request.args.get("collection", "").strip() or None
+    limit = request.args.get("limit", 8, type=int) or 8
+    if collection and not _SONGLIB_SLUG_RE.match(collection):
+        return jsonify({"status": "error", "message": "Invalid collection"}), 400
+    if not q:
+        return jsonify([])
+    return jsonify(songlib.search_titles(q, limit=limit, collection=collection))
+
+
+@app.route("/api/songlib/collections")
+@operator_required
+def songlib_collections():
+    return jsonify(songlib.list_collections())
+
+
+@app.route("/api/songlib/song/<collection>/<slug>")
+@operator_required
+def songlib_song(collection, slug):
+    if not _SONGLIB_SLUG_RE.match(collection) or not _SONGLIB_SLUG_RE.match(slug):
+        return jsonify({"status": "error", "message": "Invalid collection or slug"}), 400
+    song = songlib.get_song(collection, slug)
+    if not song:
+        return jsonify({"status": "error", "message": "Song not found"}), 404
+    return jsonify({"status": "ok", "song": song})
 
 
 @app.route("/api/program/add", methods=["POST"])

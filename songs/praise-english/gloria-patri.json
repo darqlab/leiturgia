@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "title": "Gloria Patri",
+  "language": "en",
+  "author": "Traditional",
+  "copyright": "Public Domain",
+  "ccli": "",
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "chorus",
+      "lines": [
+        "Glory be to the Father",
+        "And to the Son, and to the Holy Ghost",
+        "As it was in the beginning",
+        "Is now, and ever shall be",
+        "World without end. Amen, amen"
+      ]
+    }
+  ]
+}

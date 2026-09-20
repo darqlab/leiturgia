@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "title": "Come Thou Fount of Every Blessing",
+  "language": "en",
+  "author": "Robert Robinson",
+  "copyright": "Public Domain",
+  "stanzas": [
+    { "number": 1, "type": "verse", "lines": [
+      "Come Thou Fount of every blessing",
+      "Tune my heart to sing Thy grace",
+      "Streams of mercy, never ceasing",
+      "Call for songs of loudest praise"
+    ] },
+    { "number": 2, "type": "verse", "lines": [
+      "Here I raise my Ebenezer",
+      "Hither by Thy help I'm come",
+      "And I hope, by Thy good pleasure",
+      "Safely to arrive at home"
+    ] },
+    { "number": 3, "type": "verse", "lines": [
+      "O to grace how great a debtor",
+      "Daily I'm constrained to be",
+      "Let Thy goodness, like a fetter",
+      "Bind my wandering heart to Thee"
+    ] }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "title": "Doxology",
+  "language": "en",
+  "author": "Thomas Ken (1674)",
+  "copyright": "Public Domain",
+  "ccli": "",
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "chorus",
+      "lines": [
+        "Praise God, from whom all blessings flow",
+        "Praise Him, all creatures here below",
+        "Praise Him above, ye heavenly host",
+        "Praise Father, Son, and Holy Ghost",
+        "Amen"
+      ]
+    }
+  ]
+}

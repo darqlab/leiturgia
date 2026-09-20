@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+data/lyrics
+data/*.json
+media/images/*
+media/videos/*
+output/
+.idea
+.claude
+config.json
+*.pyc
