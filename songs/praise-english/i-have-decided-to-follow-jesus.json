@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "title": "I Have Decided To Follow Jesus",
+  "language": "en",
+  "author": "Attributed to Nokseng (Assam); Indian folk melody",
+  "copyright": "Public Domain",
+  "ccli": "",
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "verse",
+      "lines": [
+        "I have decided to follow Jesus",
+        "I have decided to follow Jesus",
+        "I have decided to follow Jesus",
+        "No turning back, no turning back."
+      ]
+    },
+    {
+      "number": 2,
+      "type": "verse",
+      "lines": [
+        "Though no one joins me still I will follow",
+        "Though no one joins me still I will follow",
+        "Though no one joins me still I will follow",
+        "No turning back, no turning back."
+      ]
+    },
+    {
+      "number": 3,
+      "type": "verse",
+      "lines": [
+        "The world behind me still I will follow",
+        "The world behind me still I will follow",
+        "The world behind me still I will follow",
+        "No turning back, no turning back."
+      ]
+    },
+    {
+      "number": 4,
+      "type": "verse",
+      "lines": [
+        "Do take the whole world, but give me Jesus",
+        "Do take the whole world, but give me Jesus",
+        "Do take the whole world, but give me Jesus",
+        "No turning back, no turning back."
+      ]
+    }
+  ]
+}
