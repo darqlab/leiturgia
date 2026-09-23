@@ -70,6 +70,10 @@ def _load_meta(path: str) -> dict | None:
         logger.warning("songlib: failed to read/parse %s", path, exc_info=True)
         return None
 
+    if not isinstance(data, dict):
+        logger.warning("songlib: song file top level is not an object %s", path)
+        return None
+
     meta = {
         "title": data.get("title") or os.path.splitext(os.path.basename(path))[0],
         "language": data.get("language") or "en",
@@ -92,6 +96,8 @@ def list_collections() -> list[dict]:
 
 def list_songs(collection: str | None = None) -> list[dict]:
     """Return [{"collection","slug","title","language"}] across one or all collections."""
+    if collection and not _SLUG_RE.match(collection):
+        return []
     collections = [collection] if collection else _collection_dirs()
     rows = []
     for c in collections:
