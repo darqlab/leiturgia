@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "title": "Chorus Title As It Should Appear On Screen",
+  "language": "en",
+  "author": "Traditional",
+  "copyright": "Public Domain",
+  "ccli": "",
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "chorus",
+      "lines": [
+        "First line of the chorus",
+        "Second line of the chorus",
+        "Third line of the chorus",
+        "Fourth line of the chorus"
+      ]
+    }
+  ]
+}

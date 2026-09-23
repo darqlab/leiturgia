@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "title": "Song Title As It Should Appear On Screen",
+  "language": "en",
+  "author": "Author / composer, or \"Traditional\"",
+  "copyright": "Public Domain",
+  "ccli": "",
+  "stanzas": [
+    {
+      "number": 1,
+      "type": "verse",
+      "lines": [
+        "First line of verse one",
+        "Second line of verse one",
+        "Third line of verse one",
+        "Fourth line of verse one"
+      ]
+    },
+    {
+      "number": 1,
+      "type": "chorus",
+      "lines": [
+        "First line of the chorus",
+        "Second line of the chorus"
+      ]
+    },
+    {
+      "number": 2,
+      "type": "verse",
+      "lines": [
+        "First line of verse two",
+        "Second line of verse two",
+        "Third line of verse two",
+        "Fourth line of verse two"
+      ]
+    }
+  ]
+}

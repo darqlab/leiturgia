@@ -46,7 +46,9 @@ def _row_to_stanzas(row: sqlite3.Row) -> list[dict]:
 
 
 def _connect(lang: str = "en"):
-    con = sqlite3.connect(_db_path(lang))
+    # mode=ro: an unrecognized `lang` must fail, never silently create an empty DB file.
+    uri = f"file:{_db_path(lang)}?mode=ro"
+    con = sqlite3.connect(uri, uri=True)
     con.row_factory = sqlite3.Row
     return con
 

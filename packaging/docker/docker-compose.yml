@@ -1,0 +1,70 @@
+# Leiturgia — staging / development container stack.
+#
+# Production is NOT this: the Pi runs the app under systemd from a venv
+# (packaging/leiturgia.service + install.sh), driven by deploy.sh and
+# scripts/update.sh. This stack exists so the app can be run and smoke-tested
+# on an amd64 box (bastion, Forge) without pinning host Python — the app
+# targets 3.10/3.11 and eventlet is fragile on 3.13.
+#
+# Usage, from the app directory that holds this file's parent tree:
+#   docker compose -f packaging/docker/docker-compose.yml up -d --build
+#   docker compose -f packaging/docker/docker-compose.yml logs -f
+#
+# Requires a config.json beside the repo root (gitignored — see
+# config.example.json). Generate a staging one with a throwaway PIN:
+#   python3 -c "import json,secrets;c=json.load(open('config.example.json'));\
+#   c['pin']='4321';c['session_secret']=secrets.token_hex(32);\
+#   json.dump(c,open('config.json','w'),indent=2)"
+
+services:
+  leiturgia:
+    build:
+      context: ../..
+      dockerfile: packaging/docker/Dockerfile
+    image: leiturgia:staging
+    container_name: leiturgia
+
+    ports:
+      # host:container — 5000 is the app's hardcoded bind port (app.py __main__).
+      # 5080 chosen because 5050 is already taken on bastion.
+      - "5080:5000"
+
+    volumes:
+      # config.json is gitignored and carries the operator PIN + session secret,
+      # so it is never baked into the image — it is supplied by the host.
+      - ../../config.json:/app/config.json:ro
+
+      # NOTE: deliberately NO volume on /app/data.
+      #
+      # data/ holds BOTH mutable runtime state (program.json, history.json,
+      # lyrics/) AND the two git-tracked, read-only hymnal databases
+      # (hymns_en.db, hymns_tl.db). Mounting a named volume or an empty host
+      # dir at /app/data masks those DBs and silently breaks every hymn lookup.
+      #
+      # Consequence, accepted for staging: program state is ephemeral and is
+      # lost on `docker compose down` or a rebuild. To persist it, seed a host
+      # directory with the two .db files FIRST, then mount that:
+      #   - ./_data:/app/data
+      # songs/ is intentionally NOT mounted — the whole point of the song
+      # library is that songs ship inside the image with the code.
+
+    restart: unless-stopped
+
+    environment:
+      - PYTHONUNBUFFERED=1
+
+    healthcheck:
+      # /login is unauthenticated and always renders; /api/* would return 401.
+      test: ["CMD", "python", "-c",
+             "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:5000/login', timeout=5).status==200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 3
+
+    logging:
+      # Bastion is a shared staging host — cap logs so one app can't fill /.
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
