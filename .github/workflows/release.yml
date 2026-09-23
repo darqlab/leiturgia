@@ -36,7 +36,7 @@ jobs:
              "${PKG_DIR}/opt/leiturgia/"
 
           # Bundled assets
-          cp -r templates static "${PKG_DIR}/opt/leiturgia/"
+          cp -r templates static songs "${PKG_DIR}/opt/leiturgia/"
           cp data/hymns_en.db data/hymns_tl.db "${PKG_DIR}/opt/leiturgia/data/"
 
           # systemd unit

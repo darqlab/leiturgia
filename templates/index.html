@@ -2613,12 +2613,33 @@
       const data = await res.json();
       if (data.status === "ok") {
         keyEl.value = data.key;
+        const itemEl = section.closest(".program-item");
+        if (data.source === "library") {
+          // Library match: no hymn number applies — clear any stale one from a prior hymnal search.
+          const hymnInput = itemEl?.querySelector(".item-hymn");
+          if (hymnInput) hymnInput.value = "";
+          if (data.title) {
+            const titleInput = itemEl?.querySelector(".item-title");
+            if (titleInput) titleInput.value = data.title;
+          }
+          if (data.lang) {
+            const langInput = itemEl?.querySelector(".item-hymn-lang");
+            if (langInput) langInput.value = data.lang;
+          }
+          const collection = data.lang ? data.lang.slice(4) : "";
+          status.textContent = `✓ Library — ${collection}`;
+          status.className = "lyrics-status-text ok";
+          status.onclick = () => openLyricsModal(data.key, query);
+          qInput.value = data.title || query;
+          const disp = itemEl?.querySelector(".lyrics-display");
+          if (disp) { disp.innerHTML = ""; delete disp.dataset.loaded; loadLyricsDisplay(itemEl); }
+          return;
+        }
         const src = data.source === "cache" ? "cached" : "fetched from web";
         status.textContent = `✓ ${data.count} stanzas ${src} (${data.key})`;
         status.className = "lyrics-status-text ok";
         status.onclick = () => openLyricsModal(data.key, query);
         // If server resolved a hymn number/title, update the hidden inputs
-        const itemEl = section.closest(".program-item");
         if (data.hymn_number) {
           const hymnInput = itemEl?.querySelector(".item-hymn");
           if (hymnInput) hymnInput.value = data.hymn_number;

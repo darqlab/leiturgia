@@ -1,4 +1,29 @@
+import json
+
 import songlib
+
+
+def test_search_titles_rejects_invalid_collection_path(tmp_path, monkeypatch):
+    (tmp_path / "songs").mkdir()
+    escape_dir = tmp_path / "escape"
+    escape_dir.mkdir()
+    (escape_dir / "secret.json").write_text(json.dumps({"title": "Escaped Song", "stanzas": []}))
+    monkeypatch.setattr(songlib, "SONGS_DIR", str(tmp_path / "songs"))
+    assert songlib.search_titles("Escaped", collection="../escape") == []
+
+
+def test_load_meta_returns_none_for_non_object_json(tmp_path):
+    path = tmp_path / "list-shaped.json"
+    path.write_text(json.dumps(["not", "an", "object"]))
+    assert songlib._load_meta(str(path)) is None
+
+
+def test_list_songs_skips_list_shaped_file_without_raising(tmp_path, monkeypatch):
+    collection_dir = tmp_path / "songs" / "some-collection"
+    collection_dir.mkdir(parents=True)
+    (collection_dir / "bad.json").write_text(json.dumps(["not", "an", "object"]))
+    monkeypatch.setattr(songlib, "SONGS_DIR", str(tmp_path / "songs"))
+    assert songlib.list_songs(collection="some-collection") == []
 
 
 def test_search_titles_finds_known_song():
