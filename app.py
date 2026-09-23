@@ -449,6 +449,20 @@ def fetch_lyrics_route():
         hymn_number = None
         hymn_title  = None
 
+        if lang.startswith("lib:"):
+            # Library sources aren't hymnal languages — resolve against songs/, never the hymnal DB.
+            collection = lang[len("lib:"):]
+            matches = songlib.search_titles(q, limit=1, collection=collection)
+            if not matches:
+                return jsonify({"status": "error", "message": "No lyrics found"})
+            match = matches[0]
+            song = songlib.get_song(match["collection"], match["slug"])
+            stanzas = song.get("stanzas", []) if song else []
+            resp = {"status": "ok", "key": match["key"], "count": len(stanzas),
+                    "source": "library", "lang": lang}
+            if match.get("title"): resp["title"] = match["title"]
+            return jsonify(resp)
+
         if q.isdigit():
             key = f"{lang}-{q}"
             hymn_number = int(q)
