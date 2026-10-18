@@ -1618,6 +1618,10 @@ def api_update_start():
     if not cfg.get('enable_self_update', False):
         return jsonify({'status': 'error', 'message': 'not found'}), 404
 
+    import sys as _sys
+    if _sys.platform != 'linux':
+        return jsonify({'status': 'error', 'message': 'not found'}), 404
+
     if not _origin_reachable():
         return jsonify({'status': 'offline', 'message': 'no internet connection'}), 503
 
@@ -2341,9 +2345,6 @@ def _timer_tick_loop():
         for ch in roles.get_channels('order_of_service'):
             socketio.emit('timer:tick', payload, room=ch)
 
-socketio.start_background_task(_timer_tick_loop)
-
-
 @app.errorhandler(Exception)
 def _handle_unexpected_error(exc):
     if isinstance(exc, HTTPException):
@@ -2366,8 +2367,15 @@ def _cloud_update_pump():
         socketio.sleep(0.2)
 
 
-socketio.start_background_task(_cloud_update_pump)
-cloud_agent.start()
+def start_background_services():
+    """Start the long-lived background services.
+
+    Called once from the server entry point. Extracted so a desktop shell can
+    start them from its own server thread.
+    """
+    socketio.start_background_task(_timer_tick_loop)
+    socketio.start_background_task(_cloud_update_pump)
+    cloud_agent.start()
 
 
 if __name__ == "__main__":
@@ -2382,4 +2390,6 @@ if __name__ == "__main__":
             os.unlink(_p)
         except OSError:
             pass
-    socketio.run(app, host="0.0.0.0", port=5000, debug=False)
+    _host = "0.0.0.0" if _config.get("bind_lan", True) else "127.0.0.1"
+    start_background_services()
+    socketio.run(app, host=_host, port=5000, debug=False)
